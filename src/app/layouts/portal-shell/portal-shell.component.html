@@ -1,21 +1,28 @@
 <div class="portal-shell">
   <header class="mobile-header">
     <a routerLink="/" class="brand" aria-label="Avenews customer portal home">
-      <span class="brand-mark">A</span>
-      <span>Avenews</span>
+      <img src="/favicon.svg" alt="" class="brand-mark" aria-hidden="true">
+      <span class="brand-wordmark">Avenews</span>
     </a>
-    <button class="avatar" type="button" (click)="menuOpen = !menuOpen" aria-label="Open profile menu">
-      {{ initials }}
+    <button
+      class="avatar-trigger"
+      type="button"
+      (click)="toggleMenu()"
+      aria-label="Open profile menu"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen"
+    >
+      <av-avatar [initials]="initials" size="md" />
     </button>
   </header>
 
   <aside class="sidebar">
     <a routerLink="/" class="brand sidebar-brand" aria-label="Avenews customer portal home">
-      <span class="brand-mark">A</span>
-      <span>Avenews</span>
+      <img src="/favicon.svg" alt="" class="brand-mark" aria-hidden="true">
+      <span class="brand-wordmark">Avenews</span>
     </a>
 
-    <nav aria-label="Customer portal">
+    <nav class="sidebar-nav" aria-label="Customer portal">
       @for (item of visibleNavItems; track item.path) {
         <a
           [routerLink]="item.path"
@@ -23,18 +30,26 @@
           [routerLinkActiveOptions]="{ exact: item.exact }"
           class="nav-link"
         >
-          <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+          <av-icon [name]="item.icon" [size]="18" />
           <span>{{ item.label }}</span>
         </a>
       }
     </nav>
 
-    <button type="button" class="profile-button" (click)="menuOpen = !menuOpen">
-      <span class="avatar avatar--small">{{ initials }}</span>
+    <button
+      type="button"
+      class="profile-button"
+      (click)="toggleMenu()"
+      aria-label="Open profile menu"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen"
+    >
+      <av-avatar [initials]="initials" size="sm" />
       <span class="profile-meta">
         <strong>{{ fullName }}</strong>
         <small>{{ session?.role === 'admin' ? 'Customer Admin' : 'Customer User' }}</small>
       </span>
+      <av-icon name="chevron-up" [size]="16" />
     </button>
   </aside>
 
@@ -50,25 +65,41 @@
         [routerLinkActiveOptions]="{ exact: item.exact }"
         class="bottom-nav__item"
       >
-        <span aria-hidden="true">{{ item.icon }}</span>
+        <av-icon [name]="item.icon" [size]="18" />
         <small>{{ item.label }}</small>
       </a>
     }
   </nav>
 
   @if (menuOpen) {
-    <button class="menu-backdrop" type="button" (click)="menuOpen = false" aria-label="Close profile menu"></button>
-    <div class="profile-menu" role="menu">
+    <button class="menu-backdrop" type="button" (click)="closeMenu()" aria-label="Close profile menu"></button>
+    <div class="profile-menu" role="menu" aria-label="Profile menu">
       <div class="profile-menu__header">
         <strong>{{ fullName }}</strong>
         <small>{{ session?.businessName }}</small>
       </div>
-      <a routerLink="/profile" (click)="menuOpen = false" role="menuitem">View Profile</a>
+      <a routerLink="/profile" (click)="closeMenu()" role="menuitem">
+        <av-icon name="user" [size]="16" />
+        View Profile
+      </a>
       @if (session?.role === 'admin') {
-        <a routerLink="/manage-users" (click)="menuOpen = false" role="menuitem">Manage Users</a>
+        <a routerLink="/manage-users" (click)="closeMenu()" role="menuitem">
+          <av-icon name="users" [size]="16" />
+          Manage Users
+        </a>
       }
-      <a routerLink="/support" (click)="menuOpen = false" role="menuitem">Support</a>
-      <button type="button" (click)="logout()" role="menuitem">Log out</button>
+      <a routerLink="/design-lab" (click)="closeMenu()" role="menuitem">
+        <av-icon name="settings" [size]="16" />
+        Design lab
+      </a>
+      <a routerLink="/support" (click)="closeMenu()" role="menuitem">
+        <av-icon name="help-circle" [size]="16" />
+        Support
+      </a>
+      <button type="button" (click)="logout()" role="menuitem" class="profile-menu__logout">
+        <av-icon name="arrow-back" [size]="16" />
+        Log out
+      </button>
     </div>
   }
 </div>

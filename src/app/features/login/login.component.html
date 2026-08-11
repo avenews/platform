@@ -1,33 +1,106 @@
 <div class="login-screen">
-  <main class="login-card">
-    <a class="brand" href="/" aria-label="Avenews home">
-      <span class="brand-mark">A</span>
-      <span>Avenews</span>
-    </a>
+  <main class="login-main">
+    <div class="login-card">
+      <a class="login-brand" href="/" aria-label="Avenews home">
+        <img src="/favicon.svg" alt="" aria-hidden="true">
+        <span>Avenews</span>
+      </a>
 
-    <div class="login-copy">
-      <p class="eyebrow">Customer portal prototype</p>
-      <h1>Sign in</h1>
-      <p>Use the mock account below to enter the Angular foundation.</p>
+      @if (step === 'success') {
+        <div class="login-success">
+          <div class="login-success__icon" aria-hidden="true">
+            <av-icon name="check" [size]="28" />
+          </div>
+          <h1>{{ method === 'email' ? 'Check your inbox' : 'Check your messages' }}</h1>
+          <p>
+            The mock login code has been sent. Opening the customer portal preview now.
+          </p>
+        </div>
+      } @else {
+        <div class="login-heading">
+          <p class="page-eyebrow">Customer portal prototype</p>
+          <h1>Welcome, let's sign you in.</h1>
+          <p>Enter your email or phone number to receive a login code.</p>
+        </div>
+
+        <av-segment
+          [options]="segmentOptions"
+          [value]="method"
+          (valueChange)="onMethodChange($event)"
+        />
+
+        <form (ngSubmit)="handleSubmit()">
+          <div class="login-field">
+            @if (method === 'email') {
+              <av-input
+                label="Email address"
+                type="email"
+                placeholder="your@email.com"
+                autocomplete="email"
+                [required]="true"
+                [disabled]="step === 'loading'"
+                [error]="displayedError ?? undefined"
+                [value]="emailValue"
+                (valueChange)="emailValue = $event"
+                (inputBlur)="touched = true"
+              />
+            } @else {
+              <av-input
+                label="Phone number"
+                type="tel"
+                placeholder="7XX XXX XXX"
+                autocomplete="tel"
+                phonePrefix="+254"
+                [required]="true"
+                [disabled]="step === 'loading'"
+                [error]="displayedError ?? undefined"
+                [value]="phoneValue"
+                (valueChange)="phoneValue = $event"
+                (inputBlur)="touched = true"
+              />
+            }
+          </div>
+
+          <div class="preview-role">
+            <av-select
+              label="Preview role"
+              helperText="Prototype only — use this to review admin and standard-user experiences."
+              [options]="roleOptions"
+              [value]="role"
+              [disabled]="step === 'loading'"
+              (valueChange)="onRoleChange($event)"
+            />
+          </div>
+
+          <button
+            type="submit"
+            avButton
+            variant="primary"
+            expand="block"
+            [loading]="step === 'loading'"
+            [disabled]="!currentValue.trim()"
+          >
+            @if (step === 'loading') {
+              <span class="av-btn__spinner" aria-hidden="true"></span>
+              Sending code
+            } @else {
+              Send code
+              <av-icon name="arrow-right" [size]="16" />
+            }
+          </button>
+        </form>
+
+        <p class="login-legal">
+          This is a frontend-only mock flow. No credentials or personal data are sent anywhere.
+        </p>
+      }
     </div>
-
-    <form (ngSubmit)="signIn()">
-      <label>
-        <span>Email address</span>
-        <input type="email" name="email" [(ngModel)]="email" autocomplete="email">
-      </label>
-
-      <label>
-        <span>Prototype role</span>
-        <select name="role" [(ngModel)]="role">
-          <option value="admin">Customer Admin</option>
-          <option value="user">Customer User</option>
-        </select>
-      </label>
-
-      <button type="submit">Continue</button>
-    </form>
-
-    <p class="login-note">This is a frontend-only mock flow. No credentials are sent anywhere.</p>
   </main>
+
+  <footer class="login-footer">
+    <p>
+      Avenews is licensed and regulated by the Central Bank of Kenya as a Digital Credit Provider.
+    </p>
+    <p>© Avenews-GT. Internal prototype.</p>
+  </footer>
 </div>

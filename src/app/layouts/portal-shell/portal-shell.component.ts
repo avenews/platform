@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core'
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import { AvAvatarComponent, AvIconComponent } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
 
 interface NavItem {
@@ -13,7 +14,13 @@ interface NavItem {
 @Component({
   selector: 'app-portal-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    AvAvatarComponent,
+    AvIconComponent,
+  ],
   templateUrl: './portal-shell.component.html',
   styleUrl: './portal-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,12 +33,12 @@ export class PortalShellComponent {
   menuOpen = false
 
   readonly navItems: NavItem[] = [
-    { path: '/', label: 'Home', icon: '⌂', exact: true },
-    { path: '/available-financing', label: 'Available Financing', icon: '◫', exact: false },
-    { path: '/financing-activity', label: 'Financing Activity', icon: '↗', exact: false },
-    { path: '/invoices', label: 'Invoices & Documents', icon: '▤', exact: false },
-    { path: '/manage-users', label: 'Manage Users', icon: '◎', exact: false, adminOnly: true },
-    { path: '/support', label: 'Support', icon: '?', exact: false },
+    { path: '/', label: 'Home', icon: 'home', exact: true },
+    { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
+    { path: '/financing-activity', label: 'Financing Activity', icon: 'cash', exact: false },
+    { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
+    { path: '/manage-users', label: 'Manage Users', icon: 'users', exact: false, adminOnly: true },
+    { path: '/support', label: 'Support', icon: 'help-circle', exact: false },
   ]
 
   get visibleNavItems(): NavItem[] {
@@ -48,8 +55,22 @@ export class PortalShellComponent {
     return `${this.session.contactFirstName} ${this.session.contactLastName}`
   }
 
+  toggleMenu(): void {
+    this.menuOpen = !this.menuOpen
+  }
+
+  closeMenu(): void {
+    this.menuOpen = false
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeMenu()
+  }
+
   logout(): void {
     this.auth.logout()
+    this.closeMenu()
     void this.router.navigate(['/login'])
   }
 }
