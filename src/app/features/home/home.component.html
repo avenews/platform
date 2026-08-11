@@ -60,7 +60,10 @@
           </div>
           <div class="product-card__foot">
             <strong>{{ product.available }}</strong>
-            <a routerLink="/available-financing" aria-label="Open {{ product.name }}">
+            <a
+              routerLink="/available-financing"
+              [attr.aria-label]="'Open ' + product.name"
+            >
               <av-icon name="arrow-right" [size]="18" />
             </a>
           </div>
