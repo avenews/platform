@@ -15,6 +15,41 @@ permissions:
   packages: read
 
 jobs:
+  public-dependencies:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Remove private package for dependency snapshot
+        run: |
+          node - <<'NODE'
+          const fs = require('fs')
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+          delete pkg.dependencies['@avenews/design-system']
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n')
+          NODE
+          rm -f .npmrc
+
+      - name: Install public dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Archive public dependencies
+        run: tar -czf /tmp/platform-public-dependencies.tgz node_modules package-lock.json
+
+      - name: Upload public dependency snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-public-dependencies
+          path: /tmp/platform-public-dependencies.tgz
+          if-no-files-found: error
+
   build:
     runs-on: ubuntu-latest
 
