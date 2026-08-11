@@ -62,6 +62,12 @@ export const routes: Routes = [
             .then(module => module.PlaceholderPageComponent),
       },
       {
+        path: 'design-lab',
+        loadComponent: () =>
+          import('./features/design-lab/design-lab.component')
+            .then(module => module.DesignLabComponent),
+      },
+      {
         path: 'support',
         data: {
           title: 'Support',

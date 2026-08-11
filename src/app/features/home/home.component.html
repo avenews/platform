@@ -1,34 +1,130 @@
-<div class="page">
-  <header class="page-hero">
-    <p class="eyebrow">Angular foundation</p>
-    <h1>Customer portal</h1>
-    <p>The clean root application and Netlify deployment structure are ready for reconstruction.</p>
+<div class="portal-page home-page">
+  <header class="home-hero">
+    <div class="page-hero">
+      <p class="page-eyebrow">Demo Customer Ltd</p>
+      <h1>Welcome back, Amina.</h1>
+      <p>Review your financing position, upcoming payments, and recent activity.</p>
+    </div>
+    <a routerLink="/design-lab" avButton variant="secondary">
+      <av-icon name="settings" [size]="16" />
+      Open design lab
+    </a>
   </header>
 
-  <section class="summary-card" aria-label="Foundation status">
-    <div>
-      <small>Framework</small>
-      <strong>Angular 18</strong>
+  <av-inline-banner
+    message="Prototype data only — amounts and records on this preview are illustrative."
+    variant="info"
+  />
+
+  <section class="metrics-grid" aria-label="Financing overview">
+    @for (metric of metrics; track metric.label) {
+      <article
+        class="metric-card surface-card"
+        [class.metric-card--warning]="metric.tone === 'warning'"
+        [class.metric-card--danger]="metric.tone === 'danger'"
+      >
+        <span class="metric-card__icon" aria-hidden="true">
+          <av-icon [name]="metric.icon" [size]="20" />
+        </span>
+        <div>
+          <span class="metric-card__label">{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.note }}</small>
+        </div>
+      </article>
+    }
+  </section>
+
+  <section class="home-section" aria-labelledby="products-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="products-heading">Your financing products</h2>
+        <p>Approved products and the amount currently available for new Funds Requests.</p>
+      </div>
+      <a routerLink="/available-financing" avButton variant="secondary" size="sm">
+        View all
+        <av-icon name="arrow-right" [size]="15" />
+      </a>
     </div>
-    <div>
-      <small>Application shape</small>
-      <strong>Standalone</strong>
-    </div>
-    <div>
-      <small>Data</small>
-      <strong>Mock-first</strong>
-    </div>
-    <div>
-      <small>Hosting</small>
-      <strong>Netlify</strong>
+
+    <div class="products-grid">
+      @for (product of products; track product.code) {
+        <article class="product-card surface-card">
+          <div class="product-card__top">
+            <span class="product-code">{{ product.code }}</span>
+            <av-status-badge [label]="product.status" [color]="product.statusColor" />
+          </div>
+          <div class="product-card__body">
+            <h3>{{ product.name }}</h3>
+            <p>{{ product.description }}</p>
+          </div>
+          <div class="product-card__foot">
+            <strong>{{ product.available }}</strong>
+            <a routerLink="/available-financing" aria-label="Open {{ product.name }}">
+              <av-icon name="arrow-right" [size]="18" />
+            </a>
+          </div>
+        </article>
+      }
     </div>
   </section>
 
-  <section class="next-card">
-    <div>
-      <h2>Next build phase</h2>
-      <p>Reconstruct the customer portal from the existing UI while reusing the proven Angular shell, service, and responsive-table conventions.</p>
+  <section class="home-section" aria-labelledby="activity-heading">
+    <div class="section-heading">
+      <div>
+        <h2 id="activity-heading">Recent financing activity</h2>
+        <p>Your latest Funds Requests and Supplier Financing periods.</p>
+      </div>
+      <a routerLink="/financing-activity" avButton variant="secondary" size="sm">
+        View all
+        <av-icon name="arrow-right" [size]="15" />
+      </a>
     </div>
-    <a routerLink="/available-financing">Open route foundation</a>
+
+    <div class="activity-table surface-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Reference</th>
+            <th>Financing</th>
+            <th>Partner or counterparty</th>
+            <th>Amount</th>
+            <th>Timing</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of recentActivity; track row.reference) {
+            <tr>
+              <td><strong>{{ row.reference }}</strong></td>
+              <td>{{ row.product }}</td>
+              <td>{{ row.partner }}</td>
+              <td>{{ row.amount }}</td>
+              <td>{{ row.date }}</td>
+              <td><av-status-badge [label]="row.status" [color]="row.statusColor" /></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="activity-cards">
+      @for (row of recentActivity; track row.reference) {
+        <article class="activity-card surface-card">
+          <div class="activity-card__head">
+            <div>
+              <strong>{{ row.reference }}</strong>
+              <span>{{ row.product }}</span>
+            </div>
+            <av-status-badge [label]="row.status" [color]="row.statusColor" />
+          </div>
+          <div class="activity-card__amount">{{ row.amount }}</div>
+          <div class="activity-card__meta">
+            <span>{{ row.partner }}</span>
+            <span>{{ row.date }}</span>
+          </div>
+        </article>
+      }
+    </div>
   </section>
 </div>
