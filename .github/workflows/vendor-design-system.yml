@@ -1,0 +1,50 @@
+name: Vendor official design-system package artifact
+
+on:
+  push:
+    branches: ["agent/design-foundation"]
+    paths:
+      - ".github/VENDOR_DS_TRIGGER"
+
+permissions:
+  contents: write
+
+jobs:
+  vendor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the design-foundation branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/design-foundation
+          persist-credentials: true
+
+      - name: Download the official v1.9.0 package artifact
+        env:
+          ARTIFACT_URL: 'https://sdmntprnznorth.oaiusercontent.com/files/00000000-896c-820b-9e8e-fbecb3d82b57/raw?se=2026-08-11T14%3A23%3A32Z&sp=r&sv=2026-02-06&sr=b&scid=239a98ef-807b-5bc8-8cd0-5d5235e39f96&skoid=8cb40e9f-389f-4cf6-afaa-e5bd4c7fd98c&sktid=a48cca56-e6da-484e-a814-9c849652bcb3&skt=2026-08-11T06%3A07%3A33Z&ske=2026-08-12T06%3A07%3A33Z&sks=b&skv=2026-02-06&sig=xsEC4QmKDpol/tTeCCaD5DcRcfWMHb1eRRbA4qFrsL8%3D'
+        run: |
+          curl --fail --location "$ARTIFACT_URL" --output /tmp/design-system.zip
+          mkdir -p /tmp/design-system
+          unzip -j /tmp/design-system.zip '*.tgz' -d /tmp/design-system
+          echo '9a21d1723f65a506a25c65f02b02d7a6e7b9e2ce31167b4c0476f2cbc148ef59  /tmp/design-system/avenews-design-system-1.9.0.tgz' | sha256sum --check
+
+      - name: Pin the package artifact in the portal repository
+        run: |
+          mkdir -p vendor
+          cp /tmp/design-system/avenews-design-system-1.9.0.tgz vendor/
+          node - <<'NODE'
+          const fs = require('fs')
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'))
+          pkg.dependencies['@avenews/design-system'] = 'file:vendor/avenews-design-system-1.9.0.tgz'
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n')
+          NODE
+          rm -f .npmrc
+
+      - name: Commit the pinned package artifact
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json .npmrc vendor/avenews-design-system-1.9.0.tgz
+          git commit -m 'chore: pin official design-system package artifact'
+          git push origin HEAD:agent/design-foundation
