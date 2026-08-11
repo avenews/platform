@@ -54,7 +54,7 @@ export class DesignLabComponent {
 
   readonly detailFields: DataField[] = [
     { key: 'limit', label: 'Credit Limit', value: 'KES 1,500,000' },
-    { key: 'available', label: 'Available Credit', value: 'KES 850,000', variant: 'total' },
+    { key: 'available', label: 'Available Credit', value: 'KES 850,000' },
     { key: 'relationship', label: 'Financing Relationship', value: 'Demo Customer · Mwangaza Produce' },
     { key: 'repayment', label: 'Next Repayment Due Date', value: '24 Aug 2026' },
   ]
