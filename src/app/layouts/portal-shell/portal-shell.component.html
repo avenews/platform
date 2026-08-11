@@ -1,0 +1,74 @@
+<div class="portal-shell">
+  <header class="mobile-header">
+    <a routerLink="/" class="brand" aria-label="Avenews customer portal home">
+      <span class="brand-mark">A</span>
+      <span>Avenews</span>
+    </a>
+    <button class="avatar" type="button" (click)="menuOpen = !menuOpen" aria-label="Open profile menu">
+      {{ initials }}
+    </button>
+  </header>
+
+  <aside class="sidebar">
+    <a routerLink="/" class="brand sidebar-brand" aria-label="Avenews customer portal home">
+      <span class="brand-mark">A</span>
+      <span>Avenews</span>
+    </a>
+
+    <nav aria-label="Customer portal">
+      @for (item of visibleNavItems; track item.path) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="nav-link--active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          class="nav-link"
+        >
+          <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <button type="button" class="profile-button" (click)="menuOpen = !menuOpen">
+      <span class="avatar avatar--small">{{ initials }}</span>
+      <span class="profile-meta">
+        <strong>{{ fullName }}</strong>
+        <small>{{ session?.role === 'admin' ? 'Customer Admin' : 'Customer User' }}</small>
+      </span>
+    </button>
+  </aside>
+
+  <main class="portal-main">
+    <router-outlet />
+  </main>
+
+  <nav class="bottom-nav" aria-label="Mobile navigation">
+    @for (item of visibleNavItems.slice(0, 4); track item.path) {
+      <a
+        [routerLink]="item.path"
+        routerLinkActive="bottom-nav__item--active"
+        [routerLinkActiveOptions]="{ exact: item.exact }"
+        class="bottom-nav__item"
+      >
+        <span aria-hidden="true">{{ item.icon }}</span>
+        <small>{{ item.label }}</small>
+      </a>
+    }
+  </nav>
+
+  @if (menuOpen) {
+    <button class="menu-backdrop" type="button" (click)="menuOpen = false" aria-label="Close profile menu"></button>
+    <div class="profile-menu" role="menu">
+      <div class="profile-menu__header">
+        <strong>{{ fullName }}</strong>
+        <small>{{ session?.businessName }}</small>
+      </div>
+      <a routerLink="/profile" (click)="menuOpen = false" role="menuitem">View Profile</a>
+      @if (session?.role === 'admin') {
+        <a routerLink="/manage-users" (click)="menuOpen = false" role="menuitem">Manage Users</a>
+      }
+      <a routerLink="/support" (click)="menuOpen = false" role="menuitem">Support</a>
+      <button type="button" (click)="logout()" role="menuitem">Log out</button>
+    </div>
+  }
+</div>
