@@ -12,18 +12,20 @@ The current Home screen is a design-ready dashboard populated with fictional fin
 
 The app consumes the organization-owned `@avenews/design-system` package at version `1.9.0`.
 
-For local installation, export a GitHub token that can read the private package:
+For now, `package.json` installs the exact official npm package artifact from:
 
-```bash
-export NODE_AUTH_TOKEN=<github-token-with-read-packages>
-npm install --legacy-peer-deps
+```text
+vendor/avenews-design-system-1.9.0.tgz
 ```
 
-Do not commit the token. Netlify must receive the same value as a secret `NODE_AUTH_TOKEN` build environment variable.
+The artifact was produced by `npm pack` in `avenews/Avenews-Ionic-Design-System`, not assembled or edited in this repository. Its provenance and SHA-256 digest are documented in [`vendor/README.md`](vendor/README.md).
+
+This bridge keeps local, GitHub Actions, and Netlify builds deterministic without distributing a private package token. Once GitHub Packages access is standardized for consuming repositories, the dependency can return to a registry version without changing application imports.
 
 ## Local development
 
 ```bash
+npm install --legacy-peer-deps
 npm start
 ```
 
