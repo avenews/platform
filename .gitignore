@@ -1,0 +1,25 @@
+# Dependencies
+/node_modules
+
+# Angular build output
+/dist
+/.angular
+/out-tsc
+
+# Editors and OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/tasks.json
+.DS_Store
+Thumbs.db
+
+# Logs and local environment
+*.log
+.env
+.env.*
+!.env.example
+
+# Netlify local state
+.netlify
