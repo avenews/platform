@@ -22,6 +22,16 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
 
+      - name: Archive source for isolated validation
+        run: tar --exclude=.git -czf /tmp/platform-source.tgz .
+
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v4
+        with:
+          name: platform-source
+          path: /tmp/platform-source.tgz
+          if-no-files-found: error
+
       - name: Use Node.js 22
         uses: actions/setup-node@v4
         with:
