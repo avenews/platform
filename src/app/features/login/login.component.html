@@ -1,0 +1,33 @@
+<div class="login-screen">
+  <main class="login-card">
+    <a class="brand" href="/" aria-label="Avenews home">
+      <span class="brand-mark">A</span>
+      <span>Avenews</span>
+    </a>
+
+    <div class="login-copy">
+      <p class="eyebrow">Customer portal prototype</p>
+      <h1>Sign in</h1>
+      <p>Use the mock account below to enter the Angular foundation.</p>
+    </div>
+
+    <form (ngSubmit)="signIn()">
+      <label>
+        <span>Email address</span>
+        <input type="email" name="email" [(ngModel)]="email" autocomplete="email">
+      </label>
+
+      <label>
+        <span>Prototype role</span>
+        <select name="role" [(ngModel)]="role">
+          <option value="admin">Customer Admin</option>
+          <option value="user">Customer User</option>
+        </select>
+      </label>
+
+      <button type="submit">Continue</button>
+    </form>
+
+    <p class="login-note">This is a frontend-only mock flow. No credentials are sent anywhere.</p>
+  </main>
+</div>
