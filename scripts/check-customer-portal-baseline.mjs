@@ -27,6 +27,7 @@ function forbidText(content, value, description) {
 
 const shellTs = read('src/app/layouts/portal-shell/portal-shell.component.ts')
 const shellHtml = read('src/app/layouts/portal-shell/portal-shell.component.html')
+const navIcon = read('src/app/layouts/portal-shell/portal-nav-icon.component.ts')
 const shellCss = read('src/app/layouts/portal-shell/portal-shell.component.css')
 const homeHtml = read('src/app/features/home/home.component.html')
 const detailHtml = read('src/app/features/available-financing/available-financing-detail.component.html')
@@ -53,6 +54,24 @@ for (const [value, description] of iconContract) {
 forbidText(shellTs, "label: 'Financing Activity', icon: 'cash'", 'Approximate activity icon is not allowed')
 forbidText(shellTs, "label: 'Manage Users', icon: 'users'", 'Approximate Manage Users icon is not allowed')
 forbidText(shellHtml, 'name="users"', 'Hard-coded users icon is not allowed in the customer shell')
+forbidText(shellHtml, '<av-icon [name]="item.icon"', 'Customer navigation must not use substituted design-system glyphs')
+requireText(shellHtml, '<app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>', 'Desktop and mobile navigation must render the locked source glyph component')
+requireText(shellHtml, '<app-portal-nav-icon [name]="adminNavItem.icon"></app-portal-nav-icon>', 'Manage Users must render the locked source glyph component')
+
+const exactGlyphPaths = [
+  ['M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8', 'Home Lucide geometry'],
+  ['M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15', 'Wallet Lucide geometry'],
+  ['M3 3v16a2 2 0 0 0 2 2h16', 'BarChart3 Lucide geometry'],
+  ['M12 17V7', 'Receipt Lucide geometry'],
+  ['M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3', 'HelpCircle Lucide geometry'],
+  ['M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2', 'User Lucide geometry'],
+]
+
+for (const [value, description] of exactGlyphPaths) {
+  requireText(navIcon, value, description)
+}
+requireText(navIcon, 'stroke-width="2"', 'Navigation glyph stroke width')
+requireText(navIcon, 'width="16"', 'Navigation glyph size')
 
 requireText(shellHtml, '@for (item of mobileNavItems; track item.path)', 'Mobile navigation must use the locked four-item list')
 requireText(shellHtml, 'ariaCurrentWhenActive="page"', 'Navigation links must expose the active page')
@@ -81,6 +100,7 @@ requireText(parityCss, '.baseline-modal-backdrop--sheet', 'Sheet-only modal modi
 
 requireText(contract, '| Financing Activity | `BarChart3` | `bar-chart` |', 'Documented activity icon contract')
 requireText(contract, '| Manage Users | `User` | `person` |', 'Documented Manage Users icon contract')
+requireText(contract, 'exact Lucide artwork', 'Documented exact navigation artwork rule')
 requireText(contract, '1440 × 900', 'Desktop audit viewport')
 requireText(contract, '768 × 1024', 'Tablet audit viewport')
 requireText(contract, '390 × 844', 'Mobile audit viewport')
