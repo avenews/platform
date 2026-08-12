@@ -37,13 +37,17 @@ Open `http://localhost:4200`.
 npm run check
 ```
 
-## Branch and deployment workflow
+## Work intake, branch and deployment workflow
 
-The deployment source of truth is [`docs/DEPLOYMENT_WORKFLOW.md`](docs/DEPLOYMENT_WORKFLOW.md).
+The deployment and work-intake source of truth is [`docs/DEPLOYMENT_WORKFLOW.md`](docs/DEPLOYMENT_WORKFLOW.md).
 
 In summary:
 
-- Create feature branches from `staging`.
+- Every new piece of work starts with a GitHub Issue before implementation begins.
+- Use one issue for a small, self-contained change.
+- Break larger work into multiple logical, independently reviewable issues before creating implementation branches.
+- Check existing open issues and pull requests before starting to avoid duplicate work.
+- Create feature branches from `staging` and reference the relevant issue in the branch/PR workflow.
 - Open pull requests into `staging`; Netlify creates a Deploy Preview for each PR once GitHub continuous deployment is connected.
 - Review the current Netlify Deploy Preview before merge and include its URL in the delivery response.
 - Merge approved work into `staging` for the stable staging deployment.
@@ -51,7 +55,7 @@ In summary:
 - `main` is the Netlify production branch and is not used merely to generate previews.
 - Do not merge into `staging` or `main` without explicit approval.
 
-Repository agents must also follow [`AGENTS.md`](AGENTS.md), which makes these deployment and preview-verification rules mandatory for agent-driven changes.
+Repository agents must also follow [`AGENTS.md`](AGENTS.md), which makes the issue-first, deployment, and preview-verification rules mandatory for agent-driven changes.
 
 ## Current routes
 
