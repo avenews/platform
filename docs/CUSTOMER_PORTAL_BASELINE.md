@@ -9,7 +9,7 @@ Use these sources in order:
 1. `avenews/avenews-crm-portals-temp/apps/customer-portal` is the primary source for customer-facing structure, navigation, labels, responsive behaviour, interactions, cards, tables, menus, modal types, empty states, and mock data.
 2. `apps/affiliate-portal` and `apps/asfo-buyer-portal` are implementation references only where their Angular shell patterns help reproduce the customer portal accurately.
 3. The Avenews Handbook controls approved visible product terminology.
-4. `@avenews/design-system` supplies the Angular components, tokens, and supported icon catalogue.
+4. `@avenews/design-system` supplies the Angular components, tokens, and general icon catalogue, except where this contract explicitly locks source-portal artwork.
 
 Do not replace a supported customer-portal pattern merely because a different pattern looks cleaner or is easier to implement.
 
@@ -28,9 +28,9 @@ Do not merge the baseline PR into `staging` or `main` without explicit approval.
 
 ## Navigation contract
 
-Navigation icons are not approximate. The React source uses Lucide icons; the Angular app must use the equivalent supported Avenews icon name shown below.
+Navigation icons are not approximate. The React source uses `lucide-react` 1.14.0 at 16 px with a 2 px stroke. The Angular shell therefore renders the **exact Lucide artwork** for these six customer-navigation glyphs rather than substituting a similarly named design-system glyph. The semantic key remains stable so the navigation contract is easy to audit.
 
-| Destination | Customer source | Angular/Avenews icon | Desktop sidebar | Mobile bottom nav |
+| Destination | Customer source | Angular semantic key | Desktop sidebar | Mobile bottom nav |
 |---|---|---|---:|---:|
 | Home | `Home` | `home` | Yes | Yes |
 | Available Financing | `Wallet` | `wallet` | Yes | Yes |
@@ -39,9 +39,9 @@ Navigation icons are not approximate. The React source uses Lucide icons; the An
 | Support | `HelpCircle` | `help-circle` | Yes | No; available from profile menu |
 | Manage Users | `User` | `person` | Admin only, visually separated | No; admin only in profile menu |
 
-The profile-footer chevron uses `chevron-up`.
+The profile-footer chevron uses the design-system `chevron-up` icon because it is not part of the locked customer navigation set.
 
-Changing an icon, label, order, or destination requires a dedicated issue and explicit approval. Never silently substitute `cash` for `bar-chart`, `users` for `person`, or another merely related glyph.
+Changing an icon, label, order, destination, geometry, stroke width, or icon size requires a dedicated issue and explicit approval. Never silently substitute a related glyph or newer artwork for the source customer-portal icon.
 
 ## Responsive shell contract
 
@@ -87,40 +87,21 @@ Changing an icon, label, order, or destination requires a dedicated issue and ex
 The parity audit covers:
 
 - `/` — Home
-- `/available-financing`
-- `/available-financing/:id`
-- `/financing-activity`
-- `/invoices`
-- `/support`
-- `/manage-users` for admin sessions
-- `/profile`
+- `/available-financing` — Available Financing
+- `/available-financing/:id` — Available Financing detail
+- `/financing-activity` — Financing Activity
+- `/invoices` — Invoices & Documents
+- `/support` — Support
+- `/manage-users` — Manage Users (admin)
+- `/profile` — Profile
 
-Login and verification remain part of the wider customer-portal flow, but this contract focuses on the signed-in baseline and shared shell.
+## Required responsive audit viewports
 
-## Required review widths
+At minimum, validate the signed-in shell and each route at:
 
-At minimum, review each signed-in route at:
+- `1440 × 900` — desktop
+- `768 × 1024` — tablet / breakpoint boundary
+- `390 × 844` — typical mobile
+- `320 × 720` — minimum supported mobile width
 
-- 1440 × 900 — desktop
-- 768 × 1024 — tablet/breakpoint boundary
-- 390 × 844 — common mobile
-- 320 × 720 — minimum supported width smoke check
-
-For each route, verify visible hierarchy, navigation state, table/card switching, control wrapping, modal/menu placement, tap targets, and horizontal overflow.
-
-## Automated safeguards
-
-`npm run check:baseline` statically validates the locked navigation mapping, responsive breakpoints, Home summary hand-off query parameters, baseline documentation, and the absence of known approximate icon substitutions.
-
-The GitHub responsive-audit workflow launches the Angular application in Chromium and checks the shared shell and all signed-in routes at representative desktop, tablet, and mobile viewports. It also uploads screenshots and a Playwright report for review.
-
-Automated checks do not replace visual review of the current Netlify Deploy Preview.
-
-## Change-control rule
-
-Once this baseline is accepted, improvements should be made through new issues and focused PRs. A later improvement may intentionally depart from this contract, but the PR must:
-
-1. identify the baseline behaviour being changed;
-2. explain why the deviation is intentional;
-3. include desktop and mobile evidence;
-4. receive explicit review approval.
+The automated responsive audit is a regression guard, not a replacement for visual comparison with the current customer portal.
