@@ -2,6 +2,7 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  OnDestroy,
   inject,
 } from '@angular/core'
 import { Router } from '@angular/router'
@@ -14,11 +15,12 @@ import {
 } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
 
-type LoginStep = 'idle' | 'loading' | 'success' | 'error'
+type LoginStep = 'idle' | 'loading' | 'verification' | 'verifying' | 'error'
 type InputMethod = 'email' | 'phone'
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const PHONE_RE = /^\+?[0-9\s-]{7,15}$/
+const RESEND_COUNTDOWN_SECONDS = 110
 
 @Component({
   selector: 'app-login',
@@ -33,7 +35,7 @@ const PHONE_RE = /^\+?[0-9\s-]{7,15}$/
   styleUrl: './login.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class LoginComponent {
+export class LoginComponent implements OnDestroy {
   private readonly auth = inject(AuthService)
   private readonly router = inject(Router)
   private readonly cdr = inject(ChangeDetectorRef)
@@ -42,8 +44,13 @@ export class LoginComponent {
   method: InputMethod = 'email'
   emailValue = ''
   phoneValue = ''
+  verificationCode = ''
+  sentDestination = ''
   touched = false
   serverError = ''
+  resendSeconds = RESEND_COUNTDOWN_SECONDS
+
+  private countdownTimer: ReturnType<typeof setInterval> | null = null
 
   readonly segmentOptions: SegmentOption[] = [
     { value: 'email', label: 'Email' },
@@ -73,6 +80,10 @@ export class LoginComponent {
     return Boolean(this.currentValue.trim()) && this.inlineError === null
   }
 
+  get canVerify(): boolean {
+    return Boolean(this.verificationCode.trim()) && this.step !== 'verifying'
+  }
+
   onMethodChange(value: string): void {
     this.method = value as InputMethod
     this.touched = false
@@ -88,7 +99,7 @@ export class LoginComponent {
 
     this.step = 'loading'
     this.cdr.markForCheck()
-    await new Promise(resolve => setTimeout(resolve, 1400))
+    await new Promise(resolve => setTimeout(resolve, 900))
 
     if (this.currentValue.toLowerCase().includes('error')) {
       this.step = 'error'
@@ -97,14 +108,51 @@ export class LoginComponent {
       return
     }
 
-    this.step = 'success'
+    this.sentDestination = this.currentValue.trim()
+    this.verificationCode = ''
+    this.step = 'verification'
+    this.startResendCountdown()
     this.cdr.markForCheck()
-    await new Promise(resolve => setTimeout(resolve, 1200))
+  }
 
-    // The legacy customer portal seeded one customer session after OTP success.
-    // Keep the same single-path experience; role review remains available inside
-    // the authenticated design workspace rather than on the customer login form.
+  async verifyCode(): Promise<void> {
+    if (!this.canVerify) return
+
+    this.step = 'verifying'
+    this.cdr.markForCheck()
+    await new Promise(resolve => setTimeout(resolve, 900))
+
+    // Prototype-only OTP flow: any non-empty verification code succeeds.
     this.auth.login('admin')
     void this.router.navigate(['/'])
+  }
+
+  resendCode(): void {
+    if (this.resendSeconds > 0) return
+    this.startResendCountdown()
+  }
+
+  ngOnDestroy(): void {
+    this.clearCountdown()
+  }
+
+  private startResendCountdown(): void {
+    this.clearCountdown()
+    this.resendSeconds = RESEND_COUNTDOWN_SECONDS
+    this.countdownTimer = setInterval(() => {
+      this.resendSeconds -= 1
+      if (this.resendSeconds <= 0) {
+        this.resendSeconds = 0
+        this.clearCountdown()
+      }
+      this.cdr.markForCheck()
+    }, 1000)
+  }
+
+  private clearCountdown(): void {
+    if (this.countdownTimer) {
+      clearInterval(this.countdownTimer)
+      this.countdownTimer = null
+    }
   }
 }
