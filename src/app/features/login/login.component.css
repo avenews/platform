@@ -44,6 +44,10 @@
   margin-bottom: var(--av-space-5, 20px);
 }
 
+.login-heading--verification {
+  margin-bottom: var(--av-space-4, 16px);
+}
+
 .login-heading h1 {
   margin: 0 0 var(--av-space-2, 8px);
   color: var(--av-color-text-heading, #092a3e);
@@ -60,12 +64,48 @@
   line-height: var(--av-line-height-relaxed, 1.5);
 }
 
+.login-destination {
+  color: var(--av-color-text, #344054);
+  font-weight: var(--av-font-weight-semibold, 600);
+  overflow-wrap: anywhere;
+}
+
 form {
   margin: 0;
 }
 
 .login-input {
   margin: var(--av-space-4, 16px) 0 var(--av-space-5, 20px);
+}
+
+.login-input--verification {
+  margin-top: 0;
+  margin-bottom: var(--av-space-3, 12px);
+}
+
+.login-resend {
+  min-height: 20px;
+  margin-bottom: var(--av-space-5, 20px);
+  color: var(--av-color-text-muted, #7a8494);
+  font-size: var(--av-font-size-xs, 13px);
+  line-height: var(--av-line-height-relaxed, 1.5);
+}
+
+.login-resend__button {
+  appearance: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--av-color-action, #15adbd);
+  font: inherit;
+  font-weight: var(--av-font-weight-semibold, 600);
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-resend__button:hover {
+  color: var(--av-color-action-dark, #0f8996);
 }
 
 .login-legal {
@@ -80,38 +120,6 @@ form {
   color: var(--av-color-action, #15adbd);
   text-decoration: underline;
   text-underline-offset: 2px;
-}
-
-.login-success {
-  padding: var(--av-space-4, 16px) 0;
-  text-align: center;
-}
-
-.login-success__icon {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto var(--av-space-4, 16px);
-  border-radius: 50%;
-  background: var(--av-color-success-subtle, #e6f9ee);
-  color: var(--av-color-success, #218c40);
-}
-
-.login-success h2 {
-  margin: 0 0 var(--av-space-2, 8px);
-  color: var(--av-color-text-heading, #092a3e);
-  font-family: var(--av-font-heading, 'Plus Jakarta Sans', sans-serif);
-  font-size: var(--av-font-size-h5, 20px);
-  font-weight: var(--av-font-weight-bold, 700);
-}
-
-.login-success p {
-  margin: 0;
-  color: var(--av-color-text-muted, #7a8494);
-  font-size: var(--av-font-size-sm, 14px);
-  line-height: var(--av-line-height-relaxed, 1.5);
 }
 
 .login-footer {
