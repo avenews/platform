@@ -1,24 +1,26 @@
 <div class="login-screen">
   <main class="login-main">
     <div class="login-card">
-      <a class="login-brand" href="/" aria-label="Avenews home">
-        <img src="/favicon.svg" alt="" aria-hidden="true">
-        <span>Avenews</span>
-      </a>
+      <img
+        src="/brand/avenews-logo-new.svg"
+        alt="Avenews"
+        class="login-card__logo"
+      />
 
       @if (step === 'success') {
         <div class="login-success">
           <div class="login-success__icon" aria-hidden="true">
             <av-icon name="check" [size]="28" />
           </div>
-          <h1>{{ method === 'email' ? 'Check your inbox' : 'Check your messages' }}</h1>
+          <h2>{{ method === 'email' ? 'Check your inbox' : 'Check your messages' }}</h2>
           <p>
-            The mock login code has been sent. Opening the customer portal preview now.
+            We've sent a login code to your
+            {{ method === 'email' ? 'email address' : 'phone number' }}.
+            It may take a moment to arrive.
           </p>
         </div>
       } @else {
         <div class="login-heading">
-          <p class="page-eyebrow">Customer portal prototype</p>
           <h1>Welcome, let's sign you in.</h1>
           <p>Enter your email or phone number to receive a login code.</p>
         </div>
@@ -30,10 +32,10 @@
         />
 
         <form (ngSubmit)="handleSubmit()">
-          <div class="login-field">
+          <div class="login-input">
             @if (method === 'email') {
               <av-input
-                label="Email address"
+                label="Email Address"
                 type="email"
                 placeholder="your@email.com"
                 autocomplete="email"
@@ -46,7 +48,7 @@
               />
             } @else {
               <av-input
-                label="Phone number"
+                label="Phone Number"
                 type="tel"
                 placeholder="7XX XXX XXX"
                 autocomplete="tel"
@@ -61,17 +63,6 @@
             }
           </div>
 
-          <div class="preview-role">
-            <av-select
-              label="Preview role"
-              helperText="Prototype only — use this to review admin and standard-user experiences."
-              [options]="roleOptions"
-              [value]="role"
-              [disabled]="step === 'loading'"
-              (valueChange)="onRoleChange($event)"
-            />
-          </div>
-
           <button
             type="submit"
             avButton
@@ -82,25 +73,37 @@
           >
             @if (step === 'loading') {
               <span class="av-btn__spinner" aria-hidden="true"></span>
-              Sending code
             } @else {
-              Send code
-              <av-icon name="arrow-right" [size]="16" />
+              <span class="av-btn__label">Send code</span>
+              <span class="av-btn__icon av-btn__icon--end" aria-hidden="true">
+                <av-icon name="arrow-forward" [size]="16" />
+              </span>
             }
           </button>
         </form>
 
         <p class="login-legal">
-          This is a frontend-only mock flow. No credentials or personal data are sent anywhere.
+          By signing in, you agree to our
+          <a href="/terms">Terms of Service</a>
+          and our
+          <a href="/privacy">Privacy Policy</a>.
         </p>
       }
     </div>
   </main>
 
   <footer class="login-footer">
-    <p>
-      Avenews is licensed and regulated by the Central Bank of Kenya as a Digital Credit Provider.
+    <p class="login-footer__regulatory">
+      Avenews is licensed and regulated by the Central Bank of Kenya (CBK) as a Digital Credit
+      Provider, and registered as a data controller under the Data Protection Act.
     </p>
-    <p>© Avenews-GT. Internal prototype.</p>
+    <p class="login-footer__contact">
+      The Westwood Building, Ring Road, Nairobi, 2nd Floor
+      &nbsp;·&nbsp;
+      Phone: <a href="tel:+254111133300">+254-111-133-300</a>
+      &nbsp;·&nbsp;
+      WhatsApp: <a href="https://wa.me/254111133300">+254-111-133-300</a>
+    </p>
+    <p class="login-footer__copyright">© Copyright Avenews-GT. All rights reserved.</p>
   </footer>
 </div>
