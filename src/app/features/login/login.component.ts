@@ -10,11 +10,9 @@ import {
   AvIconComponent,
   AvInputComponent,
   AvSegmentComponent,
-  AvSelectComponent,
   type SegmentOption,
-  type SelectOption,
 } from '@avenews/design-system/angular'
-import { AuthService, type PortalRole } from '../../core/auth/auth.service'
+import { AuthService } from '../../core/auth/auth.service'
 
 type LoginStep = 'idle' | 'loading' | 'success' | 'error'
 type InputMethod = 'email' | 'phone'
@@ -30,7 +28,6 @@ const PHONE_RE = /^\+?[0-9\s-]{7,15}$/
     AvIconComponent,
     AvInputComponent,
     AvSegmentComponent,
-    AvSelectComponent,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css',
@@ -43,20 +40,14 @@ export class LoginComponent {
 
   step: LoginStep = 'idle'
   method: InputMethod = 'email'
-  role: PortalRole = 'admin'
-  emailValue = 'amina.kamau@example.com'
-  phoneValue = '712 345 678'
+  emailValue = ''
+  phoneValue = ''
   touched = false
   serverError = ''
 
   readonly segmentOptions: SegmentOption[] = [
     { value: 'email', label: 'Email' },
     { value: 'phone', label: 'Phone number' },
-  ]
-
-  readonly roleOptions: SelectOption[] = [
-    { value: 'admin', label: 'Customer Admin' },
-    { value: 'user', label: 'Customer User' },
   ]
 
   get currentValue(): string {
@@ -89,11 +80,6 @@ export class LoginComponent {
     this.cdr.markForCheck()
   }
 
-  onRoleChange(value: string): void {
-    this.role = value as PortalRole
-    this.cdr.markForCheck()
-  }
-
   async handleSubmit(): Promise<void> {
     this.touched = true
     this.serverError = ''
@@ -102,20 +88,23 @@ export class LoginComponent {
 
     this.step = 'loading'
     this.cdr.markForCheck()
-    await new Promise(resolve => setTimeout(resolve, 700))
+    await new Promise(resolve => setTimeout(resolve, 1400))
 
     if (this.currentValue.toLowerCase().includes('error')) {
       this.step = 'error'
-      this.serverError = 'Something went wrong. Try the mock account again.'
+      this.serverError = 'Something went wrong. Please try again.'
       this.cdr.markForCheck()
       return
     }
 
     this.step = 'success'
     this.cdr.markForCheck()
-    await new Promise(resolve => setTimeout(resolve, 600))
+    await new Promise(resolve => setTimeout(resolve, 1200))
 
-    this.auth.login(this.role)
+    // The legacy customer portal seeded one customer session after OTP success.
+    // Keep the same single-path experience; role review remains available inside
+    // the authenticated design workspace rather than on the customer login form.
+    this.auth.login('admin')
     void this.router.navigate(['/'])
   }
 }
