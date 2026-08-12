@@ -1,7 +1,7 @@
 :root {
   color-scheme: light;
-  --portal-sidebar-width: 252px;
-  --portal-content-max: 1240px;
+  --portal-sidebar-width: 240px;
+  --portal-content-max: 1200px;
 }
 
 * {

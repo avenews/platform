@@ -36,11 +36,11 @@ export class AuthService {
   login(role: PortalRole): void {
     const session: MockSession = {
       contactId: 'contact_demo_001',
-      contactFirstName: 'Amina',
-      contactLastName: 'Kamau',
-      contactEmail: 'amina.kamau@example.com',
+      contactFirstName: 'Amara',
+      contactLastName: 'Osei',
+      contactEmail: 'amara.osei@example.com',
       businessId: 'business_demo_001',
-      businessName: 'Demo Customer Ltd',
+      businessName: 'Kioko Agri Supplies Ltd',
       role,
     }
     localStorage.setItem(SESSION_KEY, JSON.stringify(session))

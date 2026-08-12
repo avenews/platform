@@ -1,148 +1,85 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core'
 import { RouterLink } from '@angular/router'
-import {
-  AvButtonDirective,
-  AvIconComponent,
-  AvInlineBannerComponent,
-  AvStatusBadgeComponent,
-  type StatusBadgeColor,
-} from '@avenews/design-system/angular'
+import { AvButtonDirective, AvStatusBadgeComponent, type StatusBadgeColor } from '@avenews/design-system/angular'
 
-interface Metric {
-  label: string
-  value: string
-  note: string
-  icon: string
-  tone: 'default' | 'warning' | 'danger'
-}
-
-interface ProductSummary {
-  code: string
-  name: string
-  description: string
-  available: string
-  status: string
-  statusColor: StatusBadgeColor
-}
-
-interface ActivityRow {
-  reference: string
-  product: string
+interface FinancingPeriod {
   partner: string
-  amount: string
-  date: string
+  product: string
+  disbursementDate: string
+  repaymentDueDate: string
+  amountFinanced: string
   status: string
   statusColor: StatusBadgeColor
+  totalRepaid: string
+  outstandingBalance: string
 }
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    RouterLink,
-    AvButtonDirective,
-    AvIconComponent,
-    AvInlineBannerComponent,
-    AvStatusBadgeComponent,
-  ],
+  imports: [RouterLink, AvButtonDirective, AvStatusBadgeComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class HomeComponent {
-  readonly metrics: Metric[] = [
-    {
-      label: 'Available credit',
-      value: 'KES 2,450,000',
-      note: 'Across approved facilities',
-      icon: 'wallet',
-      tone: 'default',
-    },
-    {
-      label: 'Active financing',
-      value: '4',
-      note: 'Three products in use',
-      icon: 'cash',
-      tone: 'default',
-    },
-    {
-      label: 'Payments due',
-      value: '2',
-      note: 'Next payment in 6 days',
-      icon: 'calendar',
-      tone: 'warning',
-    },
-    {
-      label: 'Payments overdue',
-      value: '1',
-      note: 'Requires attention',
-      icon: 'alert-circle',
-      tone: 'danger',
-    },
-  ]
+  readonly businessName = 'Kioko Agri Supplies Ltd'
 
-  readonly products: ProductSummary[] = [
+  readonly financingPeriods: FinancingPeriod[] = [
     {
-      code: 'ACL',
-      name: 'Agri Credit Line',
-      description: 'Recurring working capital for approved inventory and business purchases.',
-      available: 'KES 850,000 available',
-      status: 'Available',
-      statusColor: 'success',
+      partner: 'Twiga Foods Ltd',
+      product: 'Invoice Financing (INF)',
+      disbursementDate: '11 Apr 26',
+      repaymentDueDate: '11 May 26',
+      amountFinanced: 'Ksh 850,000',
+      status: 'Delinquent',
+      statusColor: 'danger',
+      totalRepaid: 'Nil',
+      outstandingBalance: 'Ksh 850,000',
     },
     {
-      code: 'ABF',
-      name: 'Agri Buyer Financing',
-      description: 'Financing for eligible supplier invoices and approved reimbursements.',
-      available: 'KES 600,000 available',
-      status: 'Available',
-      statusColor: 'success',
+      partner: 'Highlands Fresh Produce',
+      product: 'Invoice Financing (INF)',
+      disbursementDate: '10 Jan 26',
+      repaymentDueDate: '10 Feb 26',
+      amountFinanced: 'Ksh 1,200,000',
+      status: 'Default',
+      statusColor: 'danger',
+      totalRepaid: 'Nil',
+      outstandingBalance: 'Ksh 1,200,000',
     },
     {
-      code: 'STF',
-      name: 'Stockist Financing',
-      description: 'Purchases from approved Partner Suppliers within an approved program.',
-      available: 'Limit review in progress',
-      status: 'Under review',
-      statusColor: 'warning',
-    },
-    {
-      code: 'INF',
-      name: 'Supplier Financing',
-      description: 'Eligible receivables grouped by supplier, buyer and invoice due date.',
-      available: 'KES 1,000,000 available',
-      status: 'Available',
-      statusColor: 'success',
-    },
-  ]
-
-  readonly recentActivity: ActivityRow[] = [
-    {
-      reference: 'FR-1048',
-      product: 'Agri Credit Line',
-      partner: 'Mwangaza Produce Ltd',
-      amount: 'KES 350,000',
-      date: 'Due 24 Aug 2026',
+      partner: 'Quick Mart Stores',
+      product: 'Agri Buyer Financing (ABF)',
+      disbursementDate: '22 Apr 26',
+      repaymentDueDate: '22 Jun 26',
+      amountFinanced: 'Ksh 380,000',
       status: 'Live',
       statusColor: 'live',
+      totalRepaid: 'Nil',
+      outstandingBalance: 'Ksh 380,000',
     },
     {
-      reference: 'FR-1042',
-      product: 'Agri Buyer Financing',
-      partner: 'Karibu Foods Ltd',
-      amount: 'KES 180,000',
-      date: 'Submitted 10 Aug 2026',
-      status: 'Under review',
-      statusColor: 'info',
+      partner: 'Avenews',
+      product: 'Agri Credit Line (ACL)',
+      disbursementDate: '18 Mar 26',
+      repaymentDueDate: '25 May 26',
+      amountFinanced: 'Ksh 1,400,000',
+      status: 'Live',
+      statusColor: 'live',
+      totalRepaid: 'Ksh 200,000',
+      outstandingBalance: 'Ksh 1,400,000',
     },
     {
-      reference: 'DP-221',
-      product: 'Supplier Financing',
-      partner: 'National Retailer Ltd',
-      amount: 'KES 640,000',
-      date: 'Due 30 Aug 2026',
-      status: 'Open',
-      statusColor: 'primary',
+      partner: 'Meru Agrovets Ltd',
+      product: 'Stockist Financing (STF)',
+      disbursementDate: 'Pending',
+      repaymentDueDate: '—',
+      amountFinanced: 'Ksh 250,000',
+      status: 'Offered',
+      statusColor: 'warning',
+      totalRepaid: 'Nil',
+      outstandingBalance: 'Ksh 250,000',
     },
   ]
 }

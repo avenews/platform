@@ -1,8 +1,7 @@
 <div class="portal-shell">
   <header class="mobile-header">
-    <a routerLink="/" class="brand" aria-label="Avenews customer portal home">
-      <img src="/favicon.svg" alt="" class="brand-mark" aria-hidden="true">
-      <span class="brand-wordmark">Avenews</span>
+    <a routerLink="/" class="mobile-brand" aria-label="Avenews customer portal home">
+      <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="mobile-brand__logo">
     </a>
     <button
       class="avatar-trigger"
@@ -17,22 +16,34 @@
   </header>
 
   <aside class="sidebar">
-    <a routerLink="/" class="brand sidebar-brand" aria-label="Avenews customer portal home">
-      <img src="/favicon.svg" alt="" class="brand-mark" aria-hidden="true">
-      <span class="brand-wordmark">Avenews</span>
+    <a routerLink="/" class="sidebar-brand" aria-label="Avenews customer portal home">
+      <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="sidebar-brand__logo">
     </a>
 
     <nav class="sidebar-nav" aria-label="Customer portal">
-      @for (item of visibleNavItems; track item.path) {
+      @for (item of primaryNavItems; track item.path) {
         <a
           [routerLink]="item.path"
           routerLinkActive="nav-link--active"
           [routerLinkActiveOptions]="{ exact: item.exact }"
           class="nav-link"
         >
-          <av-icon [name]="item.icon" [size]="18" />
+          <av-icon [name]="item.icon" [size]="16" />
           <span>{{ item.label }}</span>
         </a>
+      }
+
+      @if (session?.role === 'admin') {
+        <div class="sidebar-nav__admin">
+          <a
+            routerLink="/manage-users"
+            routerLinkActive="nav-link--active"
+            class="nav-link"
+          >
+            <av-icon name="users" [size]="16" />
+            <span>Manage Users</span>
+          </a>
+        </div>
       }
     </nav>
 
@@ -58,14 +69,14 @@
   </main>
 
   <nav class="bottom-nav" aria-label="Mobile navigation">
-    @for (item of visibleNavItems.slice(0, 4); track item.path) {
+    @for (item of primaryNavItems.slice(0, 4); track item.path) {
       <a
         [routerLink]="item.path"
         routerLinkActive="bottom-nav__item--active"
         [routerLinkActiveOptions]="{ exact: item.exact }"
         class="bottom-nav__item"
       >
-        <av-icon [name]="item.icon" [size]="18" />
+        <av-icon [name]="item.icon" [size]="16" />
         <small>{{ item.label }}</small>
       </a>
     }
@@ -74,32 +85,13 @@
   @if (menuOpen) {
     <button class="menu-backdrop" type="button" (click)="closeMenu()" aria-label="Close profile menu"></button>
     <div class="profile-menu" role="menu" aria-label="Profile menu">
-      <div class="profile-menu__header">
-        <strong>{{ fullName }}</strong>
-        <small>{{ session?.businessName }}</small>
-      </div>
-      <a routerLink="/profile" (click)="closeMenu()" role="menuitem">
-        <av-icon name="user" [size]="16" />
-        View Profile
-      </a>
+      <div class="profile-menu__header">{{ fullName }}</div>
+      <a routerLink="/profile" (click)="closeMenu()" role="menuitem">View Profile</a>
       @if (session?.role === 'admin') {
-        <a routerLink="/manage-users" (click)="closeMenu()" role="menuitem">
-          <av-icon name="users" [size]="16" />
-          Manage Users
-        </a>
+        <a routerLink="/manage-users" (click)="closeMenu()" role="menuitem">Manage Users</a>
       }
-      <a routerLink="/design-lab" (click)="closeMenu()" role="menuitem">
-        <av-icon name="settings" [size]="16" />
-        Design lab
-      </a>
-      <a routerLink="/support" (click)="closeMenu()" role="menuitem">
-        <av-icon name="help-circle" [size]="16" />
-        Support
-      </a>
-      <button type="button" (click)="logout()" role="menuitem" class="profile-menu__logout">
-        <av-icon name="arrow-back" [size]="16" />
-        Log out
-      </button>
+      <a routerLink="/support" (click)="closeMenu()" role="menuitem">Support</a>
+      <button type="button" (click)="logout()" role="menuitem" class="profile-menu__logout">Log out</button>
     </div>
   }
 </div>

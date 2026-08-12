@@ -8,19 +8,12 @@ interface NavItem {
   label: string
   icon: string
   exact: boolean
-  adminOnly?: boolean
 }
 
 @Component({
   selector: 'app-portal-shell',
   standalone: true,
-  imports: [
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    AvAvatarComponent,
-    AvIconComponent,
-  ],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AvAvatarComponent, AvIconComponent],
   templateUrl: './portal-shell.component.html',
   styleUrl: './portal-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -32,18 +25,13 @@ export class PortalShellComponent {
   readonly session = this.auth.getSession()
   menuOpen = false
 
-  readonly navItems: NavItem[] = [
+  readonly primaryNavItems: NavItem[] = [
     { path: '/', label: 'Home', icon: 'home', exact: true },
     { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
     { path: '/financing-activity', label: 'Financing Activity', icon: 'cash', exact: false },
     { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
-    { path: '/manage-users', label: 'Manage Users', icon: 'users', exact: false, adminOnly: true },
     { path: '/support', label: 'Support', icon: 'help-circle', exact: false },
   ]
-
-  get visibleNavItems(): NavItem[] {
-    return this.navItems.filter(item => !item.adminOnly || this.session?.role === 'admin')
-  }
 
   get initials(): string {
     if (!this.session) return 'AV'

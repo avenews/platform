@@ -1,131 +1,98 @@
 <div class="portal-page home-page">
-  <header class="home-hero">
-    <div class="page-hero">
-      <p class="page-eyebrow">Demo Customer Ltd</p>
-      <h1>Welcome back, Amina.</h1>
-      <p>Review your financing position, upcoming payments, and recent activity.</p>
-    </div>
-    <a routerLink="/design-lab" avButton variant="secondary">
-      <av-icon name="settings" [size]="16" />
-      Open design lab
-    </a>
-  </header>
-
-  <av-inline-banner
-    message="Prototype data only — amounts and records on this preview are illustrative."
-    variant="info"
-  />
-
-  <section class="metrics-grid" aria-label="Financing overview">
-    @for (metric of metrics; track metric.label) {
-      <article
-        class="metric-card surface-card"
-        [class.metric-card--warning]="metric.tone === 'warning'"
-        [class.metric-card--danger]="metric.tone === 'danger'"
-      >
-        <span class="metric-card__icon" aria-hidden="true">
-          <av-icon [name]="metric.icon" [size]="20" />
-        </span>
-        <div>
-          <span class="metric-card__label">{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-          <small>{{ metric.note }}</small>
-        </div>
-      </article>
-    }
-  </section>
-
-  <section class="home-section" aria-labelledby="products-heading">
-    <div class="section-heading">
-      <div>
-        <h2 id="products-heading">Your financing products</h2>
-        <p>Approved products and the amount currently available for new Funds Requests.</p>
+  <section class="home-summary surface-card" aria-labelledby="business-heading">
+    <div class="home-summary__top">
+      <h1 id="business-heading">{{ businessName }}</h1>
+      <div class="available-funds">
+        <span>Available Funds</span>
+        <strong>Ksh 5,800,000</strong>
       </div>
-      <a routerLink="/available-financing" avButton variant="secondary" size="sm">
-        View all
-        <av-icon name="arrow-right" [size]="15" />
+    </div>
+
+    <div class="summary-metrics" aria-label="Financing summary">
+      <a routerLink="/financing-activity" class="summary-metric">
+        <span>Active financing periods</span>
+        <strong>3</strong>
+      </a>
+      <a routerLink="/financing-activity" class="summary-metric">
+        <span>Payments Due</span>
+        <strong>2</strong>
+      </a>
+      <a routerLink="/financing-activity" class="summary-metric">
+        <span>Payments Overdue</span>
+        <strong>1</strong>
       </a>
     </div>
 
-    <div class="products-grid">
-      @for (product of products; track product.code) {
-        <article class="product-card surface-card">
-          <div class="product-card__top">
-            <span class="product-code">{{ product.code }}</span>
-            <av-status-badge [label]="product.status" [color]="product.statusColor" />
-          </div>
-          <div class="product-card__body">
-            <h3>{{ product.name }}</h3>
-            <p>{{ product.description }}</p>
-          </div>
-          <div class="product-card__foot">
-            <strong>{{ product.available }}</strong>
-            <a
-              routerLink="/available-financing"
-              [attr.aria-label]="'Open ' + product.name"
-            >
-              <av-icon name="arrow-right" [size]="18" />
-            </a>
-          </div>
-        </article>
-      }
-    </div>
+    <dl class="summary-details">
+      <div>
+        <dt>Total amount due</dt>
+        <dd>Ksh 2,500,000</dd>
+      </div>
+      <div>
+        <dt>Next payment</dt>
+        <dd>Ksh 320,000 · 25 May 2026</dd>
+      </div>
+    </dl>
   </section>
 
-  <section class="home-section" aria-labelledby="activity-heading">
-    <div class="section-heading">
+  <section class="activity-section" aria-labelledby="activity-heading">
+    <div class="activity-heading">
       <div>
-        <h2 id="activity-heading">Recent financing activity</h2>
-        <p>Your latest Funds Requests and Supplier Financing periods.</p>
+        <h2 id="activity-heading">Financing Activity</h2>
+        <p>Top 5 active and recent financing periods.</p>
       </div>
-      <a routerLink="/financing-activity" avButton variant="secondary" size="sm">
-        View all
-        <av-icon name="arrow-right" [size]="15" />
-      </a>
+      <a routerLink="/financing-activity" avButton variant="secondary" size="sm">View all</a>
     </div>
 
-    <div class="activity-table surface-card">
+    <div class="financing-table">
       <table>
         <thead>
           <tr>
-            <th>Reference</th>
             <th>Financing</th>
-            <th>Partner or counterparty</th>
-            <th>Amount</th>
-            <th>Timing</th>
+            <th>Disbursement Date</th>
+            <th>Repayment Due Date</th>
+            <th>Amount Financed</th>
             <th>Status</th>
+            <th>Total Repaid</th>
+            <th>Outstanding Balance</th>
           </tr>
         </thead>
         <tbody>
-          @for (row of recentActivity; track row.reference) {
+          @for (row of financingPeriods; track row.partner + row.product) {
             <tr>
-              <td><strong>{{ row.reference }}</strong></td>
-              <td>{{ row.product }}</td>
-              <td>{{ row.partner }}</td>
-              <td>{{ row.amount }}</td>
-              <td>{{ row.date }}</td>
+              <td class="financing-name">
+                <strong>{{ row.partner }}</strong>
+                <span>{{ row.product }}</span>
+              </td>
+              <td [class.muted-cell]="row.disbursementDate === 'Pending'">{{ row.disbursementDate }}</td>
+              <td [class.muted-cell]="row.repaymentDueDate === '—'">{{ row.repaymentDueDate }}</td>
+              <td>{{ row.amountFinanced }}</td>
               <td><av-status-badge [label]="row.status" [color]="row.statusColor" /></td>
+              <td [class.muted-cell]="row.totalRepaid === 'Nil'">{{ row.totalRepaid }}</td>
+              <td class="outstanding-balance">{{ row.outstandingBalance }}</td>
             </tr>
           }
         </tbody>
       </table>
     </div>
 
-    <div class="activity-cards">
-      @for (row of recentActivity; track row.reference) {
-        <article class="activity-card surface-card">
-          <div class="activity-card__head">
+    <div class="financing-cards">
+      @for (row of financingPeriods; track row.partner + row.product) {
+        <article class="financing-card surface-card">
+          <div class="financing-card__head">
             <div>
-              <strong>{{ row.reference }}</strong>
+              <strong>{{ row.partner }}</strong>
               <span>{{ row.product }}</span>
             </div>
             <av-status-badge [label]="row.status" [color]="row.statusColor" />
           </div>
-          <div class="activity-card__amount">{{ row.amount }}</div>
-          <div class="activity-card__meta">
-            <span>{{ row.partner }}</span>
-            <span>{{ row.date }}</span>
-          </div>
+          <dl>
+            <div><dt>Amount financed</dt><dd>{{ row.amountFinanced }}</dd></div>
+            <div><dt>Disbursement</dt><dd>{{ row.disbursementDate }}</dd></div>
+            <div><dt>Repayment due</dt><dd>{{ row.repaymentDueDate }}</dd></div>
+            <div><dt>Total repaid</dt><dd>{{ row.totalRepaid }}</dd></div>
+            <div><dt>Outstanding</dt><dd><strong>{{ row.outstandingBalance }}</strong></dd></div>
+          </dl>
         </article>
       }
     </div>
