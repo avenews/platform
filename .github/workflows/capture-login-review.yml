@@ -1,0 +1,29 @@
+name: Capture updated login for visual review
+
+on:
+  push:
+    branches:
+      - agent/design-foundation
+    paths:
+      - .github/workflows/capture-login-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download Netlify deploy screenshot
+        run: >-
+          curl --fail --location
+          'https://d33wubrfki0l68.cloudfront.net/6a7c13c364af8941664e73df/screenshot_2026-08-12-06-33-59-0000.webp'
+          --output updated-login.webp
+
+      - name: Upload visual review artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: updated-login-review
+          path: updated-login.webp
+          if-no-files-found: error
