@@ -5,6 +5,7 @@ import {
   OnDestroy,
   inject,
 } from '@angular/core'
+import { FormsModule } from '@angular/forms'
 import { Router } from '@angular/router'
 import {
   AvButtonDirective,
@@ -26,6 +27,7 @@ const RESEND_COUNTDOWN_SECONDS = 110
   selector: 'app-login',
   standalone: true,
   imports: [
+    FormsModule,
     AvButtonDirective,
     AvIconComponent,
     AvInputComponent,
