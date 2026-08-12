@@ -1,0 +1,27 @@
+name: Deploy login review update
+
+on:
+  push:
+    branches:
+      - agent/design-foundation
+    paths:
+      - .github/workflows/netlify-login-review.yml
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out design branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/design-foundation
+
+      - name: Upload and build on Netlify
+        run: >-
+          npx -y @netlify/mcp@latest
+          --site-id 1007653b-4d08-47f6-814e-001f3f6f6671
+          --proxy-path "https://netlify-mcp.netlify.app/proxy/eyJhbGciOiJkaXIiLCJlbmMiOiJBMjU2R0NNIn0..Nwr-XmpXZQ8crs34.4mtEKWMvd2P1kGaA_zM92sqBkNWkA5-eyFaWhXEifxVxo7gnu2VevfwSZWqRkBxdb-gZfO8fi1lR_FuBIIuyL5fdVxam-c8OJugMlPSktrKb3leEn6eOx2f3y5RXTWpeBPu1P6lksNk3m1LtlP1bCZu3KbUbSJaMYYMlk0EtT4Tleknf_KeMcxNb6-yZm-UI4X6BtiF4qE6qYj0LG-ya-BffCDEgfxZa-gpzNel7Nkz_VaH44L7IB2IXRYNXmceTp3wkHI6NMYz4iRa7Ux7K6X4-lR6O3jOQ6sSb9WyZExALTyftAC9pqw7jYkUuwFjcRTWzPisLi8LXi2AMvWUlwpI2LSVxkI1hiBOhJrK-tBKzEPmfaTu9wLh0JBwarTEQNiZgrLDm.VywmVPdseL-EyCn4iGb9SQ"
