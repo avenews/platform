@@ -29,7 +29,7 @@
           ariaCurrentWhenActive="page"
           class="nav-link"
         >
-          <av-icon [name]="item.icon" [size]="16" />
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
           <span>{{ item.label }}</span>
         </a>
       }
@@ -43,7 +43,7 @@
             ariaCurrentWhenActive="page"
             class="nav-link"
           >
-            <av-icon [name]="adminNavItem.icon" [size]="16" />
+            <app-portal-nav-icon [name]="adminNavItem.icon"></app-portal-nav-icon>
             <span>{{ adminNavItem.label }}</span>
           </a>
         </div>
@@ -81,7 +81,7 @@
         class="bottom-nav__item"
       >
         <span class="bottom-nav__icon" aria-hidden="true">
-          <av-icon [name]="item.icon" [size]="16" />
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
         </span>
         <span class="bottom-nav__label">{{ item.label }}</span>
       </a>
