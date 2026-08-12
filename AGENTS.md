@@ -16,6 +16,21 @@ Every new piece of work must start with a GitHub Issue before implementation beg
 
 The issue structure should be decided before creating implementation branches. A small change normally maps to one issue, one focused branch, and one pull request. Larger initiatives map to multiple logical issues and may therefore use multiple branches and pull requests.
 
+## Mandatory customer-portal baseline
+
+Before changing the signed-in customer portal, read and follow [`docs/CUSTOMER_PORTAL_BASELINE.md`](docs/CUSTOMER_PORTAL_BASELINE.md).
+
+During baseline work:
+
+- `apps/customer-portal` is the primary behavioural and visual source.
+- Do not redesign, simplify, or substitute a merely similar pattern without an issue and explicit approval.
+- Navigation icon names, labels, order, destinations, breakpoint behaviour, mobile/desktop visibility, and modal type are locked by the baseline contract.
+- Never use an approximate icon when the design system contains the supported equivalent. In particular, Financing Activity is `bar-chart`, not `cash`, and Manage Users is `person`, not `users`.
+- Run `npm run check:baseline` before reporting the work complete.
+- Keep the baseline PR in Draft until the requester explicitly approves making it ready or merging it.
+
+Intentional deviations after the baseline is accepted must identify the prior behaviour, explain the reason, include desktop/mobile evidence, and receive explicit approval.
+
 ## Mandatory deployment workflow
 
 Read and follow [`docs/DEPLOYMENT_WORKFLOW.md`](docs/DEPLOYMENT_WORKFLOW.md) before changing, publishing, promoting, or reporting repository work.

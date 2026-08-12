@@ -68,8 +68,8 @@
   </div>
 
   @if (selectedAction) {
-    <div class="baseline-modal-backdrop" role="presentation" (click)="selectedAction = ''">
-      <section class="baseline-modal baseline-modal--small" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+    <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="selectedAction = ''">
+      <section class="baseline-modal baseline-modal--small baseline-modal--sheet" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
         <header class="baseline-modal__head">
           <h2>{{ selectedAction === 'upload' ? (current.product === 'SF' ? 'Upload delivery invoice' : 'Upload invoices') : 'Request funds' }} - {{ productLabel(current.product) }}</h2>
           <button type="button" class="baseline-modal__close" (click)="selectedAction = ''" aria-label="Close">&times;</button>

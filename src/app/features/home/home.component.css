@@ -65,10 +65,13 @@
   background: #f7f8fa;
   color: inherit;
   text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
 }
 
-.summary-metric:hover {
+.summary-metric:hover,
+.summary-metric:focus-visible {
   border-color: var(--av-color-action, #16b3c4);
+  background: var(--av-color-primary-subtle, #eefbfc);
 }
 
 .summary-metric span {
@@ -122,6 +125,7 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
+  flex-wrap: wrap;
 }
 
 .activity-heading h2 {
@@ -154,8 +158,8 @@
   padding: 13px 16px;
   border-bottom: 1px solid #edf0f2;
   color: #1d2939;
-  font-size: 12px;
-  line-height: 1.25;
+  font-size: 13px;
+  line-height: 1.3;
   text-align: left;
   white-space: nowrap;
 }
@@ -165,8 +169,9 @@
   padding-bottom: 12px;
   background: #f7f8fa;
   color: #8b98a8;
-  font-size: 10px;
-  font-weight: 500;
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.01em;
   text-transform: uppercase;
 }
@@ -187,13 +192,14 @@
 
 .financing-name strong {
   color: var(--av-color-heading, #0d343f);
-  font-size: 13px;
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 14px;
   font-weight: 600;
 }
 
 .financing-name span {
   margin-top: 2px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .outstanding-balance {
@@ -209,12 +215,6 @@
   display: none;
 }
 
-@media (max-width: 900px) {
-  .summary-metrics {
-    grid-template-columns: 1fr;
-  }
-}
-
 @media (max-width: 767px) {
   .home-page {
     gap: var(--av-space-5, 20px);
@@ -222,25 +222,6 @@
 
   .home-summary {
     padding: var(--av-space-4, 16px);
-  }
-
-  .summary-details > div {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .summary-details dd {
-    text-align: left;
-  }
-
-  .activity-heading {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .activity-heading > a {
-    width: 100%;
   }
 
   .financing-table {
@@ -270,11 +251,11 @@
 
   .financing-card__head strong {
     color: var(--av-color-heading, #0d343f);
-    font-size: 14px;
+    font-size: 16px;
   }
 
   .financing-card__head span {
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .financing-card dl {
@@ -292,11 +273,17 @@
   .financing-card dt,
   .financing-card dd {
     margin: 0;
-    font-size: 12px;
+    font-size: 13px;
   }
 
   .financing-card dd {
     color: #1d2939;
     text-align: right;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-metrics {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

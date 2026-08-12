@@ -30,7 +30,7 @@
       </div>
       <div>
         <dt>Next payment</dt>
-        <dd>Ksh 320,000 - 25 May 2026</dd>
+        <dd>Ksh 320,000 · 25 May 2026</dd>
       </div>
     </dl>
   </section>
@@ -65,7 +65,7 @@
                 <span>{{ row.product }}</span>
               </td>
               <td [class.muted-cell]="row.disbursementDate === 'Pending'">{{ row.disbursementDate }}</td>
-              <td [class.muted-cell]="row.repaymentDueDate === '-'">{{ row.repaymentDueDate }}</td>
+              <td [class.muted-cell]="row.repaymentDueDate === '—'">{{ row.repaymentDueDate }}</td>
               <td>{{ row.amountFinanced }}</td>
               <td><av-status-badge [label]="row.status" [color]="row.statusColor" /></td>
               <td [class.muted-cell]="row.totalRepaid === 'Nil'">{{ row.totalRepaid }}</td>

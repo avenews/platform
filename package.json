@@ -11,8 +11,9 @@
     "build": "ng build --configuration production",
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
+    "check:baseline": "node scripts/check-customer-portal-baseline.mjs",
     "typecheck": "tsc --noEmit",
-    "check": "npm run typecheck && npm run build"
+    "check": "npm run check:baseline && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@angular/animations": "^18.2.0",

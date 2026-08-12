@@ -10,6 +10,32 @@ interface NavItem {
   exact: boolean
 }
 
+/**
+ * Customer navigation is a baseline contract, not a place for approximate
+ * icon substitutions. It mirrors apps/customer-portal/src/components/PortalShell.tsx.
+ */
+const CUSTOMER_DESKTOP_NAV_ITEMS: ReadonlyArray<NavItem> = [
+  { path: '/', label: 'Home', icon: 'home', exact: true },
+  { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
+  { path: '/financing-activity', label: 'Financing Activity', icon: 'bar-chart', exact: false },
+  { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
+  { path: '/support', label: 'Support', icon: 'help-circle', exact: false },
+]
+
+const CUSTOMER_MOBILE_NAV_ITEMS: ReadonlyArray<NavItem> = [
+  { path: '/', label: 'Home', icon: 'home', exact: true },
+  { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
+  { path: '/financing-activity', label: 'Financing Activity', icon: 'bar-chart', exact: false },
+  { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
+]
+
+const CUSTOMER_ADMIN_NAV_ITEM: NavItem = {
+  path: '/manage-users',
+  label: 'Manage Users',
+  icon: 'person',
+  exact: false,
+}
+
 @Component({
   selector: 'app-portal-shell',
   standalone: true,
@@ -23,15 +49,10 @@ export class PortalShellComponent {
   private readonly router = inject(Router)
 
   readonly session = this.auth.getSession()
+  readonly primaryNavItems = CUSTOMER_DESKTOP_NAV_ITEMS
+  readonly mobileNavItems = CUSTOMER_MOBILE_NAV_ITEMS
+  readonly adminNavItem = CUSTOMER_ADMIN_NAV_ITEM
   menuOpen = false
-
-  readonly primaryNavItems: NavItem[] = [
-    { path: '/', label: 'Home', icon: 'home', exact: true },
-    { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
-    { path: '/financing-activity', label: 'Financing Activity', icon: 'cash', exact: false },
-    { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
-    { path: '/support', label: 'Support', icon: 'help-circle', exact: false },
-  ]
 
   get initials(): string {
     if (!this.session) return 'AV'

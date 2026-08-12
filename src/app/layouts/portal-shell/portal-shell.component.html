@@ -1,5 +1,5 @@
 <div class="portal-shell">
-  <header class="mobile-header">
+  <header class="mobile-header" role="banner">
     <a routerLink="/" class="mobile-brand" aria-label="Avenews customer portal home">
       <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="mobile-brand__logo">
     </a>
@@ -26,6 +26,7 @@
           [routerLink]="item.path"
           routerLinkActive="nav-link--active"
           [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
           class="nav-link"
         >
           <av-icon [name]="item.icon" [size]="16" />
@@ -36,12 +37,14 @@
       @if (session?.role === 'admin') {
         <div class="sidebar-nav__admin">
           <a
-            routerLink="/manage-users"
+            [routerLink]="adminNavItem.path"
             routerLinkActive="nav-link--active"
+            [routerLinkActiveOptions]="{ exact: adminNavItem.exact }"
+            ariaCurrentWhenActive="page"
             class="nav-link"
           >
-            <av-icon name="users" [size]="16" />
-            <span>Manage Users</span>
+            <av-icon [name]="adminNavItem.icon" [size]="16" />
+            <span>{{ adminNavItem.label }}</span>
           </a>
         </div>
       }
@@ -68,16 +71,19 @@
     <router-outlet />
   </main>
 
-  <nav class="bottom-nav" aria-label="Mobile navigation">
-    @for (item of primaryNavItems.slice(0, 4); track item.path) {
+  <nav class="bottom-nav" aria-label="Customer portal (mobile)">
+    @for (item of mobileNavItems; track item.path) {
       <a
         [routerLink]="item.path"
         routerLinkActive="bottom-nav__item--active"
         [routerLinkActiveOptions]="{ exact: item.exact }"
+        ariaCurrentWhenActive="page"
         class="bottom-nav__item"
       >
-        <av-icon [name]="item.icon" [size]="16" />
-        <small>{{ item.label }}</small>
+        <span class="bottom-nav__icon" aria-hidden="true">
+          <av-icon [name]="item.icon" [size]="16" />
+        </span>
+        <span class="bottom-nav__label">{{ item.label }}</span>
       </a>
     }
   </nav>
