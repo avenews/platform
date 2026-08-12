@@ -7,18 +7,62 @@
         class="login-card__logo"
       />
 
-      @if (step === 'success') {
-        <div class="login-success">
-          <div class="login-success__icon" aria-hidden="true">
-            <av-icon name="check" [size]="28" />
-          </div>
-          <h2>{{ method === 'email' ? 'Check your inbox' : 'Check your messages' }}</h2>
+      @if (step === 'verification' || step === 'verifying') {
+        <div class="login-heading login-heading--verification">
+          <h1>Verification code</h1>
           <p>
-            We've sent a login code to your
-            {{ method === 'email' ? 'email address' : 'phone number' }}.
-            It may take a moment to arrive.
+            Please type verification code sent to
+            <strong class="login-destination">{{ sentDestination }}</strong>
           </p>
         </div>
+
+        <form (ngSubmit)="verifyCode()">
+          <div class="login-input login-input--verification">
+            <av-input
+              label="Verification Code"
+              type="text"
+              inputmode="numeric"
+              autocomplete="one-time-code"
+              placeholder="Enter Verification Code"
+              [required]="true"
+              [disabled]="step === 'verifying'"
+              [value]="verificationCode"
+              (valueChange)="verificationCode = $event"
+            />
+          </div>
+
+          <div class="login-resend" aria-live="polite">
+            @if (resendSeconds > 0) {
+              <span>Resend code in {{ resendSeconds }}</span>
+            } @else {
+              <button type="button" class="login-resend__button" (click)="resendCode()">
+                Resend code
+              </button>
+            }
+          </div>
+
+          <button
+            type="submit"
+            avButton
+            variant="primary"
+            expand="block"
+            [loading]="step === 'verifying'"
+            [disabled]="!canVerify"
+          >
+            @if (step === 'verifying') {
+              <span class="av-btn__spinner" aria-hidden="true"></span>
+            } @else {
+              <span class="av-btn__label">Verify</span>
+            }
+          </button>
+        </form>
+
+        <p class="login-legal">
+          By logging in, you agree to our
+          <a href="/terms">Terms of Use</a>
+          and that you read our
+          <a href="/privacy">Privacy Policy</a>.
+        </p>
       } @else {
         <div class="login-heading">
           <h1>Welcome, let's sign you in.</h1>
@@ -83,9 +127,9 @@
         </form>
 
         <p class="login-legal">
-          By signing in, you agree to our
-          <a href="/terms">Terms of Service</a>
-          and our
+          By logging in, you agree to our
+          <a href="/terms">Terms of Use</a>
+          and that you read our
           <a href="/privacy">Privacy Policy</a>.
         </p>
       }
