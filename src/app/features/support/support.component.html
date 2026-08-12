@@ -1,0 +1,48 @@
+<div class="portal-page baseline-page">
+  <div class="baseline-hero">
+    <h1>Support</h1>
+    <p>Need help with your account, financing, invoices, or repayments? Contact Avenews here.</p>
+  </div>
+
+  <div class="support-grid">
+    <section class="baseline-card">
+      <div class="baseline-card__header">
+        <h2>Submit a support request</h2>
+        <p>Use this form if something in the portal looks wrong or you need help with a specific record.</p>
+      </div>
+      <div class="baseline-card__body">
+        <form class="baseline-form" (ngSubmit)="submitRequest()">
+          <div class="baseline-field">
+            <label for="support-type">What do you need help with?</label>
+            <select id="support-type" class="baseline-control" [(ngModel)]="type" name="type" required>
+              <option value="">Select a topic</option>
+              @for (requestType of requestTypes; track requestType.value) {
+                <option [value]="requestType.value">{{ requestType.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="baseline-field">
+            <label for="support-message">Message</label>
+            <textarea id="support-message" class="baseline-textarea" placeholder="Tell us what you need help with." [(ngModel)]="message" name="message" rows="4" maxlength="2000"></textarea>
+          </div>
+          <button type="submit" class="baseline-button baseline-button--primary baseline-button--block" [disabled]="!canSubmit || submitting">{{ submitting ? 'Submitting...' : 'Submit request' }}</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="baseline-card">
+      <div class="baseline-card__header">
+        <h2>Quick Help</h2>
+        <p>Need quick help? Reach Avenews directly on WhatsApp or browse common questions.</p>
+      </div>
+      <div class="baseline-card__body">
+        <div class="quick-help-actions">
+          <button type="button" class="baseline-button baseline-button--primary" (click)="openWhatsApp()">Open WhatsApp</button>
+          <button type="button" class="baseline-button baseline-button--secondary" (click)="openFaq()">View FAQ</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }

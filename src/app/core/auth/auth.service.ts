@@ -35,11 +35,11 @@ export class AuthService {
 
   login(role: PortalRole): void {
     const session: MockSession = {
-      contactId: 'contact_demo_001',
+      contactId: 'usr_001',
       contactFirstName: 'Amara',
       contactLastName: 'Osei',
-      contactEmail: 'amara.osei@example.com',
-      businessId: 'business_demo_001',
+      contactEmail: 'amara.osei@kiokoagri.co.ke',
+      businessId: 'biz_demo_001',
       businessName: 'Kioko Agri Supplies Ltd',
       role,
     }

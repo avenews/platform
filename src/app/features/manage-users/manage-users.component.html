@@ -1,0 +1,156 @@
+<div class="portal-page baseline-page" (click)="closeMenus()">
+  <div class="manage-users-head">
+    <div class="baseline-hero">
+      <h1>Manage Users</h1>
+      <p>Add and manage people who can access the portal for <strong>{{ businessName }}</strong>.</p>
+    </div>
+    <button type="button" class="baseline-button baseline-button--primary" (click)="$event.stopPropagation(); openInvite()">+ Invite user</button>
+  </div>
+
+  <div class="baseline-toolbar">
+    <div class="baseline-filter">
+      <label for="user-status">Status</label>
+      <select id="user-status" class="baseline-control" [(ngModel)]="statusFilter">
+        <option value="">All statuses</option>
+        <option value="active">Active</option>
+        <option value="pending">Pending</option>
+        <option value="deactivated">Deactivated</option>
+      </select>
+    </div>
+    @if (statusFilter) { <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button> }
+    <input class="baseline-search" type="search" placeholder="Search by name or email" [(ngModel)]="search" aria-label="Search users">
+  </div>
+
+  @if (statusFilter !== 'pending') {
+    <section class="baseline-section">
+      <div class="baseline-section-heading"><div><h2>{{ usersSectionTitle }}</h2></div></div>
+      <div class="baseline-table-wrap">
+        <table class="baseline-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Invited</th><th>Last Active</th><th class="is-right">Actions</th></tr></thead>
+          <tbody>
+            @for (user of visibleUsers; track user.id) {
+              <tr>
+                <td><span class="user-name-cell"><span>{{ fullName(user) }}@if (user.id === currentUserId) { <small> (You)</small> }</span>@if (user.phone) { <small>{{ user.phone }}</small> }</span></td>
+                <td>{{ user.email }}</td>
+                <td><span class="user-role" [class.user-role--admin]="user.role === 'admin'">{{ roleLabel(user.role) }}</span></td>
+                <td><span class="baseline-status" [class]="user.status === 'active' ? 'baseline-status status-success' : 'baseline-status status-neutral'">{{ user.status === 'active' ? 'Active' : 'Deactivated' }}</span></td>
+                <td>{{ formatDate(user.invitedAt) }}</td>
+                <td>{{ user.lastActiveAt ? formatDate(user.lastActiveAt) : 'Never' }}</td>
+                <td class="is-right">
+                  @if (userActions(user).length) {
+                    <span class="user-actions" (click)="$event.stopPropagation()">
+                      <button type="button" class="user-actions__trigger" (click)="toggleMenu('user:' + user.id)">...</button>
+                      @if (openMenuId === 'user:' + user.id) {
+                        <span class="user-actions__menu">
+                          @for (item of userActions(user); track item.label) {
+                            <button type="button" [class.is-danger]="item.danger" (click)="handleUserAction(user, item.action)">{{ item.label }}</button>
+                          }
+                        </span>
+                      }
+                    </span>
+                  }
+                </td>
+              </tr>
+            } @empty { <tr><td colspan="7"><div class="baseline-empty"><strong>No users found</strong><p>No users match your current filters.</p></div></td></tr> }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="baseline-cards">
+        @for (user of visibleUsers; track user.id) {
+          <article class="baseline-record-card">
+            <div class="user-card__identity">
+              <span class="user-card__avatar">{{ initials(user) }}</span>
+              <span class="user-card__name"><strong>{{ fullName(user) }}@if (user.id === currentUserId) { <span class="baseline-muted"> (You)</span> }</strong><span class="user-card__contact">{{ user.email }}</span>@if (user.phone) { <span class="user-card__contact">{{ user.phone }}</span> }</span>
+            </div>
+            <div class="user-card__meta"><span class="user-role" [class.user-role--admin]="user.role === 'admin'">{{ roleLabel(user.role) }}</span><span class="baseline-status" [class]="user.status === 'active' ? 'baseline-status status-success' : 'baseline-status status-neutral'">{{ user.status === 'active' ? 'Active' : 'Deactivated' }}</span></div>
+            <div class="user-card__dates"><div>Invited {{ formatDate(user.invitedAt) }}</div><div>Last active {{ user.lastActiveAt ? formatDate(user.lastActiveAt) : 'Never' }}</div></div>
+            @if (userActions(user).length) {
+              <div class="baseline-card-actions"><span class="user-actions" (click)="$event.stopPropagation()"><button type="button" class="user-actions__trigger" (click)="toggleMenu('mobile-user:' + user.id)">Actions</button>@if (openMenuId === 'mobile-user:' + user.id) { <span class="user-actions__menu">@for (item of userActions(user); track item.label) { <button type="button" [class.is-danger]="item.danger" (click)="handleUserAction(user, item.action)">{{ item.label }}</button> }</span> }</span></div>
+            }
+          </article>
+        } @empty { <div class="baseline-empty"><strong>No users found</strong><p>No users match your current filters.</p></div> }
+      </div>
+    </section>
+  }
+
+  @if (showInvitations) {
+    <section class="baseline-section">
+      <div class="baseline-section-heading"><div><h2>Pending Invitations</h2></div></div>
+      <div class="baseline-table-wrap">
+        <table class="baseline-table">
+          <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Invited</th><th>Expires</th><th class="is-right">Actions</th></tr></thead>
+          <tbody>
+            @for (invitation of filteredInvitations; track invitation.id) {
+              <tr>
+                <td><span class="user-name-cell"><span>{{ fullName(invitation) }}</span>@if (invitation.phone) { <small>{{ invitation.phone }}</small> }</span></td>
+                <td>{{ invitation.email }}</td>
+                <td><span class="user-role" [class.user-role--admin]="invitation.role === 'admin'">{{ roleLabel(invitation.role) }}</span></td>
+                <td><span class="baseline-status status-warning">Pending</span></td>
+                <td>{{ formatDate(invitation.invitedAt) }}</td>
+                <td>{{ formatDate(invitation.expiresAt) }}</td>
+                <td class="is-right"><span class="user-actions" (click)="$event.stopPropagation()"><button type="button" class="user-actions__trigger" (click)="toggleMenu('invite:' + invitation.id)">...</button>@if (openMenuId === 'invite:' + invitation.id) { <span class="user-actions__menu"><button type="button" (click)="resendInvitation(invitation)">Resend invite</button><button type="button" class="is-danger" (click)="cancelInvitation(invitation)">Cancel invite</button></span> }</span></td>
+              </tr>
+            } @empty { <tr><td colspan="7"><div class="baseline-empty"><strong>No pending invitations</strong><p>Invite someone using the button above.</p></div></td></tr> }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="baseline-cards">
+        @for (invitation of filteredInvitations; track invitation.id) {
+          <article class="baseline-record-card">
+            <div class="user-card__identity"><span class="user-card__avatar" style="background:#fff4cc;color:#b66a00">{{ initials(invitation) }}</span><span class="user-card__name"><strong>{{ fullName(invitation) }}</strong><span class="user-card__contact">{{ invitation.email }}</span>@if (invitation.phone) { <span class="user-card__contact">{{ invitation.phone }}</span> }</span></div>
+            <div class="user-card__meta"><span class="user-role" [class.user-role--admin]="invitation.role === 'admin'">{{ roleLabel(invitation.role) }}</span><span class="baseline-status status-warning">Pending</span></div>
+            <div class="user-card__dates"><div>Invited {{ formatDate(invitation.invitedAt) }}</div><div>Expires {{ formatDate(invitation.expiresAt) }}</div></div>
+            <div class="baseline-card-actions"><span class="user-actions" (click)="$event.stopPropagation()"><button type="button" class="user-actions__trigger" (click)="toggleMenu('mobile-invite:' + invitation.id)">Actions</button>@if (openMenuId === 'mobile-invite:' + invitation.id) { <span class="user-actions__menu"><button type="button" (click)="resendInvitation(invitation)">Resend invite</button><button type="button" class="is-danger" (click)="cancelInvitation(invitation)">Cancel invite</button></span> }</span></div>
+          </article>
+        } @empty { <div class="baseline-empty"><strong>No pending invitations</strong><p>Invite someone using the button above.</p></div> }
+      </div>
+    </section>
+  }
+</div>
+
+@if (inviteOpen) {
+  <div class="baseline-modal-backdrop" role="presentation" (click)="closeInvite()">
+    <section class="baseline-modal" role="dialog" aria-modal="true" aria-labelledby="invite-title" (click)="$event.stopPropagation()">
+      <header class="baseline-modal__head"><h2 id="invite-title">Invite user</h2><button type="button" class="baseline-modal__close" (click)="closeInvite()" aria-label="Close">&times;</button></header>
+      <div class="baseline-modal__body">
+        @if (inviteSent) {
+          <div class="baseline-banner baseline-banner--success">Invite sent to {{ inviteEmail }}. They'll receive an email shortly.</div>
+          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="closeInvite()">Done</button>
+        } @else {
+          @if (inviteError) { <div class="baseline-banner baseline-banner--warning">{{ inviteError }}</div> }
+          <p class="baseline-helper">An email invite will be sent to the address below. Customer Admins can invite and manage users. Customer Users can view and use allowed portal actions.</p>
+          <form class="baseline-form" (ngSubmit)="sendInvite()">
+            <div class="baseline-form-row">
+              <div class="baseline-field"><label for="invite-first">First name</label><input id="invite-first" class="baseline-control" [(ngModel)]="inviteFirstName" name="firstName" placeholder="First name" required></div>
+              <div class="baseline-field"><label for="invite-last">Last name</label><input id="invite-last" class="baseline-control" [(ngModel)]="inviteLastName" name="lastName" placeholder="Last name" required></div>
+            </div>
+            <div class="baseline-field"><label for="invite-email">Email</label><input id="invite-email" class="baseline-control" type="email" [(ngModel)]="inviteEmail" name="email" placeholder="colleague@business.co.ke" required></div>
+            <div class="baseline-field"><label for="invite-phone">Phone number</label><input id="invite-phone" class="baseline-control" type="tel" [(ngModel)]="invitePhone" name="phone" placeholder="+254 7XX XXX XXX" required></div>
+            <div class="baseline-field"><label for="invite-role">Role</label><select id="invite-role" class="baseline-control" [(ngModel)]="inviteRole" name="role"><option value="user">Customer User - can view and use the portal</option><option value="admin">Customer Admin - can also manage users</option></select></div>
+            <label class="baseline-checkbox"><input type="checkbox" [(ngModel)]="inviteAccepted" name="accepted"><span>I confirm that this user is an authorized Funds Request signatory for this business and may submit Funds Requests on behalf of the business. I accept the <button type="button" class="baseline-button baseline-button--ghost" style="min-height:0;padding:0" (click)="termsOpen = true">Funds Request Terms &amp; Conditions.</button></span></label>
+            <button type="submit" class="baseline-button baseline-button--primary baseline-button--block" [disabled]="!inviteValid">Send invite</button>
+          </form>
+        }
+      </div>
+    </section>
+  </div>
+}
+
+@if (pending) {
+  <div class="baseline-modal-backdrop" role="presentation" (click)="pending = null">
+    <section class="baseline-modal baseline-modal--small" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+      <header class="baseline-modal__head"><h2>{{ confirmTitle }}</h2><button type="button" class="baseline-modal__close" (click)="pending = null" aria-label="Close">&times;</button></header>
+      <div class="baseline-modal__body"><p class="baseline-helper">{{ confirmBody }}</p><div class="baseline-modal__actions"><button type="button" class="baseline-button baseline-button--block" [class.baseline-button--danger]="confirmDanger" [class.baseline-button--primary]="!confirmDanger" (click)="confirmAction()">{{ confirmLabel }}</button><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="pending = null">Cancel</button></div></div>
+    </section>
+  </div>
+}
+
+@if (termsOpen) {
+  <div class="baseline-modal-backdrop" role="presentation" (click)="termsOpen = false">
+    <section class="baseline-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><h2>Funds Request Terms &amp; Conditions</h2><button type="button" class="baseline-modal__close" (click)="termsOpen = false" aria-label="Close">&times;</button></header><div class="baseline-modal__body"><p class="baseline-helper">This prototype confirms that an invited portal user may be authorized to submit Funds Requests for the linked business. The production workflow will present the complete legal terms.</p><button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="termsOpen = false">Close</button></div></section>
+  </div>
+}
+
+@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }

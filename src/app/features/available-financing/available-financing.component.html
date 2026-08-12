@@ -1,0 +1,176 @@
+<div class="portal-page baseline-page">
+  <div class="baseline-hero">
+    <h1>Available Financing</h1>
+    <p>Your approved credit lines and available amounts.</p>
+  </div>
+
+  <section class="baseline-section" aria-label="Approved financing lines">
+    <div class="baseline-toolbar">
+      <div class="baseline-filter">
+        <label for="available-product">Product</label>
+        <select id="available-product" class="baseline-control" [(ngModel)]="productFilter" (ngModelChange)="page = 1">
+          <option value="">All products</option>
+          @for (product of products; track product.value) {
+            <option [value]="product.value">{{ product.label }}</option>
+          }
+        </select>
+      </div>
+      <div class="baseline-filter">
+        <label for="available-status">Status</label>
+        <select id="available-status" class="baseline-control" [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
+          <option value="">All statuses</option>
+          <option value="available">Available</option>
+          <option value="unavailable">Unavailable</option>
+        </select>
+      </div>
+      @if (productFilter || statusFilter) {
+        <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button>
+      }
+    </div>
+
+    <div class="baseline-table-wrap">
+      <table class="baseline-table credit-lines-table">
+        <thead>
+          <tr>
+            <th>Financing</th>
+            <th class="is-right">Max Financing</th>
+            <th class="is-right">Financing Used</th>
+            <th class="is-right">Financing Available</th>
+            <th>Status</th>
+            <th class="is-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (line of pageItems; track line.id) {
+            <tr>
+              <td>
+                <a [routerLink]="['/available-financing', line.id]" class="baseline-financing-cell credit-line-link">
+                  <strong>{{ line.partner }}</strong>
+                  <span>{{ productLabel(line.product) }}</span>
+                </a>
+              </td>
+              <td class="is-right">{{ formatKes(line.totalLimit) }}</td>
+              <td class="is-right">{{ formatKes(line.used) }}</td>
+              <td class="is-right"><strong>{{ formatKes(line.available) }}</strong></td>
+              <td><span class="baseline-status" [class]="'baseline-status ' + availabilityClass(line)">{{ availabilityLabel(line) }}</span></td>
+              <td class="is-right">
+                <button
+                  type="button"
+                  class="baseline-button"
+                  [class.baseline-button--secondary]="isInvoiceProduct(line.product)"
+                  [class.baseline-button--primary]="!isInvoiceProduct(line.product)"
+                  [disabled]="line.available <= 0"
+                  (click)="triggerAction(line)"
+                >{{ actionLabel(line) }}</button>
+              </td>
+            </tr>
+          } @empty {
+            <tr><td colspan="6"><div class="baseline-empty"><strong>No credit lines yet</strong><p>Contact your account manager to set up a financing line.</p></div></td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="baseline-cards">
+      @for (line of pageItems; track line.id) {
+        <article class="baseline-record-card">
+          <div class="baseline-record-card__head">
+            <a [routerLink]="['/available-financing', line.id]" class="baseline-financing-cell credit-line-link">
+              <strong>{{ line.partner }}</strong>
+              <span>{{ productLabel(line.product) }}</span>
+            </a>
+            <span class="baseline-status" [class]="'baseline-status ' + availabilityClass(line)">{{ availabilityLabel(line) }}</span>
+          </div>
+          <div class="baseline-metrics">
+            <span class="baseline-metric"><small>Financing Available</small><strong>{{ formatKes(line.available) }}</strong></span>
+            <span class="baseline-metric"><small>Max Financing</small><strong>{{ formatKes(line.totalLimit) }}</strong></span>
+          </div>
+          <div class="baseline-metrics">
+            <span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(line.used) }}</strong></span>
+          </div>
+          <div class="baseline-card-actions">
+            <button
+              type="button"
+              class="baseline-button baseline-button--block"
+              [class.baseline-button--secondary]="isInvoiceProduct(line.product)"
+              [class.baseline-button--primary]="!isInvoiceProduct(line.product)"
+              [disabled]="line.available <= 0"
+              (click)="triggerAction(line)"
+            >{{ actionLabel(line) }}</button>
+          </div>
+        </article>
+      } @empty {
+        <div class="baseline-empty"><strong>No credit lines yet</strong><p>Contact your account manager to set up a financing line.</p></div>
+      }
+    </div>
+
+    @if (filteredCreditLines.length > pageSize) {
+      <div class="baseline-pagination">
+        <p>Showing {{ rangeStart }}-{{ rangeEnd }} of {{ filteredCreditLines.length }} credit lines</p>
+        <div class="baseline-pagination__controls">
+          <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">&larr;</button>
+          <button type="button" [disabled]="page === totalPages" (click)="changePage(page + 1)" aria-label="Next page">&rarr;</button>
+        </div>
+      </div>
+    }
+  </section>
+
+  <section class="baseline-section" aria-labelledby="invoice-groups-title">
+    <div class="invoice-groups-heading">
+      <h2 id="invoice-groups-title">Invoice Financing invoices ready for funding request</h2>
+      <p class="baseline-muted">Approved Invoice Financing invoices are grouped by buyer and due date. Each group can be used to create a separate Funds Request and financing period.</p>
+    </div>
+
+    <div class="baseline-table-wrap">
+      <table class="baseline-table">
+        <thead>
+          <tr>
+            <th>Buyer</th>
+            <th>Invoice Due Date</th>
+            <th class="is-right">Approved Invoices</th>
+            <th class="is-right">Approved Invoice Value</th>
+            <th class="is-right">Max Requestable</th>
+            <th>Status</th>
+            <th class="is-right">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (group of invoiceGroups; track group.id) {
+            <tr>
+              <td><strong>{{ group.buyerName }}</strong></td>
+              <td>{{ formatDate(group.dueDate) }}</td>
+              <td class="is-right">{{ group.approvedInvoiceCount }}</td>
+              <td class="is-right">{{ formatKes(group.approvedInvoiceValue) }}</td>
+              <td class="is-right">{{ group.status === 'validating' ? 'Pending review' : formatKes(group.maxRequestable) }}</td>
+              <td><span class="baseline-status" [class]="group.status === 'validating' ? 'baseline-status status-warning' : 'baseline-status status-info'">{{ group.status === 'validating' ? 'Validating' : 'Ready to request' }}</span></td>
+              <td class="is-right"><button type="button" class="baseline-button" [class.baseline-button--secondary]="group.status === 'validating'" [class.baseline-button--primary]="group.status === 'ready'" (click)="triggerGroupAction(group.status)">{{ group.status === 'validating' ? 'View invoices' : 'Request funds' }}</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="baseline-cards">
+      @for (group of invoiceGroups; track group.id) {
+        <article class="baseline-record-card">
+          <div class="baseline-record-card__head">
+            <strong>{{ group.buyerName }}</strong>
+            <span class="baseline-status" [class]="group.status === 'validating' ? 'baseline-status status-warning' : 'baseline-status status-info'">{{ group.status === 'validating' ? 'Validating' : 'Ready to request' }}</span>
+          </div>
+          <div class="baseline-metrics">
+            <span class="baseline-metric"><small>Approved value</small><strong>{{ formatKes(group.approvedInvoiceValue) }}</strong></span>
+            <span class="baseline-metric"><small>Max requestable</small><strong>{{ group.status === 'validating' ? 'Pending review' : formatKes(group.maxRequestable) }}</strong></span>
+          </div>
+          <p class="baseline-muted">{{ group.approvedInvoiceCount }} invoice{{ group.approvedInvoiceCount === 1 ? '' : 's' }} - Due {{ formatDate(group.dueDate) }}</p>
+          <div class="baseline-card-actions">
+            <button type="button" class="baseline-button baseline-button--block" [class.baseline-button--secondary]="group.status === 'validating'" [class.baseline-button--primary]="group.status === 'ready'" (click)="triggerGroupAction(group.status)">{{ group.status === 'validating' ? 'View invoices' : 'Request funds' }}</button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</div>
+
+@if (toast) {
+  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
+}

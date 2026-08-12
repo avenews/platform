@@ -1,3 +1,5 @@
+@import './app/shared/customer-portal-baseline.css';
+
 :root {
   color-scheme: light;
   --portal-sidebar-width: 240px;

@@ -1,0 +1,105 @@
+<div class="portal-page baseline-page">
+  <div class="baseline-hero">
+    <h1>Invoices &amp; Documents</h1>
+    <p>View invoices and supporting documents linked to your account.</p>
+  </div>
+
+  <div class="baseline-toolbar">
+    @if (partners.length > 1) {
+      <div class="baseline-filter">
+        <label for="invoice-partner">Linked Partner</label>
+        <select id="invoice-partner" class="baseline-control" [(ngModel)]="partnerFilter" (ngModelChange)="page = 1">
+          <option value="">All partners</option>
+          @for (partner of partners; track partner) { <option [value]="partner">{{ partner }}</option> }
+        </select>
+      </div>
+    }
+    <div class="baseline-filter">
+      <label for="invoice-status">Financing Status</label>
+      <select id="invoice-status" class="baseline-control" [(ngModel)]="financingFilter" (ngModelChange)="page = 1">
+        <option value="">All statuses</option>
+        @for (status of statuses; track status) { <option [value]="status">{{ invoiceStatusLabel(status) }}</option> }
+      </select>
+    </div>
+    <div class="baseline-filter">
+      <label for="invoice-date">Due date</label>
+      <select id="invoice-date" class="baseline-control" [(ngModel)]="dateFilter" (ngModelChange)="page = 1">
+        <option value="">Any due date</option>
+        <option value="overdue">Overdue</option>
+        <option value="due-soon">Due soon (&lt;= 7 days)</option>
+        <option value="this-30">Due &lt;= 30 days</option>
+        <option value="this-60">Due &lt;= 60 days</option>
+        <option value="this-90">Due &lt;= 90 days</option>
+        <option value="no-date">No due date</option>
+      </select>
+    </div>
+    @if (partnerFilter || financingFilter || dateFilter) {
+      <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button>
+    }
+  </div>
+
+  <div class="baseline-table-wrap">
+    <table class="baseline-table">
+      <thead>
+        <tr>
+          <th>Invoice Number</th>
+          <th>Linked Partner</th>
+          <th>Due Date</th>
+          <th>Invoice Amount</th>
+          <th>Invoice File</th>
+          <th>Financing Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (invoice of pageItems; track invoice.id) {
+          <tr>
+            <td>{{ invoice.invoiceNumber }}</td>
+            <td>{{ invoice.partner }}</td>
+            <td [class.baseline-muted]="!invoice.dueDate">{{ invoice.dueDate ? formatDate(invoice.dueDate) : '-' }}</td>
+            <td>{{ formatKes(invoice.amount) }}</td>
+            <td>
+              @if (invoice.invoiceFileUrl) {
+                <button type="button" class="baseline-button baseline-button--primary" (click)="openInvoice(invoice)">View invoice</button>
+              } @else {
+                <span class="baseline-muted">-</span>
+              }
+            </td>
+            <td><span class="baseline-status" [class]="'baseline-status ' + invoiceStatusTone(invoice.financingStatus)">{{ invoiceStatusLabel(invoice.financingStatus) }}</span></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6"><div class="baseline-empty"><strong>No invoices yet</strong><p>Invoices you upload will appear here.</p></div></td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="baseline-cards">
+    @for (invoice of mobilePageItems; track invoice.id) {
+      <article class="baseline-record-card">
+        <div class="baseline-record-card__head">
+          <span class="invoice-card__identity"><strong class="invoice-card__partner">{{ invoice.partner }}</strong><span class="invoice-card__number">{{ invoice.invoiceNumber }}</span></span>
+          <span class="invoice-card__amount"><small>Invoice Amount</small><strong>{{ formatKes(invoice.amount) }}</strong></span>
+        </div>
+        @if (invoice.dueDate) { <span class="invoice-card__due">Due {{ formatDate(invoice.dueDate) }}</span> }
+        <div><span class="baseline-status" [class]="'baseline-status ' + invoiceStatusTone(invoice.financingStatus)">{{ invoiceStatusLabel(invoice.financingStatus) }}</span></div>
+        @if (invoice.invoiceFileUrl) {
+          <div class="baseline-card-actions"><button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openInvoice(invoice)">View invoice</button></div>
+        }
+      </article>
+    } @empty {
+      <div class="baseline-empty"><strong>No invoices match your filters</strong><p>Try clearing one of the filters above.</p></div>
+    }
+  </div>
+
+  @if (filteredInvoices.length > pageSize) {
+    <div class="baseline-pagination">
+      <p>Showing {{ (page - 1) * pageSize + 1 }}-{{ page * pageSize > filteredInvoices.length ? filteredInvoices.length : page * pageSize }} of {{ filteredInvoices.length }} invoices</p>
+      <div class="baseline-pagination__controls">
+        <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">&larr;</button>
+        <button type="button" [disabled]="page === totalPages" (click)="changePage(page + 1)" aria-label="Next page">&rarr;</button>
+      </div>
+    </div>
+  }
+</div>
+
+@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }

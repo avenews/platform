@@ -9,15 +9,15 @@
     </div>
 
     <div class="summary-metrics" aria-label="Financing summary">
-      <a routerLink="/financing-activity" class="summary-metric">
+      <a routerLink="/financing-activity" [queryParams]="{ view: 'active' }" class="summary-metric">
         <span>Active financing periods</span>
         <strong>3</strong>
       </a>
-      <a routerLink="/financing-activity" class="summary-metric">
+      <a routerLink="/financing-activity" [queryParams]="{ view: 'due' }" class="summary-metric">
         <span>Payments Due</span>
         <strong>2</strong>
       </a>
-      <a routerLink="/financing-activity" class="summary-metric">
+      <a routerLink="/financing-activity" [queryParams]="{ view: 'overdue' }" class="summary-metric">
         <span>Payments Overdue</span>
         <strong>1</strong>
       </a>
@@ -30,7 +30,7 @@
       </div>
       <div>
         <dt>Next payment</dt>
-        <dd>Ksh 320,000 · 25 May 2026</dd>
+        <dd>Ksh 320,000 - 25 May 2026</dd>
       </div>
     </dl>
   </section>
@@ -65,7 +65,7 @@
                 <span>{{ row.product }}</span>
               </td>
               <td [class.muted-cell]="row.disbursementDate === 'Pending'">{{ row.disbursementDate }}</td>
-              <td [class.muted-cell]="row.repaymentDueDate === '—'">{{ row.repaymentDueDate }}</td>
+              <td [class.muted-cell]="row.repaymentDueDate === '-'">{{ row.repaymentDueDate }}</td>
               <td>{{ row.amountFinanced }}</td>
               <td><av-status-badge [label]="row.status" [color]="row.statusColor" /></td>
               <td [class.muted-cell]="row.totalRepaid === 'Nil'">{{ row.totalRepaid }}</td>

@@ -22,44 +22,33 @@ export const routes: Routes = [
       },
       {
         path: 'available-financing',
-        data: {
-          title: 'Available Financing',
-          description: 'Review approved facilities and available amounts.',
-        },
         loadComponent: () =>
-          import('./features/placeholder/placeholder-page.component')
-            .then(module => module.PlaceholderPageComponent),
+          import('./features/available-financing/available-financing.component')
+            .then(module => module.AvailableFinancingComponent),
+      },
+      {
+        path: 'available-financing/:id',
+        loadComponent: () =>
+          import('./features/available-financing/available-financing-detail.component')
+            .then(module => module.AvailableFinancingDetailComponent),
       },
       {
         path: 'financing-activity',
-        data: {
-          title: 'Financing Activity',
-          description: 'Track active, completed and overdue financing records.',
-        },
         loadComponent: () =>
-          import('./features/placeholder/placeholder-page.component')
-            .then(module => module.PlaceholderPageComponent),
+          import('./features/financing-activity/financing-activity.component')
+            .then(module => module.FinancingActivityComponent),
       },
       {
         path: 'invoices',
-        data: {
-          title: 'Invoices & Documents',
-          description: 'Review invoices and documents linked to the account.',
-        },
         loadComponent: () =>
-          import('./features/placeholder/placeholder-page.component')
-            .then(module => module.PlaceholderPageComponent),
+          import('./features/invoices/invoices.component').then(module => module.InvoicesComponent),
       },
       {
         path: 'manage-users',
         canActivate: [adminGuard],
-        data: {
-          title: 'Manage Users',
-          description: 'Invite and manage people who can access this portal.',
-        },
         loadComponent: () =>
-          import('./features/placeholder/placeholder-page.component')
-            .then(module => module.PlaceholderPageComponent),
+          import('./features/manage-users/manage-users.component')
+            .then(module => module.ManageUsersComponent),
       },
       {
         path: 'design-lab',
@@ -69,23 +58,13 @@ export const routes: Routes = [
       },
       {
         path: 'support',
-        data: {
-          title: 'Support',
-          description: 'Get help with the account, financing or documents.',
-        },
         loadComponent: () =>
-          import('./features/placeholder/placeholder-page.component')
-            .then(module => module.PlaceholderPageComponent),
+          import('./features/support/support.component').then(module => module.SupportComponent),
       },
       {
         path: 'profile',
-        data: {
-          title: 'Profile',
-          description: 'View account details and linked business information.',
-        },
         loadComponent: () =>
-          import('./features/placeholder/placeholder-page.component')
-            .then(module => module.PlaceholderPageComponent),
+          import('./features/profile/profile.component').then(module => module.ProfileComponent),
       },
     ],
   },
