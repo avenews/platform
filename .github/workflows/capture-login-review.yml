@@ -15,15 +15,20 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download Netlify deploy screenshot
-        run: >-
-          curl --fail --location
-          'https://d33wubrfki0l68.cloudfront.net/6a7c13c364af8941664e73df/screenshot_2026-08-12-06-33-59-0000.webp'
-          --output updated-login.webp
+      - name: Render the deployed login page
+        run: |
+          google-chrome --headless=new \
+            --no-sandbox \
+            --disable-gpu \
+            --hide-scrollbars \
+            --window-size=1920,1080 \
+            --virtual-time-budget=6000 \
+            --screenshot=updated-login.png \
+            https://avenews-platform.netlify.app/login
 
       - name: Upload visual review artifact
         uses: actions/upload-artifact@v4
         with:
-          name: updated-login-review
-          path: updated-login.webp
+          name: updated-login-review-browser
+          path: updated-login.png
           if-no-files-found: error
