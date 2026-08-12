@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angul
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
 import { AvAvatarComponent, AvIconComponent } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
+import { PortalNavIconComponent, type PortalNavIconName } from './portal-nav-icon.component'
 
 interface NavItem {
   path: string
   label: string
-  icon: string
+  icon: PortalNavIconName
   exact: boolean
 }
 
@@ -39,7 +40,7 @@ const CUSTOMER_ADMIN_NAV_ITEM: NavItem = {
 @Component({
   selector: 'app-portal-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, AvAvatarComponent, AvIconComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AvAvatarComponent, AvIconComponent, PortalNavIconComponent],
   templateUrl: './portal-shell.component.html',
   styleUrl: './portal-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
