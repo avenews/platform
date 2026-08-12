@@ -2,6 +2,20 @@
 
 These rules apply to any coding or design agent working in this repository.
 
+## Mandatory issue-first work intake
+
+Every new piece of work must start with a GitHub Issue before implementation begins.
+
+- If the work is small and self-contained, create one issue that describes the requested outcome and acceptance scope.
+- If the work is large, first break it into multiple logical issues. Each issue should represent a coherent, reviewable unit of work that can be implemented, reviewed, accepted, rejected, or revised independently.
+- Do not create one oversized issue for a large body of work merely to satisfy the issue requirement.
+- Do not begin unrelated implementation first and create an issue afterward only for bookkeeping.
+- Human and agent-driven work follow the same rule.
+- Feature branches and pull requests must reference the relevant GitHub Issue or Issues.
+- Before starting implementation, check existing open issues and pull requests to avoid duplicating work that is already underway.
+
+The issue structure should be decided before creating implementation branches. A small change normally maps to one issue, one focused branch, and one pull request. Larger initiatives map to multiple logical issues and may therefore use multiple branches and pull requests.
+
 ## Mandatory deployment workflow
 
 Read and follow [`docs/DEPLOYMENT_WORKFLOW.md`](docs/DEPLOYMENT_WORKFLOW.md) before changing, publishing, promoting, or reporting repository work.
@@ -34,6 +48,7 @@ If GitHub-to-Netlify continuous deployment is not connected, explicitly report t
 
 Every repository-change response should report, when available:
 
+- issue number(s)
 - branch
 - PR target
 - current commit/head SHA
