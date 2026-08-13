@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { WhatsAppIconComponent } from '../../shared/whatsapp-icon.component'
+import { AvIconComponent } from '@avenews/design-system/angular'
 
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [CommonModule, FormsModule, WhatsAppIconComponent],
+  imports: [CommonModule, FormsModule, AvIconComponent],
   templateUrl: './support.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
