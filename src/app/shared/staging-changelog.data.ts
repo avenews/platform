@@ -20,7 +20,7 @@ export const STAGING_CHANGELOG: readonly StagingChangelogEntry[] = [
     stagingDate: '13 Aug 2026',
     prNumber: 34,
     title: 'Responsive customer search and filter bar',
-    contributor: 'Stefan — ChatGPT-assisted',
+    contributor: 'Stefan — ChatGPT-assisted · customer filter work',
     summary: [
       'Introduced one reusable responsive customer search and filter bar based on the ASFo buyer portal interaction pattern.',
       'Replaced permanently stacked mobile selects with an immediately available search field, a compact Filters disclosure, and consistent Clear all and Apply actions.',
