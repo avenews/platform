@@ -1,7 +1,7 @@
 <div class="portal-page baseline-page customer-list-page">
   <div class="baseline-hero">
     <h1>Available Financing</h1>
-    <p>Your approved credit lines and available amounts.</p>
+    <p>Your approved financing relationships, available amounts, and Supplier Financing periods.</p>
   </div>
 
   <app-customer-filter-bar
@@ -14,46 +14,21 @@
     (valuesChange)="onFilterValuesChange($event)"
   />
 
-  <section class="baseline-section" aria-label="Approved financing lines">
+  <section class="baseline-section" aria-label="Approved financing relationships">
     <div class="baseline-table-wrap">
       <table class="baseline-table credit-lines-table">
-        <thead>
-          <tr>
-            <th>Financing</th>
-            <th class="is-right">Max Financing</th>
-            <th class="is-right">Financing Used</th>
-            <th class="is-right">Financing Available</th>
-            <th>Status</th>
-            <th class="is-right">Action</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Financing</th><th>Max Financing</th><th>Financing Used</th><th>Financing Available</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>
           @for (line of pageItems; track line.id) {
             <tr>
-              <td>
-                <a [routerLink]="['/available-financing', line.id]" class="baseline-financing-cell credit-line-link">
-                  <strong>{{ line.partner }}</strong>
-                  <span>{{ productLabel(line.product) }}</span>
-                </a>
-              </td>
-              <td class="is-right">{{ formatKes(line.totalLimit) }}</td>
-              <td class="is-right">{{ formatKes(line.used) }}</td>
-              <td class="is-right"><strong>{{ formatKes(line.available) }}</strong></td>
+              <td><a [routerLink]="financingLink(line)" class="baseline-financing-cell credit-line-link"><strong>{{ line.partner }}</strong><span>{{ displayProductLabel(line.product) }}</span></a></td>
+              <td>{{ formatKes(line.totalLimit) }}</td>
+              <td>{{ formatKes(line.used) }}</td>
+              <td><strong>{{ formatKes(line.available) }}</strong></td>
               <td><span class="baseline-status" [class]="'baseline-status ' + availabilityClass(line)">{{ availabilityLabel(line) }}</span></td>
-              <td class="is-right">
-                <button
-                  type="button"
-                  class="baseline-button"
-                  [class.baseline-button--secondary]="isInvoiceProduct(line.product)"
-                  [class.baseline-button--primary]="!isInvoiceProduct(line.product)"
-                  [disabled]="line.available <= 0"
-                  (click)="triggerAction(line)"
-                >{{ actionLabel(line) }}</button>
-              </td>
+              <td><button type="button" class="baseline-button" [class.baseline-button--secondary]="isInvoiceProduct(line.product) || isSupplierFinancing(line.product)" [class.baseline-button--primary]="!isInvoiceProduct(line.product) && !isSupplierFinancing(line.product)" [disabled]="line.available <= 0 && !isSupplierFinancing(line.product)" (click)="triggerAction(line)">{{ actionLabel(line) }}</button></td>
             </tr>
-          } @empty {
-            <tr><td colspan="6"><div class="baseline-empty"><strong>No matching financing lines</strong><p>Try changing your search or filters.</p></div></td></tr>
-          }
+          } @empty { <tr><td colspan="6"><div class="baseline-empty"><strong>No matching financing relationships</strong><p>Try changing your search or filters.</p></div></td></tr> }
         </tbody>
       </table>
     </div>
@@ -62,105 +37,76 @@
       @for (line of pageItems; track line.id) {
         <article class="baseline-record-card">
           <div class="baseline-record-card__head">
-            <a [routerLink]="['/available-financing', line.id]" class="baseline-financing-cell credit-line-link">
-              <strong>{{ line.partner }}</strong>
-              <span>{{ productLabel(line.product) }}</span>
-            </a>
+            <a [routerLink]="financingLink(line)" class="baseline-financing-cell credit-line-link"><strong>{{ line.partner }}</strong><span>{{ displayProductLabel(line.product) }}</span></a>
             <span class="baseline-status" [class]="'baseline-status ' + availabilityClass(line)">{{ availabilityLabel(line) }}</span>
           </div>
           <div class="baseline-metrics">
             <span class="baseline-metric"><small>Financing Available</small><strong>{{ formatKes(line.available) }}</strong></span>
             <span class="baseline-metric"><small>Max Financing</small><strong>{{ formatKes(line.totalLimit) }}</strong></span>
           </div>
-          <div class="baseline-metrics">
-            <span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(line.used) }}</strong></span>
-          </div>
-          <div class="baseline-card-actions">
-            <button
-              type="button"
-              class="baseline-button baseline-button--block"
-              [class.baseline-button--secondary]="isInvoiceProduct(line.product)"
-              [class.baseline-button--primary]="!isInvoiceProduct(line.product)"
-              [disabled]="line.available <= 0"
-              (click)="triggerAction(line)"
-            >{{ actionLabel(line) }}</button>
-          </div>
+          <div class="baseline-metrics"><span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(line.used) }}</strong></span></div>
+          <div class="baseline-card-actions"><button type="button" class="baseline-button baseline-button--block" [class.baseline-button--secondary]="isInvoiceProduct(line.product) || isSupplierFinancing(line.product)" [class.baseline-button--primary]="!isInvoiceProduct(line.product) && !isSupplierFinancing(line.product)" [disabled]="line.available <= 0 && !isSupplierFinancing(line.product)" (click)="triggerAction(line)">{{ actionLabel(line) }}</button></div>
         </article>
-      } @empty {
-        <div class="baseline-empty"><strong>No matching financing lines</strong><p>Try changing your search or filters.</p></div>
-      }
+      } @empty { <div class="baseline-empty"><strong>No matching financing relationships</strong><p>Try changing your search or filters.</p></div> }
     </div>
 
     @if (filteredCreditLines.length > pageSize) {
       <div class="baseline-pagination">
-        <p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredCreditLines.length }} credit lines</p>
+        <p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredCreditLines.length }} financing relationships</p>
         <div class="baseline-pagination__controls">
           <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">‹</button>
-          @for (pageNumber of pageNumbers; track pageNumber) {
-            <button type="button" [class.is-active]="pageNumber === page" [attr.aria-current]="pageNumber === page ? 'page' : null" (click)="changePage(pageNumber)">{{ pageNumber }}</button>
-          }
+          @for (pageNumber of pageNumbers; track pageNumber) { <button type="button" [class.is-active]="pageNumber === page" [attr.aria-current]="pageNumber === page ? 'page' : null" (click)="changePage(pageNumber)">{{ pageNumber }}</button> }
           <button type="button" [disabled]="page === totalPages" (click)="changePage(page + 1)" aria-label="Next page">›</button>
         </div>
       </div>
     }
   </section>
 
-  <section class="baseline-section" aria-labelledby="invoice-groups-title">
-    <div class="invoice-groups-heading">
-      <h2 id="invoice-groups-title">Invoice Financing invoices ready for funding request</h2>
-      <p class="baseline-muted">Approved Invoice Financing invoices are grouped by buyer and due date. Each group can be used to create a separate Funds Request and financing period.</p>
+  <section id="supplier-financing-periods" class="baseline-section supplier-periods-section" aria-labelledby="supplier-periods-title">
+    <div class="supplier-periods-heading">
+      <div>
+        <p class="page-eyebrow">Supplier Financing</p>
+        <h2 id="supplier-periods-title">Supplier Financing periods</h2>
+        <p class="baseline-muted">Receivables are grouped by buyer and invoice due date. Open periods can support one or more period-scoped Funds Requests while availability remains.</p>
+      </div>
+      <span class="supplier-period-count">{{ invoiceGroups.length }} periods</span>
     </div>
 
     <div class="baseline-table-wrap">
-      <table class="baseline-table">
-        <thead>
-          <tr>
-            <th>Buyer</th>
-            <th>Invoice Due Date</th>
-            <th class="is-right">Approved Invoices</th>
-            <th class="is-right">Approved Invoice Value</th>
-            <th class="is-right">Max Requestable</th>
-            <th>Status</th>
-            <th class="is-right">Action</th>
-          </tr>
-        </thead>
+      <table class="baseline-table supplier-periods-table">
+        <thead><tr><th>Buyer</th><th>Due Date</th><th>Eligible Receivables</th><th>Drawn / Reserved</th><th>Available to Withdraw</th><th>Status</th><th>Action</th></tr></thead>
         <tbody>
           @for (group of invoiceGroups; track group.id) {
             <tr>
-              <td><strong>{{ group.buyerName }}</strong></td>
-              <td>{{ formatDate(group.dueDate) }}</td>
-              <td class="is-right">{{ group.approvedInvoiceCount }}</td>
-              <td class="is-right">{{ formatKes(group.approvedInvoiceValue) }}</td>
-              <td class="is-right">{{ group.status === 'validating' ? 'Pending review' : formatKes(group.maxRequestable) }}</td>
-              <td><span class="baseline-status" [class]="group.status === 'validating' ? 'baseline-status status-warning' : 'baseline-status status-info'">{{ group.status === 'validating' ? 'Validating' : 'Ready to request' }}</span></td>
-              <td class="is-right"><button type="button" class="baseline-button" [class.baseline-button--secondary]="group.status === 'validating'" [class.baseline-button--primary]="group.status === 'ready'" (click)="triggerGroupAction(group.status)">{{ group.status === 'validating' ? 'View invoices' : 'Request funds' }}</button></td>
+              <td><a [routerLink]="['/available-financing', group.id]" class="supplier-period-link"><strong>{{ periodBuyerName(group) }}</strong><span>{{ periodRelationshipLabel(group) }} · {{ group.approvedInvoiceCount }} invoice{{ group.approvedInvoiceCount === 1 ? '' : 's' }}</span></a></td>
+              <td><span class="supplier-period-date"><strong>{{ formatDate(periodDueDate(group)) }}</strong><small>{{ periodDaysLabel(group) }}</small></span></td>
+              <td><strong>{{ formatKes(group.approvedInvoiceValue) }}</strong></td>
+              <td><span class="supplier-period-stack"><small>Drawn {{ formatKes(periodDrawn(group)) }}</small><small>Reserved {{ formatKes(periodReserved(group)) }}</small></span></td>
+              <td><strong class="supplier-period-available">{{ formatKes(periodAvailable(group)) }}</strong></td>
+              <td><span class="baseline-status" [class]="'baseline-status ' + periodStatusClass(group)">{{ periodStatusLabel(group) }}</span>@if (group.status === 'validating') { <small class="supplier-period-note">2 invoices under verification</small> }</td>
+              <td><a [routerLink]="['/available-financing', group.id]" class="baseline-button" [class.baseline-button--primary]="periodActionLabel(group) === 'Request funds'" [class.baseline-button--secondary]="periodActionLabel(group) !== 'Request funds'">{{ periodActionLabel(group) }}</a></td>
             </tr>
           }
         </tbody>
       </table>
     </div>
 
-    <div class="baseline-cards">
+    <div class="baseline-cards supplier-period-cards">
       @for (group of invoiceGroups; track group.id) {
-        <article class="baseline-record-card">
+        <article class="baseline-record-card supplier-period-card">
           <div class="baseline-record-card__head">
-            <strong>{{ group.buyerName }}</strong>
-            <span class="baseline-status" [class]="group.status === 'validating' ? 'baseline-status status-warning' : 'baseline-status status-info'">{{ group.status === 'validating' ? 'Validating' : 'Ready to request' }}</span>
+            <span class="baseline-financing-cell"><strong>{{ periodBuyerName(group) }}</strong><span>{{ periodRelationshipLabel(group) }} · Due {{ formatDate(periodDueDate(group)) }}</span></span>
+            <span class="baseline-status" [class]="'baseline-status ' + periodStatusClass(group)">{{ periodStatusLabel(group) }}</span>
           </div>
-          <div class="baseline-metrics">
-            <span class="baseline-metric"><small>Approved value</small><strong>{{ formatKes(group.approvedInvoiceValue) }}</strong></span>
-            <span class="baseline-metric"><small>Max requestable</small><strong>{{ group.status === 'validating' ? 'Pending review' : formatKes(group.maxRequestable) }}</strong></span>
-          </div>
-          <p class="baseline-muted">{{ group.approvedInvoiceCount }} invoice{{ group.approvedInvoiceCount === 1 ? '' : 's' }} - Due {{ formatDate(group.dueDate) }}</p>
-          <div class="baseline-card-actions">
-            <button type="button" class="baseline-button baseline-button--block" [class.baseline-button--secondary]="group.status === 'validating'" [class.baseline-button--primary]="group.status === 'ready'" (click)="triggerGroupAction(group.status)">{{ group.status === 'validating' ? 'View invoices' : 'Request funds' }}</button>
-          </div>
+          <div class="supplier-period-card__availability"><small>Available to Withdraw</small><strong>{{ formatKes(periodAvailable(group)) }}</strong><span>{{ periodDaysLabel(group) }}</span></div>
+          <div class="baseline-metrics"><span class="baseline-metric"><small>Eligible receivables</small><strong>{{ formatKes(group.approvedInvoiceValue) }}</strong></span><span class="baseline-metric"><small>Already drawn</small><strong>{{ formatKes(periodDrawn(group)) }}</strong></span></div>
+          <div class="baseline-metrics"><span class="baseline-metric"><small>Reserved</small><strong>{{ formatKes(periodReserved(group)) }}</strong></span><span class="baseline-metric"><small>Invoices</small><strong>{{ group.approvedInvoiceCount }}</strong></span></div>
+          @if (group.status === 'validating') { <p class="supplier-period-note">2 invoices are still under verification.</p> }
+          <div class="baseline-card-actions"><a [routerLink]="['/available-financing', group.id]" class="baseline-button baseline-button--block" [class.baseline-button--primary]="periodActionLabel(group) === 'Request funds'" [class.baseline-button--secondary]="periodActionLabel(group) !== 'Request funds'">{{ periodActionLabel(group) }}</a></div>
         </article>
       }
     </div>
   </section>
 </div>
 
-@if (toast) {
-  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
-}
+@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
