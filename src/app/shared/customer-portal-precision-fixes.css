@@ -1,5 +1,5 @@
 /*
- * Precision corrections from Issues #20 and #21.
+ * Precision corrections from Issues #20, #21 and #22.
  *
  * Sources:
  * - avenews-crm-portals-temp/apps/customer-portal at
@@ -88,9 +88,27 @@ select.baseline-control {
     height: 100%;
   }
 
-  /* Keep the page action clear of the fixed desktop-only Developer control. */
+  /*
+   * Keep internal tooling in a compact top strip. This preserves the required
+   * top-right Developer control without stealing horizontal room from the
+   * customer page header below it.
+   */
+  .developer-tools__trigger {
+    height: 24px;
+    min-height: 24px;
+  }
+
+  .developer-tools__menu {
+    top: 28px;
+  }
+
+  /* Match the source Manage Users header: customer action owns the true right edge. */
   .manage-users-head {
-    padding-right: 112px;
+    padding-right: 0;
+  }
+
+  .manage-users-head > .baseline-button {
+    margin-left: auto;
   }
 }
 
