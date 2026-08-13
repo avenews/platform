@@ -132,7 +132,7 @@ forbidText(designLabTs, 'Supplier Financing Express (SFX)', 'Outdated SFX label 
 requireText(designLabTs, 'PortalNavIconComponent', 'Design Lab locked navigation component')
 requireText(designLabHtml, 'class="locked-brand__logo"', 'Design Lab locked Avenews wordmark specimen')
 requireText(designLabHtml, '<app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>', 'Design Lab exact customer icon specimens')
-requireText(designLabHtml, '@avenews/design-system {{ designSystemVersion }}', 'Design Lab visible package version')
+requireText(designLabHtml, '&#64;avenews/design-system {{ designSystemVersion }}', 'Design Lab visible package version')
 requireText(designLabHtml, 'Ksh 350,000', 'Design Lab customer currency format')
 forbidText(designLabHtml, 'KES ', 'Legacy currency format is not allowed in Design Lab')
 requireText(designLabCss, '--av-color-text-heading', 'Design Lab official heading token')
