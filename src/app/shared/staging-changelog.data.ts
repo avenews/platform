@@ -16,6 +16,19 @@ export interface StagingChangelogEntry {
  */
 export const STAGING_CHANGELOG: readonly StagingChangelogEntry[] = [
   {
+    id: 'pr-34-responsive-customer-filters',
+    stagingDate: '13 Aug 2026',
+    prNumber: 34,
+    title: 'Responsive customer search and filter bar',
+    contributor: 'Stefan — ChatGPT-assisted',
+    summary: [
+      'Introduced one reusable responsive customer search and filter bar based on the ASFo buyer portal interaction pattern.',
+      'Replaced permanently stacked mobile selects with an immediately available search field, a compact Filters disclosure, and consistent Clear all and Apply actions.',
+      'Rolled the pattern out to Available Financing, Financing Activity, Invoices & Documents and Manage Users while preserving each page’s existing data, filter values and Home view handoff.',
+      'Standardized spacing around list-page filters and removed WhatsApp glyphs from customer actions while retaining their labels and behaviour.',
+    ],
+  },
+  {
     id: 'pr-1-customer-portal-foundation',
     stagingDate: '13 Aug 2026',
     prNumber: 1,
