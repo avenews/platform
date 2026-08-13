@@ -1,42 +1,18 @@
-<div class="portal-page baseline-page">
+<div class="portal-page baseline-page customer-list-page">
   <div class="baseline-hero">
     <h1>Invoices &amp; Documents</h1>
     <p>View invoices and supporting documents linked to your account.</p>
   </div>
 
-  <div class="baseline-toolbar">
-    @if (partners.length > 1) {
-      <div class="baseline-filter">
-        <label for="invoice-partner">Linked Partner</label>
-        <select id="invoice-partner" class="baseline-control" [(ngModel)]="partnerFilter" (ngModelChange)="page = 1">
-          <option value="">All partners</option>
-          @for (partner of partners; track partner) { <option [value]="partner">{{ partner }}</option> }
-        </select>
-      </div>
-    }
-    <div class="baseline-filter">
-      <label for="invoice-status">Financing Status</label>
-      <select id="invoice-status" class="baseline-control" [(ngModel)]="financingFilter" (ngModelChange)="page = 1">
-        <option value="">All statuses</option>
-        @for (status of statuses; track status) { <option [value]="status">{{ invoiceStatusLabel(status) }}</option> }
-      </select>
-    </div>
-    <div class="baseline-filter">
-      <label for="invoice-date">Due date</label>
-      <select id="invoice-date" class="baseline-control" [(ngModel)]="dateFilter" (ngModelChange)="page = 1">
-        <option value="">Any due date</option>
-        <option value="overdue">Overdue</option>
-        <option value="due-soon">Due soon (&lt;= 7 days)</option>
-        <option value="this-30">Due &lt;= 30 days</option>
-        <option value="this-60">Due &lt;= 60 days</option>
-        <option value="this-90">Due &lt;= 90 days</option>
-        <option value="no-date">No due date</option>
-      </select>
-    </div>
-    @if (partnerFilter || financingFilter || dateFilter) {
-      <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button>
-    }
-  </div>
+  <app-customer-filter-bar
+    [searchValue]="searchQuery"
+    searchPlaceholder="Search invoice or linked partner"
+    searchAriaLabel="Search invoices and documents"
+    [filters]="filterFields"
+    [values]="filterValues"
+    (searchValueChange)="onSearchValueChange($event)"
+    (valuesChange)="onFilterValuesChange($event)"
+  />
 
   <div class="baseline-table-wrap">
     <table class="baseline-table">
@@ -67,7 +43,7 @@
             <td><span class="baseline-status" [class]="'baseline-status ' + invoiceStatusTone(invoice.financingStatus)">{{ invoiceStatusLabel(invoice.financingStatus) }}</span></td>
           </tr>
         } @empty {
-          <tr><td colspan="6"><div class="baseline-empty"><strong>No invoices yet</strong><p>Invoices you upload will appear here.</p></div></td></tr>
+          <tr><td colspan="6"><div class="baseline-empty"><strong>No invoices match your filters</strong><p>Try changing your search or filters.</p></div></td></tr>
         }
       </tbody>
     </table>
@@ -87,7 +63,7 @@
         }
       </article>
     } @empty {
-      <div class="baseline-empty"><strong>No invoices match your filters</strong><p>Try clearing one of the filters above.</p></div>
+      <div class="baseline-empty"><strong>No invoices match your filters</strong><p>Try changing your search or filters.</p></div>
     }
   </div>
 

@@ -22,6 +22,13 @@ const CUSTOMER_ROUTES = [
   { slug: 'profile', path: '/profile', heading: 'Profile', desktopActiveLabel: null, mobileActiveLabel: null, list: false },
 ] as const
 
+const FILTER_ROUTES = [
+  { path: '/available-financing', fieldCount: 2 },
+  { path: '/financing-activity', fieldCount: 3 },
+  { path: '/invoices', fieldCount: 3 },
+  { path: '/manage-users', fieldCount: 1 },
+] as const
+
 const DESKTOP_NAV = [
   'Home',
   'Available Financing',
@@ -200,7 +207,19 @@ test.describe('signed-in customer portal', () => {
     const headingSize = await heading.evaluate((element) => getComputedStyle(element).fontSize)
     expect(headingSize).toBe(mobile ? '26px' : '32px')
 
-    const firstSelect = page.locator('select.baseline-control').first()
+    const filterBar = page.locator('app-customer-filter-bar')
+    let firstSelect
+    if (mobile) {
+      const mobileFilters = filterBar.locator('[data-filter-layout="mobile"]')
+      await expect(mobileFilters).toBeVisible()
+      await mobileFilters.getByRole('button', { name: 'Filters' }).click()
+      firstSelect = mobileFilters.locator('select.baseline-control').first()
+    } else {
+      const desktopFilters = filterBar.locator('[data-filter-layout="desktop"]')
+      await expect(desktopFilters).toBeVisible()
+      firstSelect = desktopFilters.locator('select.baseline-control').first()
+    }
+
     await expect(firstSelect).toBeVisible()
     const selectStyle = await firstSelect.evaluate((element) => {
       const style = getComputedStyle(element)
@@ -235,6 +254,82 @@ test.describe('signed-in customer portal', () => {
       expect(emailStyle.overflow).toBe('hidden')
       expect(emailStyle.textOverflow).toBe('ellipsis')
       expect(emailStyle.whiteSpace).toBe('nowrap')
+    }
+  })
+
+  test('shared customer filter bar is compact on desktop and disclosed on mobile', async ({ page }, testInfo) => {
+    const mobile = isMobileProject(testInfo)
+
+    for (const route of FILTER_ROUTES) {
+      await page.goto(route.path)
+      const pageRoot = page.locator('.customer-list-page')
+      const filterBar = pageRoot.locator('app-customer-filter-bar')
+      await expect(pageRoot).toBeVisible()
+      await expect(filterBar).toBeVisible()
+
+      const rowGap = await pageRoot.evaluate((element) => getComputedStyle(element).rowGap)
+      expect(rowGap).toBe('16px')
+
+      const spacingAnchor = route.path === '/manage-users'
+        ? pageRoot.locator('.manage-users-head')
+        : pageRoot.locator('.baseline-hero').first()
+      const anchorBox = await spacingAnchor.boundingBox()
+      const filterBox = await filterBar.boundingBox()
+      expect(anchorBox).not.toBeNull()
+      expect(filterBox).not.toBeNull()
+      const anchorToFilterGap = filterBox!.y - (anchorBox!.y + anchorBox!.height)
+      expect(anchorToFilterGap).toBeGreaterThanOrEqual(12)
+      expect(anchorToFilterGap).toBeLessThanOrEqual(20)
+
+      const desktopFilters = filterBar.locator('[data-filter-layout="desktop"]')
+      const mobileFilters = filterBar.locator('[data-filter-layout="mobile"]')
+
+      if (mobile) {
+        await expect(desktopFilters).toBeHidden()
+        await expect(mobileFilters).toBeVisible()
+        await expect(mobileFilters.locator('.customer-filter-panel')).toHaveCount(0)
+
+        const trigger = mobileFilters.getByRole('button', { name: 'Filters' })
+        await expect(trigger).toBeVisible()
+        await trigger.click()
+
+        const panel = mobileFilters.locator('.customer-filter-panel')
+        await expect(panel).toBeVisible()
+        await expect(panel.locator('select')).toHaveCount(route.fieldCount)
+        await expect(panel.getByRole('button', { name: 'Clear all' })).toBeVisible()
+        await expect(panel.getByRole('button', { name: 'Apply' })).toBeVisible()
+        await panel.getByRole('button', { name: 'Clear all' }).click()
+        await panel.getByRole('button', { name: 'Apply' }).click()
+        await expect(panel).toHaveCount(0)
+      } else {
+        await expect(desktopFilters).toBeVisible()
+        await expect(mobileFilters).toBeHidden()
+        await expect(desktopFilters.locator('select')).toHaveCount(route.fieldCount)
+
+        if (testInfo.project.name === 'desktop') {
+          const searchBox = await desktopFilters.locator('input[type="search"]').boundingBox()
+          const selectBoxes = await desktopFilters.locator('select').evaluateAll((elements) =>
+            elements.map((element) => {
+              const box = element.getBoundingClientRect()
+              return { x: box.x, y: box.y }
+            }),
+          )
+          expect(searchBox).not.toBeNull()
+          expect(selectBoxes.length).toBe(route.fieldCount)
+          expect(selectBoxes.every((box) => Math.abs(box.y - searchBox!.y) <= 1)).toBeTruthy()
+          expect(selectBoxes.every((box) => box.x > searchBox!.x)).toBeTruthy()
+        }
+      }
+
+      await assertNoDocumentOverflow(page)
+    }
+  })
+
+  test('WhatsApp actions remain text-only', async ({ page }) => {
+    for (const path of ['/support', '/profile']) {
+      await page.goto(path)
+      await expect(page.locator('app-whatsapp-icon')).toHaveCount(0)
+      await expect(page.locator('av-icon[name="whatsapp"]')).toHaveCount(0)
     }
   })
 

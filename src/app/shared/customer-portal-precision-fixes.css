@@ -1,9 +1,10 @@
 /*
- * Precision corrections from Issues #20, #21 and #22.
+ * Precision corrections from Issues #20, #21, #22 and PR #2 filter work.
  *
  * Sources:
  * - avenews-crm-portals-temp/apps/customer-portal at
  *   97d9d96fed1fde3f55b10eb97c56e4b20845a36d
+ * - apps/asfo-buyer-portal search/filter structure
  * - requester-supplied current-versus-prototype screenshots
  *
  * Keep the locked Avenews wordmark and customer navigation artwork untouched.
@@ -78,6 +79,20 @@ select.baseline-control {
   letter-spacing: 0;
 }
 
+/* One spacing contract around the shared list-page filter bar. */
+.customer-list-page {
+  gap: var(--av-space-4, 16px);
+}
+
+.customer-list-page > app-customer-filter-bar {
+  margin: 0;
+}
+
+.customer-filter-context {
+  justify-self: start;
+  margin: 0;
+}
+
 @media (min-width: 768px) {
   /* The source Support cards share a stretched grid row instead of ending at different heights. */
   .support-grid {
@@ -88,20 +103,14 @@ select.baseline-control {
     height: 100%;
   }
 
-  /*
-   * Internal tooling stays entirely above the customer content's 24px top
-   * inset. !important is intentional here because the trigger lives inside an
-   * Angular component stylesheet with stronger emulated-encapsulation specificity.
-   */
+  /* Keep the internal Developer control above customer content without taking header space. */
   .developer-tools__trigger {
     height: 20px !important;
     min-height: 20px !important;
-    padding-inline: 10px !important;
-    font-size: 10px !important;
   }
 
   .developer-tools__menu {
-    top: 24px !important;
+    top: 24px;
   }
 
   /* Match the source Manage Users header: customer action owns the true right edge. */

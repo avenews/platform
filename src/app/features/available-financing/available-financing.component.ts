@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component } from '@angular/core'
-import { FormsModule } from '@angular/forms'
 import { RouterLink } from '@angular/router'
 import {
   CREDIT_LINES,
@@ -11,11 +10,15 @@ import {
   formatKes,
   productLabel,
 } from '../../shared/customer-portal.data'
+import {
+  CustomerFilterBarComponent,
+  type CustomerFilterField,
+} from '../../shared/customer-filter-bar.component'
 
 @Component({
   selector: 'app-available-financing',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink, CustomerFilterBarComponent],
   templateUrl: './available-financing.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -28,14 +31,41 @@ export class AvailableFinancingComponent {
     { value: 'ASFX', label: productLabel('ASFX') },
   ]
 
+  readonly filterFields: readonly CustomerFilterField[] = [
+    {
+      key: 'product',
+      label: 'Product',
+      allLabel: 'All products',
+      options: this.products,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      allLabel: 'All statuses',
+      options: [
+        { value: 'available', label: 'Available' },
+        { value: 'unavailable', label: 'Unavailable' },
+      ],
+    },
+  ]
+
   readonly invoiceGroups = INVOICE_GROUPS
   productFilter = ''
   statusFilter = ''
+  searchQuery = ''
   page = 1
   readonly pageSize = 10
   toast = ''
 
+  get filterValues(): Readonly<Record<string, string>> {
+    return {
+      product: this.productFilter,
+      status: this.statusFilter,
+    }
+  }
+
   get filteredCreditLines(): CreditLine[] {
+    const query = this.searchQuery.trim().toLowerCase()
     return CREDIT_LINES
       .filter(line => !this.productFilter || line.product === this.productFilter)
       .filter(line => {
@@ -43,6 +73,7 @@ export class AvailableFinancingComponent {
         if (this.statusFilter === 'available') return line.available > 0
         return line.available === 0
       })
+      .filter(line => !query || [line.partner, productLabel(line.product)].join(' ').toLowerCase().includes(query))
   }
 
   get pageItems(): CreditLine[] {
@@ -66,9 +97,21 @@ export class AvailableFinancingComponent {
     return Math.min(this.page * this.pageSize, this.filteredCreditLines.length)
   }
 
+  onFilterValuesChange(values: Record<string, string>): void {
+    this.productFilter = values['product'] ?? ''
+    this.statusFilter = values['status'] ?? ''
+    this.page = 1
+  }
+
+  onSearchValueChange(value: string): void {
+    this.searchQuery = value
+    this.page = 1
+  }
+
   resetFilters(): void {
     this.productFilter = ''
     this.statusFilter = ''
+    this.searchQuery = ''
     this.page = 1
   }
 

@@ -1,12 +1,11 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { AvIconComponent } from '@avenews/design-system/angular'
 
 @Component({
   selector: 'app-support',
   standalone: true,
-  imports: [CommonModule, FormsModule, AvIconComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './support.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

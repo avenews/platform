@@ -1,0 +1,88 @@
+<div class="customer-filter-bar">
+  <div class="customer-filter-bar__desktop" data-filter-layout="desktop">
+    <label class="customer-filter-search">
+      <span class="customer-filter-sr-only">{{ searchAriaLabel }}</span>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="11" cy="11" r="7"></circle>
+        <path d="m20 20-3.5-3.5"></path>
+      </svg>
+      <input
+        type="search"
+        [attr.aria-label]="searchAriaLabel"
+        [placeholder]="searchPlaceholder"
+        [ngModel]="searchValue"
+        (ngModelChange)="onSearchChange($event)"
+      >
+    </label>
+
+    @for (filter of filters; track filter.key) {
+      <label class="customer-filter-select">
+        <span class="customer-filter-sr-only">{{ filter.label }}</span>
+        <select
+          class="baseline-control customer-filter-bar__select-control"
+          [attr.aria-label]="filter.label"
+          [ngModel]="valueFor(filter.key)"
+          (ngModelChange)="onDesktopFilterChange(filter.key, $event)"
+        >
+          <option value="">{{ filter.allLabel }}</option>
+          @for (option of filter.options; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    }
+  </div>
+
+  <div class="customer-filter-bar__mobile" data-filter-layout="mobile">
+    <div class="customer-filter-bar__mobile-row">
+      <label class="customer-filter-search">
+        <span class="customer-filter-sr-only">{{ searchAriaLabel }}</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="11" cy="11" r="7"></circle>
+          <path d="m20 20-3.5-3.5"></path>
+        </svg>
+        <input
+          type="search"
+          [attr.aria-label]="searchAriaLabel"
+          [placeholder]="searchPlaceholder"
+          [ngModel]="searchValue"
+          (ngModelChange)="onSearchChange($event)"
+        >
+      </label>
+
+      <button
+        type="button"
+        class="customer-filter-trigger"
+        [attr.aria-expanded]="mobileOpen"
+        [attr.aria-controls]="panelId"
+        (click)="toggleMobileFilters()"
+      >Filters</button>
+    </div>
+
+    @if (mobileOpen) {
+      <section [id]="panelId" class="customer-filter-panel" aria-label="Filters">
+        @for (filter of filters; track filter.key) {
+          <label class="customer-filter-panel__field">
+            <span>{{ filter.label }}</span>
+            <select
+              class="baseline-control customer-filter-bar__select-control"
+              [attr.aria-label]="filter.label"
+              [ngModel]="draftValueFor(filter.key)"
+              (ngModelChange)="updateDraftValue(filter.key, $event)"
+            >
+              <option value="">{{ filter.allLabel }}</option>
+              @for (option of filter.options; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        <div class="customer-filter-panel__actions">
+          <button type="button" class="customer-filter-panel__clear" (click)="clearDraftValues()">Clear all</button>
+          <button type="button" class="customer-filter-panel__apply" (click)="applyDraftValues()">Apply</button>
+        </div>
+      </section>
+    }
+  </div>
+</div>
