@@ -1,40 +1,69 @@
 <div class="portal-shell">
-  <header class="mobile-header">
-    <a routerLink="/" class="brand" aria-label="Avenews customer portal home">
-      <span class="brand-mark">A</span>
-      <span>Avenews</span>
+  <header class="mobile-header" role="banner">
+    <a routerLink="/" class="mobile-brand" aria-label="Avenews customer portal home">
+      <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="mobile-brand__logo">
     </a>
-    <button class="avatar" type="button" (click)="menuOpen = !menuOpen" aria-label="Open profile menu">
-      {{ initials }}
+    <button
+      class="avatar-trigger"
+      type="button"
+      (click)="toggleMenu()"
+      aria-label="Open profile menu"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen"
+    >
+      <av-avatar [initials]="initials" size="md" />
     </button>
   </header>
 
   <aside class="sidebar">
-    <a routerLink="/" class="brand sidebar-brand" aria-label="Avenews customer portal home">
-      <span class="brand-mark">A</span>
-      <span>Avenews</span>
+    <a routerLink="/" class="sidebar-brand" aria-label="Avenews customer portal home">
+      <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="sidebar-brand__logo">
     </a>
 
-    <nav aria-label="Customer portal">
-      @for (item of visibleNavItems; track item.path) {
+    <nav class="sidebar-nav" aria-label="Customer portal">
+      @for (item of primaryNavItems; track item.path) {
         <a
           [routerLink]="item.path"
           routerLinkActive="nav-link--active"
           [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
           class="nav-link"
         >
-          <span class="nav-icon" aria-hidden="true">{{ item.icon }}</span>
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
           <span>{{ item.label }}</span>
         </a>
       }
+
+      @if (session?.role === 'admin') {
+        <div class="sidebar-nav__admin">
+          <a
+            [routerLink]="adminNavItem.path"
+            routerLinkActive="nav-link--active"
+            [routerLinkActiveOptions]="{ exact: adminNavItem.exact }"
+            ariaCurrentWhenActive="page"
+            class="nav-link"
+          >
+            <app-portal-nav-icon [name]="adminNavItem.icon"></app-portal-nav-icon>
+            <span>{{ adminNavItem.label }}</span>
+          </a>
+        </div>
+      }
     </nav>
 
-    <button type="button" class="profile-button" (click)="menuOpen = !menuOpen">
-      <span class="avatar avatar--small">{{ initials }}</span>
+    <button
+      type="button"
+      class="profile-button"
+      (click)="toggleMenu()"
+      aria-label="Open profile menu"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="menuOpen"
+    >
+      <av-avatar [initials]="initials" size="sm" />
       <span class="profile-meta">
         <strong>{{ fullName }}</strong>
         <small>{{ session?.role === 'admin' ? 'Customer Admin' : 'Customer User' }}</small>
       </span>
+      <av-icon name="chevron-up" [size]="16" />
     </button>
   </aside>
 
@@ -42,33 +71,53 @@
     <router-outlet />
   </main>
 
-  <nav class="bottom-nav" aria-label="Mobile navigation">
-    @for (item of visibleNavItems.slice(0, 4); track item.path) {
+  <nav class="bottom-nav" aria-label="Customer portal (mobile)">
+    @for (item of mobileNavItems; track item.path) {
       <a
         [routerLink]="item.path"
         routerLinkActive="bottom-nav__item--active"
         [routerLinkActiveOptions]="{ exact: item.exact }"
+        ariaCurrentWhenActive="page"
         class="bottom-nav__item"
       >
-        <span aria-hidden="true">{{ item.icon }}</span>
-        <small>{{ item.label }}</small>
+        <span class="bottom-nav__icon" aria-hidden="true">
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+        </span>
+        <span class="bottom-nav__label">{{ item.label }}</span>
       </a>
     }
   </nav>
 
-  @if (menuOpen) {
-    <button class="menu-backdrop" type="button" (click)="menuOpen = false" aria-label="Close profile menu"></button>
-    <div class="profile-menu" role="menu">
-      <div class="profile-menu__header">
-        <strong>{{ fullName }}</strong>
-        <small>{{ session?.businessName }}</small>
+  <div class="developer-tools">
+    <button
+      type="button"
+      class="developer-tools__trigger"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="developerOpen"
+      (click)="toggleDeveloperMenu()"
+    >
+      <span>Developer</span>
+      <av-icon name="chevron-down" [size]="14" />
+    </button>
+    @if (developerOpen) {
+      <button class="developer-tools__backdrop" type="button" aria-label="Close developer menu" (click)="closeDeveloperMenu()"></button>
+      <div class="developer-tools__menu" role="menu" aria-label="Developer tools">
+        <a routerLink="/design-lab" role="menuitem" (click)="closeDeveloperMenu()">Design Lab</a>
+        <a routerLink="/changelog" role="menuitem" (click)="closeDeveloperMenu()">Changelog</a>
       </div>
-      <a routerLink="/profile" (click)="menuOpen = false" role="menuitem">View Profile</a>
+    }
+  </div>
+
+  @if (menuOpen) {
+    <button class="menu-backdrop" type="button" (click)="closeMenu()" aria-label="Close profile menu"></button>
+    <div class="profile-menu" role="menu" aria-label="Profile menu">
+      <div class="profile-menu__header">{{ fullName }}</div>
+      <a routerLink="/profile" (click)="closeMenu()" role="menuitem">View Profile</a>
       @if (session?.role === 'admin') {
-        <a routerLink="/manage-users" (click)="menuOpen = false" role="menuitem">Manage Users</a>
+        <a routerLink="/manage-users" (click)="closeMenu()" role="menuitem">Manage Users</a>
       }
-      <a routerLink="/support" (click)="menuOpen = false" role="menuitem">Support</a>
-      <button type="button" (click)="logout()" role="menuitem">Log out</button>
+      <a routerLink="/support" (click)="closeMenu()" role="menuitem">Support</a>
+      <button type="button" (click)="logout()" role="menuitem" class="profile-menu__logout">Log out</button>
     </div>
   }
 </div>

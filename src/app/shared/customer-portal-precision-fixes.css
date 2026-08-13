@@ -1,0 +1,121 @@
+/*
+ * Precision corrections from Issues #20, #21 and #22.
+ *
+ * Sources:
+ * - avenews-crm-portals-temp/apps/customer-portal at
+ *   97d9d96fed1fde3f55b10eb97c56e4b20845a36d
+ * - requester-supplied current-versus-prototype screenshots
+ *
+ * Keep the locked Avenews wordmark and customer navigation artwork untouched.
+ */
+
+/* The previous customer portal used a 32px desktop page heading and 26px below 768px. */
+.baseline-hero h1 {
+  font-size: 32px;
+}
+
+/* Restore the lighter muted handoff colour visible in the source prototype. */
+.baseline-hero p,
+.baseline-section-heading p,
+.baseline-muted,
+.baseline-helper,
+.baseline-filter label,
+.baseline-table th,
+.baseline-financing-cell span,
+.baseline-pagination p,
+.manage-users-page .baseline-section-heading h2,
+.invite-solid-field label,
+.invite-user-modal .invite-role-field > label {
+  color: #9ca3af;
+}
+
+/* Every table column, including numeric and action columns, follows the requested left alignment. */
+.baseline-table th,
+.baseline-table td,
+.baseline-table th.is-right,
+.baseline-table td.is-right {
+  text-align: left;
+}
+
+/* Use one controlled chevron with the same stable right inset across native selects. */
+select.baseline-control {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 40px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%239ca3af' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+}
+
+/* Reproduce the source DataTable's single-line ellipsis for Manage Users emails. */
+.manage-users-page .baseline-table td:nth-child(2) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Keep the invitation consent sentence and its inline terms action at one 13px scale. */
+.invite-user-modal .baseline-checkbox {
+  color: #111827;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.invite-user-modal .baseline-checkbox .baseline-button {
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Match the source portal's deliberately enlarged initials inside the existing avatar sizes. */
+.avatar-trigger .avenews-avatar__initials {
+  font-size: 16px;
+  letter-spacing: 0;
+}
+
+.profile-button .avenews-avatar__initials {
+  font-size: 18px;
+  letter-spacing: 0;
+}
+
+@media (min-width: 768px) {
+  /* The source Support cards share a stretched grid row instead of ending at different heights. */
+  .support-grid {
+    align-items: stretch;
+  }
+
+  .support-grid > .baseline-card {
+    height: 100%;
+  }
+
+  /*
+   * Internal tooling stays entirely above the customer content's 24px top
+   * inset. !important is intentional here because the trigger lives inside an
+   * Angular component stylesheet with stronger emulated-encapsulation specificity.
+   */
+  .developer-tools__trigger {
+    height: 20px !important;
+    min-height: 20px !important;
+    padding-inline: 10px !important;
+    font-size: 10px !important;
+  }
+
+  .developer-tools__menu {
+    top: 24px !important;
+  }
+
+  /* Match the source Manage Users header: customer action owns the true right edge. */
+  .manage-users-head {
+    padding-right: 0;
+  }
+
+  .manage-users-head > .baseline-button {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .baseline-hero h1 {
+    font-size: 26px;
+  }
+}

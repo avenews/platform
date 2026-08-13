@@ -1,19 +1,46 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angular/core'
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
+import { AvAvatarComponent, AvIconComponent } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
+import { PortalNavIconComponent, type PortalNavIconName } from './portal-nav-icon.component'
 
 interface NavItem {
   path: string
   label: string
-  icon: string
+  icon: PortalNavIconName
   exact: boolean
-  adminOnly?: boolean
+}
+
+/**
+ * Customer navigation is a baseline contract, not a place for approximate
+ * icon substitutions. It mirrors apps/customer-portal/src/components/PortalShell.tsx.
+ */
+const CUSTOMER_DESKTOP_NAV_ITEMS: ReadonlyArray<NavItem> = [
+  { path: '/', label: 'Home', icon: 'home', exact: true },
+  { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
+  { path: '/financing-activity', label: 'Financing Activity', icon: 'bar-chart', exact: false },
+  { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
+  { path: '/support', label: 'Support', icon: 'help-circle', exact: false },
+]
+
+const CUSTOMER_MOBILE_NAV_ITEMS: ReadonlyArray<NavItem> = [
+  { path: '/', label: 'Home', icon: 'home', exact: true },
+  { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
+  { path: '/financing-activity', label: 'Financing Activity', icon: 'bar-chart', exact: false },
+  { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
+]
+
+const CUSTOMER_ADMIN_NAV_ITEM: NavItem = {
+  path: '/manage-users',
+  label: 'Manage Users',
+  icon: 'person',
+  exact: false,
 }
 
 @Component({
   selector: 'app-portal-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, AvAvatarComponent, AvIconComponent, PortalNavIconComponent],
   templateUrl: './portal-shell.component.html',
   styleUrl: './portal-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,20 +50,11 @@ export class PortalShellComponent {
   private readonly router = inject(Router)
 
   readonly session = this.auth.getSession()
+  readonly primaryNavItems = CUSTOMER_DESKTOP_NAV_ITEMS
+  readonly mobileNavItems = CUSTOMER_MOBILE_NAV_ITEMS
+  readonly adminNavItem = CUSTOMER_ADMIN_NAV_ITEM
   menuOpen = false
-
-  readonly navItems: NavItem[] = [
-    { path: '/', label: 'Home', icon: '⌂', exact: true },
-    { path: '/available-financing', label: 'Available Financing', icon: '◫', exact: false },
-    { path: '/financing-activity', label: 'Financing Activity', icon: '↗', exact: false },
-    { path: '/invoices', label: 'Invoices & Documents', icon: '▤', exact: false },
-    { path: '/manage-users', label: 'Manage Users', icon: '◎', exact: false, adminOnly: true },
-    { path: '/support', label: 'Support', icon: '?', exact: false },
-  ]
-
-  get visibleNavItems(): NavItem[] {
-    return this.navItems.filter(item => !item.adminOnly || this.session?.role === 'admin')
-  }
+  developerOpen = false
 
   get initials(): string {
     if (!this.session) return 'AV'
@@ -48,8 +66,37 @@ export class PortalShellComponent {
     return `${this.session.contactFirstName} ${this.session.contactLastName}`
   }
 
+  toggleMenu(): void {
+    this.developerOpen = false
+    this.menuOpen = !this.menuOpen
+  }
+
+  closeMenu(): void {
+    this.menuOpen = false
+  }
+
+  toggleDeveloperMenu(): void {
+    this.menuOpen = false
+    this.developerOpen = !this.developerOpen
+  }
+
+  closeDeveloperMenu(): void {
+    this.developerOpen = false
+  }
+
+  closeOverlays(): void {
+    this.closeMenu()
+    this.closeDeveloperMenu()
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeOverlays()
+  }
+
   logout(): void {
     this.auth.logout()
+    this.closeOverlays()
     void this.router.navigate(['/login'])
   }
 }

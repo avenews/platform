@@ -1,0 +1,109 @@
+<div class="portal-page baseline-page">
+  <div class="baseline-hero">
+    <h1>Financing Activity</h1>
+    <p>Track your active, completed, and overdue financing records.</p>
+  </div>
+
+  <div class="baseline-toolbar">
+    @if (view) {
+      <button type="button" class="baseline-view-chip" (click)="clearView()">{{ viewLabel }} <span aria-hidden="true">x</span></button>
+    }
+    <div class="baseline-filter">
+      <label for="activity-product">Product</label>
+      <select id="activity-product" class="baseline-control" [(ngModel)]="productFilter" (ngModelChange)="page = 1">
+        <option value="">All products</option>
+        @for (product of products; track product.value) { <option [value]="product.value">{{ product.label }}</option> }
+      </select>
+    </div>
+    <div class="baseline-filter">
+      <label for="activity-status">Status</label>
+      <select id="activity-status" class="baseline-control" [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
+        <option value="">All statuses</option>
+        @for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
+      </select>
+    </div>
+    <div class="baseline-filter">
+      <label for="activity-date">Due date</label>
+      <select id="activity-date" class="baseline-control" [(ngModel)]="dateFilter" (ngModelChange)="page = 1">
+        <option value="">Any due date</option>
+        <option value="overdue">Overdue</option>
+        <option value="due-soon">Due soon (&lt;= 7 days)</option>
+        <option value="this-30">Due &lt;= 30 days</option>
+        <option value="this-60">Due &lt;= 60 days</option>
+        <option value="this-90">Due &lt;= 90 days</option>
+      </select>
+    </div>
+    @if (view || productFilter || statusFilter || dateFilter) {
+      <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button>
+    }
+    <input class="baseline-search" type="search" placeholder="Search by product, partner, or funds request" [(ngModel)]="searchQuery" (ngModelChange)="page = 1" aria-label="Search financing activity">
+  </div>
+
+  <div class="baseline-table-wrap">
+    <table class="baseline-table">
+      <thead>
+        <tr>
+          <th>Financing</th>
+          <th>Disbursement Date</th>
+          <th>Repayment Due Date</th>
+          <th class="is-right">Amount Financed</th>
+          <th>Status</th>
+          <th class="is-right">Total Repaid</th>
+          <th class="is-right">Outstanding Balance</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (record of pageItems; track record.id) {
+          <tr>
+            <td><span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>{{ productLabel(record.product) }}</span></span></td>
+            <td [class.baseline-muted]="!record.disbursementDate">{{ record.disbursementDate ? formatDate(record.disbursementDate, true) : 'Pending' }}</td>
+            <td [class.baseline-muted]="!nextDueDateValue(record)">{{ nextDueDate(record) }}</td>
+            <td class="is-right">{{ formatKes(record.principal) }}</td>
+            <td><span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span></td>
+            <td class="is-right" [class.baseline-muted]="record.totalRepaid === 0">{{ record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil' }}</td>
+            <td class="is-right"><strong>{{ record.balance ? formatKes(record.balance) : 'Nil' }}</strong></td>
+          </tr>
+        } @empty {
+          <tr><td colspan="7"><div class="baseline-empty"><strong>No financing periods yet</strong><p>Financing periods you request will appear here.</p></div></td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <div class="baseline-cards">
+    @for (record of mobilePageItems; track record.id) {
+      <article class="baseline-record-card" [class.baseline-record-card--danger]="record.status === 'delinquent'">
+        <div class="baseline-record-card__head">
+          <span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>{{ productLabel(record.product) }}</span></span>
+          <span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span>
+        </div>
+        <div class="baseline-metrics">
+          <span class="baseline-metric"><small>Amount Financed</small><strong>{{ formatKes(record.principal) }}</strong></span>
+          <span class="baseline-metric"><small>Outstanding Balance</small><strong>{{ record.balance ? formatKes(record.balance) : 'Nil' }}</strong></span>
+        </div>
+        <div class="baseline-metrics">
+          <span class="baseline-metric"><small>Total Repaid</small><strong>{{ record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil' }}</strong></span>
+          <span class="baseline-metric"><small>Disbursement Date</small><strong>{{ record.disbursementDate ? formatDate(record.disbursementDate) : 'Pending' }}</strong></span>
+        </div>
+        <div class="baseline-metrics">
+          <span class="baseline-metric"><small>Repayment Due Date</small><strong>{{ nextDueDate(record) }}</strong></span>
+        </div>
+      </article>
+    } @empty {
+      <div class="baseline-empty"><strong>No financing periods yet</strong><p>Financing periods you request will appear here.</p></div>
+    }
+  </div>
+
+  @if (filteredRecords.length > pageSize) {
+    <div class="baseline-pagination">
+      <p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredRecords.length }} financing periods</p>
+      <div class="baseline-pagination__controls">
+        <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">‹</button>
+        @for (pageNumber of pageNumbers; track pageNumber) {
+          <button type="button" [class.is-active]="pageNumber === page" [attr.aria-current]="pageNumber === page ? 'page' : null" (click)="changePage(pageNumber)">{{ pageNumber }}</button>
+        }
+        <button type="button" [disabled]="page === totalPages" (click)="changePage(page + 1)" aria-label="Next page">›</button>
+      </div>
+    </div>
+  }
+</div>

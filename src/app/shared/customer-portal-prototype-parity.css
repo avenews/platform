@@ -1,0 +1,403 @@
+/*
+ * Previous designer prototype parity deltas.
+ *
+ * Verified against:
+ * - avenews/avenews-crm-portals-temp @ 97d9d96fed1fde3f55b10eb97c56e4b20845a36d
+ * - supplied desktop screenshots for Available Financing, Financing Activity,
+ *   Invoices & Documents, Support, Manage Users and the Invite User dialog.
+ *
+ * This file intentionally overrides only measured/verified differences. The
+ * locked Avenews logo and customer-navigation icon artwork live in the shell
+ * and are not altered here.
+ */
+
+/* Page rhythm and type ------------------------------------------------------ */
+.baseline-page {
+  gap: var(--av-space-4, 16px);
+}
+
+.baseline-hero {
+  gap: var(--av-space-2, 8px);
+}
+
+.baseline-hero h1 {
+  color: var(--av-color-text, #111827);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: var(--av-font-size-h1, 32px);
+  font-weight: var(--av-font-weight-bold, 700);
+  line-height: var(--av-line-height-snug, 1.2);
+}
+
+.baseline-hero p,
+.baseline-section-heading p,
+.baseline-muted,
+.baseline-helper {
+  color: var(--av-color-text-muted, #9ca3af);
+  font-size: var(--av-font-size-sm, 13px);
+  line-height: var(--av-line-height-normal, 1.5);
+}
+
+.baseline-section {
+  gap: var(--av-space-3, 12px);
+}
+
+/* Filters/search ----------------------------------------------------------- */
+.baseline-toolbar {
+  align-items: flex-end;
+  gap: var(--av-space-3, 12px);
+}
+
+.baseline-filter {
+  gap: var(--av-space-1, 4px);
+}
+
+.baseline-filter label {
+  color: var(--av-color-text-muted, #9ca3af);
+  font-size: var(--av-font-size-xs, 12px);
+  font-weight: var(--av-font-weight-semibold, 600);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.baseline-control,
+.baseline-search {
+  height: 36px;
+  min-height: 36px;
+  padding: 0 var(--av-space-3, 12px);
+  border-color: var(--av-neutral-300, #d1d5db);
+  border-radius: var(--av-radius-md, 8px);
+  color: var(--av-color-text, #111827);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-search {
+  flex: 0 1 320px;
+  min-width: 200px;
+  margin-left: auto;
+}
+
+/* Buttons ------------------------------------------------------------------ */
+.baseline-button {
+  height: 44px;
+  min-height: 44px;
+  padding: 0 var(--av-space-4, 16px);
+  border-radius: var(--av-radius-md, 8px);
+  font-size: var(--av-font-size-md, 14px);
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+/* Source tables and filter toolbars use the design-system small button. */
+.baseline-table .baseline-button,
+.baseline-toolbar > .baseline-button {
+  height: 34px;
+  min-height: 34px;
+  padding: 0 var(--av-space-3, 12px);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+/* Tables ------------------------------------------------------------------- */
+.baseline-table-wrap {
+  border-color: var(--av-neutral-200, #e5e7eb);
+  border-radius: var(--av-radius-md, 8px);
+}
+
+.baseline-table {
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-table th,
+.baseline-table td {
+  padding: var(--av-space-3, 12px) var(--av-space-4, 16px);
+  color: var(--av-color-text, #111827);
+  font-size: var(--av-font-size-sm, 13px);
+  line-height: var(--av-line-height-normal, 1.5);
+}
+
+.baseline-table th {
+  border-bottom-width: 2px;
+  background: var(--av-neutral-50, #f9fafb);
+  color: var(--av-color-text-muted, #9ca3af);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: var(--av-font-size-xxs, 11px);
+  font-weight: var(--av-font-weight-semibold, 600);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.baseline-financing-cell strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: var(--av-font-size-md, 14px);
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+.baseline-financing-cell span {
+  color: var(--av-color-text-muted, #9ca3af);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+/* Pagination --------------------------------------------------------------- */
+.baseline-pagination {
+  margin-top: var(--av-space-4, 16px);
+}
+
+.baseline-pagination p {
+  color: var(--av-color-text-muted, #9ca3af);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-pagination p strong {
+  color: var(--av-color-text, #111827);
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+.baseline-pagination__controls {
+  gap: var(--av-space-1, 4px);
+}
+
+.baseline-pagination__controls button {
+  min-width: 32px;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--av-radius-md, 8px);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-pagination__controls button.is-active {
+  border-color: var(--av-color-primary, #16b3c4);
+  background: var(--av-color-primary, #16b3c4);
+  color: #fff;
+  cursor: default;
+}
+
+/* Cards -------------------------------------------------------------------- */
+.baseline-card,
+.baseline-record-card {
+  border-color: var(--av-color-neutral-divider, #ededed);
+  border-radius: var(--av-radius-lg, 12px);
+  box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(16, 24, 40, .06));
+}
+
+.baseline-card__header {
+  padding: var(--av-space-5, 20px) var(--av-space-5, 20px) 0;
+}
+
+.baseline-card__body {
+  padding: var(--av-space-4, 16px) var(--av-space-5, 20px) var(--av-space-5, 20px);
+}
+
+/* Manage Users ------------------------------------------------------------- */
+.manage-users-page {
+  gap: var(--av-space-5, 20px);
+}
+
+.manage-users-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--av-space-4, 16px);
+  flex-wrap: wrap;
+}
+
+.manage-users-head .baseline-hero {
+  flex: 1 1 420px;
+}
+
+.manage-users-head > .baseline-button {
+  flex: 0 0 auto;
+}
+
+.manage-users-page .baseline-section-heading {
+  align-items: center;
+  min-height: 28px;
+}
+
+.manage-users-page .baseline-section-heading h2 {
+  color: var(--av-color-text-muted, #9ca3af);
+  font-family: var(--av-font-base, "Poppins", sans-serif);
+  font-size: var(--av-font-size-xs, 12px);
+  font-weight: var(--av-font-weight-semibold, 600);
+  letter-spacing: .02em;
+  text-transform: uppercase;
+}
+
+/* Invite modal: mirror the source DS dialog + solid Input treatment. */
+.invite-user-modal {
+  width: min(calc(100% - 32px), 480px);
+  max-height: calc(100dvh - 48px);
+  border-radius: var(--av-radius-xl, 16px);
+}
+
+.invite-user-modal .baseline-modal__head {
+  padding: 20px 20px 16px;
+  border-bottom: 0;
+}
+
+.invite-user-modal .baseline-modal__body {
+  gap: var(--av-space-4, 16px);
+  padding: 0 20px 20px;
+}
+
+.invite-user-modal .baseline-helper {
+  margin: 0;
+}
+
+.invite-solid-field {
+  display: flex;
+  flex-direction: column;
+  padding: 10px var(--av-space-4, 16px);
+  background: var(--av-color-surface-subtle, #f6f7f9);
+  box-shadow: inset 0 -1px 0 var(--av-color-surface-border, #e5e7eb);
+}
+
+.invite-solid-field label {
+  margin: 0 0 1px;
+  color: var(--av-color-text-muted, #9ca3af);
+  font-size: var(--av-font-size-sm, 13px);
+  font-weight: var(--av-font-weight-regular, 400);
+  line-height: var(--av-line-height-normal, 1.5);
+}
+
+.invite-required {
+  color: var(--av-color-danger, #ea4c4c);
+}
+
+.invite-solid-field input {
+  width: 100%;
+  min-height: 32px;
+  padding: var(--av-space-1, 4px) 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--av-color-text, #111827);
+  font-family: var(--av-font-base, "Poppins", sans-serif);
+  font-size: var(--av-font-size-lg, 16px);
+  font-weight: var(--av-font-weight-regular, 400);
+}
+
+.invite-solid-field input::placeholder {
+  color: var(--av-neutral-400, #9ca3af);
+  opacity: 1;
+}
+
+.invite-solid-field:focus-within {
+  box-shadow: inset 0 -2px 0 var(--av-color-action, #16b3c4);
+}
+
+.invite-user-modal .baseline-form {
+  gap: var(--av-space-3, 12px);
+}
+
+.invite-user-modal .baseline-form-row {
+  gap: var(--av-space-3, 12px);
+}
+
+.invite-user-modal .invite-role-field {
+  gap: var(--av-space-1, 4px);
+}
+
+.invite-user-modal .invite-role-field > label {
+  color: var(--av-color-text-muted, #9ca3af);
+  font-size: var(--av-font-size-sm, 13px);
+  font-weight: var(--av-font-weight-regular, 400);
+}
+
+.invite-user-modal .invite-role-field .baseline-control {
+  height: 44px;
+  min-height: 44px;
+  font-size: var(--av-font-size-md, 14px);
+}
+
+.invite-user-modal .baseline-checkbox {
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+/* Responsive --------------------------------------------------------------- */
+@media (max-width: 767px) {
+  .baseline-page {
+    gap: var(--av-space-5, 20px);
+  }
+
+  .baseline-hero h1 {
+    font-size: 26px;
+  }
+
+  .baseline-hero p {
+    font-size: var(--av-font-size-md, 14px);
+  }
+
+  .baseline-toolbar {
+    display: block;
+    width: 100%;
+  }
+
+  .baseline-toolbar > * + * {
+    margin-top: var(--av-space-3, 12px);
+  }
+
+  .baseline-filter,
+  .baseline-search,
+  .baseline-view-chip,
+  .baseline-toolbar > .baseline-button {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .baseline-control,
+  .baseline-search,
+  .baseline-view-chip,
+  .baseline-toolbar > .baseline-button,
+  .baseline-card-actions .baseline-button,
+  .quick-help-actions .baseline-button {
+    height: auto;
+    min-height: 44px;
+  }
+
+  .manage-users-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .manage-users-head .baseline-hero {
+    flex-basis: auto;
+  }
+
+  .manage-users-head > .baseline-button {
+    width: 100%;
+  }
+
+  .baseline-pagination {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .baseline-pagination p {
+    width: 100%;
+    text-align: center;
+  }
+
+  .baseline-pagination__controls {
+    gap: var(--av-space-2, 8px);
+  }
+
+  .baseline-pagination__controls button {
+    min-width: 44px;
+    width: auto;
+    height: 44px;
+    padding: 0 var(--av-space-3, 12px);
+  }
+
+  .invite-user-modal {
+    width: 100%;
+    max-height: calc(100dvh - 48px);
+    margin: 0;
+    border-radius: var(--av-radius-lg, 12px);
+  }
+}
+
+@media (max-width: 400px) {
+  .invite-user-modal .baseline-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

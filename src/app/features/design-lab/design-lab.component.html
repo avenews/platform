@@ -1,0 +1,253 @@
+<div class="portal-page design-lab">
+  <header class="design-lab__hero">
+    <div class="page-hero">
+      <p class="page-eyebrow">Internal workspace</p>
+      <h1>Customer portal design lab</h1>
+      <p>
+        Review the pinned Avenews components, portal tokens and responsive patterns here before applying them to a customer-facing route.
+      </p>
+    </div>
+    <a routerLink="/" avButton variant="secondary">
+      <av-icon name="arrow-back" [size]="16" />
+      Back to portal
+    </a>
+  </header>
+
+  <section class="lab-source-panel surface-card" aria-labelledby="lab-source-heading">
+    <div>
+      <p class="page-eyebrow">Reference source</p>
+      <h2 id="lab-source-heading">Pinned implementation baseline</h2>
+      <p>Examples on this page use the exact package and source checkpoints currently carried by this portal branch.</p>
+    </div>
+    <dl class="lab-source-list">
+      <div>
+        <dt>Angular package</dt>
+        <dd><code>&#64;avenews/design-system {{ designSystemVersion }}</code></dd>
+      </div>
+      <div>
+        <dt>Design-system source</dt>
+        <dd><code>{{ designSystemCommit }}</code></dd>
+      </div>
+      <div>
+        <dt>Customer baseline source</dt>
+        <dd><code>{{ customerBaselineCommit }}</code></dd>
+      </div>
+      <div>
+        <dt>Product terminology</dt>
+        <dd>Avenews Handbook · current customer-facing labels</dd>
+      </div>
+    </dl>
+  </section>
+
+  <av-inline-banner
+    message="This route is an internal prototype workspace. It is separate from customer navigation and must not be treated as a replacement for the design-system Storybook."
+    variant="warning"
+  />
+
+  <section class="lab-section" aria-labelledby="locked-assets-heading">
+    <div class="lab-section__heading">
+      <p class="page-eyebrow">Locked shell assets</p>
+      <h2 id="locked-assets-heading">Avenews wordmark and customer navigation</h2>
+      <p>The customer wordmark and these six exact Lucide glyphs are baseline assets. They are reviewed here, not substituted.</p>
+    </div>
+
+    <div class="locked-assets surface-card">
+      <div class="locked-brand">
+        <span class="specimen-label">Avenews wordmark</span>
+        <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="locked-brand__logo">
+      </div>
+      <div class="locked-nav-grid" aria-label="Locked customer navigation icons">
+        @for (item of navigationSpecimens; track item.label) {
+          <article class="locked-nav-item">
+            <span class="locked-nav-item__icon" aria-hidden="true">
+              <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+            </span>
+            <strong>{{ item.label }}</strong>
+            <small>{{ item.availability }}</small>
+          </article>
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="lab-section" aria-labelledby="foundations-heading">
+    <div class="lab-section__heading">
+      <p class="page-eyebrow">Foundations</p>
+      <h2 id="foundations-heading">Semantic colour and portal typography</h2>
+      <p>Swatches resolve from official semantic tokens. The type samples document the customer-portal scale layered on top of the package.</p>
+    </div>
+
+    <div class="swatch-grid">
+      <article class="swatch swatch--action"><span></span><strong>Action</strong><small>--av-color-action</small></article>
+      <article class="swatch swatch--heading"><span></span><strong>Heading</strong><small>--av-color-text-heading</small></article>
+      <article class="swatch swatch--success"><span></span><strong>Success</strong><small>--av-color-success-subtle</small></article>
+      <article class="swatch swatch--warning"><span></span><strong>Warning</strong><small>--av-color-warning-subtle</small></article>
+      <article class="swatch swatch--danger"><span></span><strong>Danger</strong><small>--av-color-danger-subtle</small></article>
+      <article class="swatch swatch--neutral"><span></span><strong>Neutral</strong><small>--av-color-surface-border</small></article>
+    </div>
+
+    <div class="type-ramp surface-card">
+      <div><small>Page heading · 32px desktop / 26px mobile</small><strong class="type-display">Invoices &amp; Documents</strong></div>
+      <div><small>Section heading · 18px</small><strong class="type-heading">Recent financing activity</strong></div>
+      <div><small>Body · 13px</small><span>Use clear product language and show the next meaningful action.</span></div>
+      <div><small>Filter label · 12px uppercase</small><span class="type-label">Outstanding balance</span></div>
+    </div>
+  </section>
+
+  <section class="lab-section" aria-labelledby="actions-heading">
+    <div class="lab-section__heading">
+      <p class="page-eyebrow">Components</p>
+      <h2 id="actions-heading">Actions and statuses</h2>
+      <p>Use primary actions sparingly; status colours communicate state, not decoration.</p>
+    </div>
+
+    <div class="specimen surface-card">
+      <h3>Button variants</h3>
+      <div class="button-row">
+        <button type="button" avButton variant="primary">Request funds</button>
+        <button type="button" avButton variant="secondary">View details</button>
+        <button type="button" avButton variant="outline">Upload document</button>
+        <button type="button" avButton variant="ghost">Cancel</button>
+        <button type="button" avButton variant="danger">Deactivate</button>
+        <button type="button" avButton variant="primary" disabled>Unavailable</button>
+      </div>
+      <div class="button-row button-row--sizes" aria-label="Button sizes">
+        <button type="button" avButton variant="secondary" size="sm">Small · 34px</button>
+        <button type="button" avButton variant="secondary">Medium · 44px</button>
+        <button type="button" avButton variant="secondary" size="lg">Large · 54px</button>
+      </div>
+    </div>
+
+    <div class="specimen surface-card">
+      <h3>Status badges</h3>
+      <div class="status-row">
+        <av-status-badge label="Available" color="success" />
+        <av-status-badge label="Under review" color="info" />
+        <av-status-badge label="Live" color="live" />
+        <av-status-badge label="Repaid" color="repaid" />
+        <av-status-badge label="Overdue" color="overdue" />
+        <av-status-badge label="Declined" color="declined" />
+        <av-status-badge label="Cancelled" color="cancelled" />
+      </div>
+    </div>
+  </section>
+
+  <section class="lab-section" aria-labelledby="forms-heading">
+    <div class="lab-section__heading">
+      <p class="page-eyebrow">Inputs</p>
+      <h2 id="forms-heading">Forms and filtering</h2>
+      <p>These controls are interactive so layout, keyboard and state changes can be reviewed in a Deploy Preview.</p>
+    </div>
+
+    <div class="controls-grid surface-card">
+      <div>
+        <label class="specimen-label">Portal audience</label>
+        <av-segment
+          [options]="audienceOptions"
+          [value]="audience"
+          (valueChange)="onAudienceChange($event)"
+        />
+      </div>
+      <av-select
+        label="Product"
+        [options]="productOptions"
+        [value]="product"
+        (valueChange)="onProductChange($event)"
+      />
+      <av-input
+        label="Reference email"
+        type="email"
+        autocomplete="email"
+        [value]="referenceEmail"
+        (valueChange)="referenceEmail = $event"
+      />
+      <av-input
+        label="Support message"
+        type="text"
+        placeholder="Describe what needs attention"
+        helperText="Use helper text for context, not repeated labels."
+      />
+    </div>
+  </section>
+
+  <section class="lab-section" aria-labelledby="cards-heading">
+    <div class="lab-section__heading">
+      <p class="page-eyebrow">Composition</p>
+      <h2 id="cards-heading">Cards and read-only details</h2>
+      <p>Components stay generic; customer-product meaning belongs to the feature layer.</p>
+    </div>
+
+    <div class="component-grid">
+      <av-card
+        title="Agri Credit Line"
+        subtitle="ACL"
+        body="Recurring working capital for approved inventory and business purchases."
+      >
+        <div class="card-specimen-foot">
+          <strong>Ksh 850,000 available</strong>
+          <av-status-badge label="Available" color="success" />
+        </div>
+      </av-card>
+
+      <av-card
+        title="Payment requires attention"
+        subtitle="Financing activity"
+        body="A repayment passed its Due Date and should be surfaced prominently without hiding the underlying figures."
+        color="warning"
+      />
+
+      <div class="details-specimen surface-card">
+        <av-data-list
+          title="Financing relationship"
+          variant="compact"
+          [fields]="detailFields"
+        />
+      </div>
+    </div>
+  </section>
+
+  <section class="lab-section" aria-labelledby="responsive-heading">
+    <div class="lab-section__heading">
+      <p class="page-eyebrow">Responsive pattern</p>
+      <h2 id="responsive-heading">Desktop table, mobile cards</h2>
+      <p>The same information remains available at both breakpoints; only the presentation changes.</p>
+    </div>
+
+    <div class="lab-table surface-card">
+      <table>
+        <thead>
+          <tr><th>Reference</th><th>Product</th><th>Amount</th><th>Due Date</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>FR-1048</strong></td>
+            <td>Agri Credit Line (ACL)</td>
+            <td>Ksh 350,000</td>
+            <td>24 Aug 2026</td>
+            <td><av-status-badge label="Live" color="live" /></td>
+          </tr>
+          <tr>
+            <td><strong>FR-1042</strong></td>
+            <td>Agri Buyer Financing (ABF)</td>
+            <td>Ksh 180,000</td>
+            <td>Pending approval</td>
+            <td><av-status-badge label="Under review" color="info" /></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="lab-cards">
+      <article class="lab-record surface-card">
+        <div><strong>FR-1048</strong><av-status-badge label="Live" color="live" /></div>
+        <h3>Ksh 350,000</h3>
+        <p>Agri Credit Line (ACL) · Due 24 Aug 2026</p>
+      </article>
+      <article class="lab-record surface-card">
+        <div><strong>FR-1042</strong><av-status-badge label="Under review" color="info" /></div>
+        <h3>Ksh 180,000</h3>
+        <p>Agri Buyer Financing (ABF) · Pending approval</p>
+      </article>
+    </div>
+  </section>
+</div>
