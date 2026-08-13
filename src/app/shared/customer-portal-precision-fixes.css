@@ -103,18 +103,14 @@ select.baseline-control {
     height: 100%;
   }
 
-  /*
-   * Keep internal tooling in a compact top strip. This preserves the required
-   * top-right Developer control without stealing horizontal room from the
-   * customer page header below it.
-   */
+  /* Keep the internal Developer control above customer content without taking header space. */
   .developer-tools__trigger {
-    height: 24px;
-    min-height: 24px;
+    height: 20px !important;
+    min-height: 20px !important;
   }
 
   .developer-tools__menu {
-    top: 28px;
+    top: 24px;
   }
 
   /* Match the source Manage Users header: customer action owns the true right edge. */
