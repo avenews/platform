@@ -24,8 +24,8 @@ During baseline work:
 
 - `apps/customer-portal` is the primary behavioural and visual source.
 - Do not redesign, simplify, or substitute a merely similar pattern without an issue and explicit approval.
-- Navigation icon names, labels, order, destinations, breakpoint behaviour, mobile/desktop visibility, and modal type are locked by the baseline contract.
-- Never use an approximate icon when the design system contains the supported equivalent. In particular, Financing Activity is `bar-chart`, not `cash`, and Manage Users is `person`, not `users`.
+- Navigation labels, order, destinations, breakpoint behaviour, mobile/desktop visibility, modal type, and the six customer-navigation icon artworks are locked by the baseline contract.
+- The locked customer-navigation icons reproduce the exact source Lucide artwork. Do not replace them with a similarly named design-system icon or newer glyph. Financing Activity uses the locked `BarChart3` artwork and Manage Users uses the locked `User` artwork.
 - Run `npm run check:baseline` before reporting the work complete.
 - Keep the baseline PR in Draft until the requester explicitly approves making it ready or merging it.
 
@@ -44,6 +44,19 @@ feature/<scope> or agent/<scope> -> staging -> main
 Normal feature work starts from `staging` and targets `staging` by pull request. `main` is production and must not be used merely to generate previews.
 
 Do not merge into `staging` or `main` unless the requester explicitly approves that merge. By default, leave the pull request open for review.
+
+## Mandatory staging changelog
+
+Read and follow [`docs/STAGING_CHANGELOG.md`](docs/STAGING_CHANGELOG.md) for every pull request that is approved for `staging`.
+
+Before an approved feature/agent PR is merged into `staging`:
+
+- add or update its entry in `src/app/shared/staging-changelog.data.ts` in that same PR;
+- record the PR number, staging date, human work owner/contributor, title, and concise accepted change summary;
+- do not add an entry merely because a PR was opened; rejected or closed work must not appear in the staging changelog;
+- documentation-only or internal maintenance work may omit an entry only when the reviewer explicitly agrees that there is no portal/staging change to record.
+
+The changelog entry becomes locked staging history when the PR itself is merged. This requirement does not grant permission to merge; explicit merge approval is still required.
 
 ## Mandatory Netlify verification
 
