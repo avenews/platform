@@ -270,13 +270,16 @@ test.describe('signed-in customer portal', () => {
       const rowGap = await pageRoot.evaluate((element) => getComputedStyle(element).rowGap)
       expect(rowGap).toBe('16px')
 
-      const heroBox = await pageRoot.locator('.baseline-hero').first().boundingBox()
+      const spacingAnchor = route.path === '/manage-users'
+        ? pageRoot.locator('.manage-users-head')
+        : pageRoot.locator('.baseline-hero').first()
+      const anchorBox = await spacingAnchor.boundingBox()
       const filterBox = await filterBar.boundingBox()
-      expect(heroBox).not.toBeNull()
+      expect(anchorBox).not.toBeNull()
       expect(filterBox).not.toBeNull()
-      const heroToFilterGap = filterBox!.y - (heroBox!.y + heroBox!.height)
-      expect(heroToFilterGap).toBeGreaterThanOrEqual(12)
-      expect(heroToFilterGap).toBeLessThanOrEqual(20)
+      const anchorToFilterGap = filterBox!.y - (anchorBox!.y + anchorBox!.height)
+      expect(anchorToFilterGap).toBeGreaterThanOrEqual(12)
+      expect(anchorToFilterGap).toBeLessThanOrEqual(20)
 
       const desktopFilters = filterBar.locator('[data-filter-layout="desktop"]')
       const mobileFilters = filterBar.locator('[data-filter-layout="mobile"]')
