@@ -8,7 +8,7 @@ import { STAGING_CHANGELOG } from '../../shared/staging-changelog.data'
     <div class="portal-page baseline-page changelog-page">
       <div class="baseline-hero">
         <h1>Changelog</h1>
-        <p>Approved changes recorded when pull requests are merged into staging.</p>
+        <p>Entries are prepared during final review and become staging history when their pull request is merged.</p>
       </div>
 
       @if (entries.length === 0) {

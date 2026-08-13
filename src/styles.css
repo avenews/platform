@@ -70,7 +70,7 @@ h4 {
 
 .page-hero h1 {
   margin: 0;
-  color: var(--av-color-heading, #0d343f);
+  color: var(--av-color-text-heading, #0d343f);
   font-size: clamp(28px, 5vw, 36px);
   line-height: 1.15;
 }
@@ -90,7 +90,7 @@ h4 {
 }
 
 .surface-card {
-  border: 1px solid var(--av-color-border, #e1e7eb);
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
   border-radius: var(--av-radius-lg, 16px);
   background: var(--av-color-surface, #ffffff);
   box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(15, 28, 45, 0.08));

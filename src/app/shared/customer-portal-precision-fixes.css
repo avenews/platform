@@ -1,5 +1,5 @@
 /*
- * Precision corrections from Issue #20.
+ * Precision corrections from Issues #20 and #21.
  *
  * Sources:
  * - avenews-crm-portals-temp/apps/customer-portal at
@@ -76,6 +76,22 @@ select.baseline-control {
 .profile-button .avenews-avatar__initials {
   font-size: 18px;
   letter-spacing: 0;
+}
+
+@media (min-width: 768px) {
+  /* The source Support cards share a stretched grid row instead of ending at different heights. */
+  .support-grid {
+    align-items: stretch;
+  }
+
+  .support-grid > .baseline-card {
+    height: 100%;
+  }
+
+  /* Keep the page action clear of the fixed desktop-only Developer control. */
+  .manage-users-head {
+    padding-right: 112px;
+  }
 }
 
 @media (max-width: 767px) {
