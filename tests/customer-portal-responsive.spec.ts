@@ -170,6 +170,53 @@ for (const route of ROUTES) {
   })
 }
 
+test('prototype typography, table alignment, selects, and email truncation stay locked', async ({ page }, testInfo) => {
+  const mobile = isMobileProject(testInfo)
+
+  await page.goto('/financing-activity')
+  const heading = page.locator('.baseline-hero h1')
+  await expect(heading).toBeVisible()
+  const headingSize = await heading.evaluate((element) => getComputedStyle(element).fontSize)
+  expect(headingSize).toBe(mobile ? '26px' : '32px')
+
+  const firstSelect = page.locator('select.baseline-control').first()
+  await expect(firstSelect).toBeVisible()
+  const selectStyle = await firstSelect.evaluate((element) => {
+    const style = getComputedStyle(element)
+    return {
+      appearance: style.appearance,
+      paddingRight: style.paddingRight,
+      backgroundImage: style.backgroundImage,
+    }
+  })
+  expect(selectStyle.appearance).toBe('none')
+  expect(selectStyle.paddingRight).toBe('40px')
+  expect(selectStyle.backgroundImage).not.toBe('none')
+
+  if (!mobile) {
+    const alignments = await page.locator('.baseline-table th, .baseline-table td').evaluateAll((elements) =>
+      elements.map((element) => getComputedStyle(element).textAlign),
+    )
+    expect(alignments.length).toBeGreaterThan(0)
+    expect(alignments.every((alignment) => alignment === 'left')).toBeTruthy()
+
+    await page.goto('/manage-users')
+    const emailCell = page.locator('.baseline-table tbody tr').first().locator('td').nth(1)
+    await expect(emailCell).toBeVisible()
+    const emailStyle = await emailCell.evaluate((element) => {
+      const style = getComputedStyle(element)
+      return {
+        overflow: style.overflow,
+        textOverflow: style.textOverflow,
+        whiteSpace: style.whiteSpace,
+      }
+    })
+    expect(emailStyle.overflow).toBe('hidden')
+    expect(emailStyle.textOverflow).toBe('ellipsis')
+    expect(emailStyle.whiteSpace).toBe('nowrap')
+  }
+})
+
 test('Home summary links hand off the correct Financing Activity view', async ({ page }) => {
   await page.goto('/')
   await page.getByText('Payments Overdue', { exact: true }).click()
