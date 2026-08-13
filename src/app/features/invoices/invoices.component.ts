@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component } from '@angular/core'
-import { FormsModule } from '@angular/forms'
 import {
   INVOICES,
   type InvoiceFinancingStatus,
@@ -10,6 +9,10 @@ import {
   invoiceStatusLabel,
   invoiceStatusTone,
 } from '../../shared/customer-portal.data'
+import {
+  CustomerFilterBarComponent,
+  type CustomerFilterField,
+} from '../../shared/customer-filter-bar.component'
 
 const STATUS_PRIORITY: Record<InvoiceFinancingStatus, number> = {
   'eligible-pending-validation': 0,
@@ -23,7 +26,7 @@ const STATUS_PRIORITY: Record<InvoiceFinancingStatus, number> = {
 @Component({
   selector: 'app-invoices',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, CustomerFilterBarComponent],
   templateUrl: './invoices.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -37,18 +40,59 @@ export class InvoicesComponent {
     'not-eligible',
   ]
   readonly partners = [...new Set(INVOICES.map(invoice => invoice.partner))].sort()
+  readonly filterFields: readonly CustomerFilterField[] = [
+    ...(this.partners.length > 1
+      ? [{
+          key: 'partner',
+          label: 'Linked partner',
+          allLabel: 'All partners',
+          options: this.partners.map(partner => ({ value: partner, label: partner })),
+        }]
+      : []),
+    {
+      key: 'status',
+      label: 'Financing status',
+      allLabel: 'All statuses',
+      options: this.statuses.map(status => ({ value: status, label: invoiceStatusLabel(status) })),
+    },
+    {
+      key: 'dueDate',
+      label: 'Due date',
+      allLabel: 'Any due date',
+      options: [
+        { value: 'overdue', label: 'Overdue' },
+        { value: 'due-soon', label: 'Due soon (<= 7 days)' },
+        { value: 'this-30', label: 'Due <= 30 days' },
+        { value: 'this-60', label: 'Due <= 60 days' },
+        { value: 'this-90', label: 'Due <= 90 days' },
+        { value: 'no-date', label: 'No due date' },
+      ],
+    },
+  ]
+
   partnerFilter = ''
   financingFilter = ''
   dateFilter = ''
+  searchQuery = ''
   page = 1
   readonly pageSize = 10
   toast = ''
 
+  get filterValues(): Readonly<Record<string, string>> {
+    return {
+      partner: this.partnerFilter,
+      status: this.financingFilter,
+      dueDate: this.dateFilter,
+    }
+  }
+
   get filteredInvoices(): InvoiceRecord[] {
+    const query = this.searchQuery.trim().toLowerCase()
     return INVOICES
       .filter(invoice => !this.partnerFilter || invoice.partner === this.partnerFilter)
       .filter(invoice => !this.financingFilter || invoice.financingStatus === this.financingFilter)
       .filter(invoice => this.matchesDateFilter(invoice))
+      .filter(invoice => !query || [invoice.invoiceNumber, invoice.partner, invoiceStatusLabel(invoice.financingStatus)].join(' ').toLowerCase().includes(query))
   }
 
   get mobileInvoices(): InvoiceRecord[] {
@@ -83,10 +127,23 @@ export class InvoicesComponent {
     return true
   }
 
+  onFilterValuesChange(values: Record<string, string>): void {
+    this.partnerFilter = values['partner'] ?? ''
+    this.financingFilter = values['status'] ?? ''
+    this.dateFilter = values['dueDate'] ?? ''
+    this.page = 1
+  }
+
+  onSearchValueChange(value: string): void {
+    this.searchQuery = value
+    this.page = 1
+  }
+
   resetFilters(): void {
     this.partnerFilter = ''
     this.financingFilter = ''
     this.dateFilter = ''
+    this.searchQuery = ''
     this.page = 1
   }
 

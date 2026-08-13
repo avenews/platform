@@ -1,43 +1,22 @@
-<div class="portal-page baseline-page">
+<div class="portal-page baseline-page customer-list-page">
   <div class="baseline-hero">
     <h1>Financing Activity</h1>
     <p>Track your active, completed, and overdue financing records.</p>
   </div>
 
-  <div class="baseline-toolbar">
-    @if (view) {
-      <button type="button" class="baseline-view-chip" (click)="clearView()">{{ viewLabel }} <span aria-hidden="true">x</span></button>
-    }
-    <div class="baseline-filter">
-      <label for="activity-product">Product</label>
-      <select id="activity-product" class="baseline-control" [(ngModel)]="productFilter" (ngModelChange)="page = 1">
-        <option value="">All products</option>
-        @for (product of products; track product.value) { <option [value]="product.value">{{ product.label }}</option> }
-      </select>
-    </div>
-    <div class="baseline-filter">
-      <label for="activity-status">Status</label>
-      <select id="activity-status" class="baseline-control" [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
-        <option value="">All statuses</option>
-        @for (status of statuses; track status) { <option [value]="status">{{ statusLabel(status) }}</option> }
-      </select>
-    </div>
-    <div class="baseline-filter">
-      <label for="activity-date">Due date</label>
-      <select id="activity-date" class="baseline-control" [(ngModel)]="dateFilter" (ngModelChange)="page = 1">
-        <option value="">Any due date</option>
-        <option value="overdue">Overdue</option>
-        <option value="due-soon">Due soon (&lt;= 7 days)</option>
-        <option value="this-30">Due &lt;= 30 days</option>
-        <option value="this-60">Due &lt;= 60 days</option>
-        <option value="this-90">Due &lt;= 90 days</option>
-      </select>
-    </div>
-    @if (view || productFilter || statusFilter || dateFilter) {
-      <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button>
-    }
-    <input class="baseline-search" type="search" placeholder="Search by product, partner, or funds request" [(ngModel)]="searchQuery" (ngModelChange)="page = 1" aria-label="Search financing activity">
-  </div>
+  <app-customer-filter-bar
+    [searchValue]="searchQuery"
+    searchPlaceholder="Search product, partner, or funds request"
+    searchAriaLabel="Search financing activity"
+    [filters]="filterFields"
+    [values]="filterValues"
+    (searchValueChange)="onSearchValueChange($event)"
+    (valuesChange)="onFilterValuesChange($event)"
+  />
+
+  @if (view) {
+    <button type="button" class="baseline-view-chip customer-filter-context" (click)="clearView()">{{ viewLabel }} <span aria-hidden="true">x</span></button>
+  }
 
   <div class="baseline-table-wrap">
     <table class="baseline-table">
@@ -64,7 +43,7 @@
             <td class="is-right"><strong>{{ record.balance ? formatKes(record.balance) : 'Nil' }}</strong></td>
           </tr>
         } @empty {
-          <tr><td colspan="7"><div class="baseline-empty"><strong>No financing periods yet</strong><p>Financing periods you request will appear here.</p></div></td></tr>
+          <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div></td></tr>
         }
       </tbody>
     </table>
@@ -90,7 +69,7 @@
         </div>
       </article>
     } @empty {
-      <div class="baseline-empty"><strong>No financing periods yet</strong><p>Financing periods you request will appear here.</p></div>
+      <div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div>
     }
   </div>
 

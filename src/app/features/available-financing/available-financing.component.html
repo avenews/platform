@@ -1,33 +1,20 @@
-<div class="portal-page baseline-page">
+<div class="portal-page baseline-page customer-list-page">
   <div class="baseline-hero">
     <h1>Available Financing</h1>
     <p>Your approved credit lines and available amounts.</p>
   </div>
 
-  <section class="baseline-section" aria-label="Approved financing lines">
-    <div class="baseline-toolbar">
-      <div class="baseline-filter">
-        <label for="available-product">Product</label>
-        <select id="available-product" class="baseline-control" [(ngModel)]="productFilter" (ngModelChange)="page = 1">
-          <option value="">All products</option>
-          @for (product of products; track product.value) {
-            <option [value]="product.value">{{ product.label }}</option>
-          }
-        </select>
-      </div>
-      <div class="baseline-filter">
-        <label for="available-status">Status</label>
-        <select id="available-status" class="baseline-control" [(ngModel)]="statusFilter" (ngModelChange)="page = 1">
-          <option value="">All statuses</option>
-          <option value="available">Available</option>
-          <option value="unavailable">Unavailable</option>
-        </select>
-      </div>
-      @if (productFilter || statusFilter) {
-        <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button>
-      }
-    </div>
+  <app-customer-filter-bar
+    [searchValue]="searchQuery"
+    searchPlaceholder="Search partner or product"
+    searchAriaLabel="Search available financing"
+    [filters]="filterFields"
+    [values]="filterValues"
+    (searchValueChange)="onSearchValueChange($event)"
+    (valuesChange)="onFilterValuesChange($event)"
+  />
 
+  <section class="baseline-section" aria-label="Approved financing lines">
     <div class="baseline-table-wrap">
       <table class="baseline-table credit-lines-table">
         <thead>
@@ -65,7 +52,7 @@
               </td>
             </tr>
           } @empty {
-            <tr><td colspan="6"><div class="baseline-empty"><strong>No credit lines yet</strong><p>Contact your account manager to set up a financing line.</p></div></td></tr>
+            <tr><td colspan="6"><div class="baseline-empty"><strong>No matching financing lines</strong><p>Try changing your search or filters.</p></div></td></tr>
           }
         </tbody>
       </table>
@@ -100,7 +87,7 @@
           </div>
         </article>
       } @empty {
-        <div class="baseline-empty"><strong>No credit lines yet</strong><p>Contact your account manager to set up a financing line.</p></div>
+        <div class="baseline-empty"><strong>No matching financing lines</strong><p>Try changing your search or filters.</p></div>
       }
     </div>
 

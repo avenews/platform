@@ -11,6 +11,10 @@ import {
   formatDate,
   fullName,
 } from '../../shared/customer-portal.data'
+import {
+  CustomerFilterBarComponent,
+  type CustomerFilterField,
+} from '../../shared/customer-filter-bar.component'
 
 type PendingActionType = 'deactivate' | 'reactivate' | 'cancel-invite' | 'change-role'
 
@@ -24,13 +28,26 @@ interface PendingAction {
 @Component({
   selector: 'app-manage-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomerFilterBarComponent],
   templateUrl: './manage-users.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ManageUsersComponent {
   readonly businessName = BUSINESS.name
   readonly currentUserId = 'usr_001'
+  readonly filterFields: readonly CustomerFilterField[] = [
+    {
+      key: 'status',
+      label: 'Status',
+      allLabel: 'All statuses',
+      options: [
+        { value: 'active', label: 'Active' },
+        { value: 'pending', label: 'Pending' },
+        { value: 'deactivated', label: 'Deactivated' },
+      ],
+    },
+  ]
+
   users: PortalUser[] = USERS.map(user => ({ ...user }))
   invitations: Invitation[] = INVITATIONS.map(invitation => ({ ...invitation }))
 
@@ -50,6 +67,10 @@ export class ManageUsersComponent {
   inviteAccepted = false
   inviteError = ''
   inviteSent = false
+
+  get filterValues(): Readonly<Record<string, string>> {
+    return { status: this.statusFilter }
+  }
 
   get filteredUsers(): PortalUser[] {
     const query = this.search.trim().toLowerCase()
@@ -87,8 +108,17 @@ export class ManageUsersComponent {
     )
   }
 
+  onFilterValuesChange(values: Record<string, string>): void {
+    this.statusFilter = values['status'] ?? ''
+  }
+
+  onSearchValueChange(value: string): void {
+    this.search = value
+  }
+
   resetFilters(): void {
     this.statusFilter = ''
+    this.search = ''
   }
 
   toggleMenu(id: string): void {

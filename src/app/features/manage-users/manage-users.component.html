@@ -1,4 +1,4 @@
-<div class="portal-page baseline-page manage-users-page" (click)="closeMenus()">
+<div class="portal-page baseline-page customer-list-page manage-users-page" (click)="closeMenus()">
   <div class="manage-users-head">
     <div class="baseline-hero">
       <h1>Manage Users</h1>
@@ -7,19 +7,15 @@
     <button type="button" class="baseline-button baseline-button--primary" (click)="$event.stopPropagation(); openInvite()"><span aria-hidden="true">+</span><span>Invite user</span></button>
   </div>
 
-  <div class="baseline-toolbar">
-    <div class="baseline-filter">
-      <label for="user-status">Status</label>
-      <select id="user-status" class="baseline-control" [(ngModel)]="statusFilter">
-        <option value="">All statuses</option>
-        <option value="active">Active</option>
-        <option value="pending">Pending</option>
-        <option value="deactivated">Deactivated</option>
-      </select>
-    </div>
-    @if (statusFilter) { <button type="button" class="baseline-button baseline-button--secondary" (click)="resetFilters()">Reset filters</button> }
-    <input class="baseline-search" type="search" placeholder="Search by name or email" [(ngModel)]="search" aria-label="Search users">
-  </div>
+  <app-customer-filter-bar
+    [searchValue]="search"
+    searchPlaceholder="Search by name or email"
+    searchAriaLabel="Search users"
+    [filters]="filterFields"
+    [values]="filterValues"
+    (searchValueChange)="onSearchValueChange($event)"
+    (valuesChange)="onFilterValuesChange($event)"
+  />
 
   @if (statusFilter !== 'pending') {
     <section class="baseline-section">

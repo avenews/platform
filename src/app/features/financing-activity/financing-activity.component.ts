@@ -1,6 +1,5 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
-import { FormsModule } from '@angular/forms'
 import { ActivatedRoute } from '@angular/router'
 import {
   FINANCING_RECORDS,
@@ -13,6 +12,10 @@ import {
   statusLabel,
   statusTone,
 } from '../../shared/customer-portal.data'
+import {
+  CustomerFilterBarComponent,
+  type CustomerFilterField,
+} from '../../shared/customer-filter-bar.component'
 
 const MOBILE_PRIORITY: Record<FinancingStatus, number> = {
   delinquent: 0,
@@ -29,7 +32,7 @@ const MOBILE_PRIORITY: Record<FinancingStatus, number> = {
 @Component({
   selector: 'app-financing-activity',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, CustomerFilterBarComponent],
   templateUrl: './financing-activity.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -45,6 +48,33 @@ export class FinancingActivityComponent {
   ]
 
   readonly statuses: FinancingStatus[] = ['requested', 'validating', 'offered', 'live', 'repaid', 'delinquent', 'default', 'cancelled', 'declined']
+  readonly filterFields: readonly CustomerFilterField[] = [
+    {
+      key: 'product',
+      label: 'Product',
+      allLabel: 'All products',
+      options: this.products,
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      allLabel: 'All statuses',
+      options: this.statuses.map(status => ({ value: status, label: statusLabel(status) })),
+    },
+    {
+      key: 'dueDate',
+      label: 'Due date',
+      allLabel: 'Any due date',
+      options: [
+        { value: 'overdue', label: 'Overdue' },
+        { value: 'due-soon', label: 'Due soon (<= 7 days)' },
+        { value: 'this-30', label: 'Due <= 30 days' },
+        { value: 'this-60', label: 'Due <= 60 days' },
+        { value: 'this-90', label: 'Due <= 90 days' },
+      ],
+    },
+  ]
+
   view = this.initialView()
   productFilter = ''
   statusFilter = ''
@@ -56,6 +86,14 @@ export class FinancingActivityComponent {
   private initialView(): string {
     const value = this.route.snapshot.queryParamMap.get('view')
     return value === 'active' || value === 'due' || value === 'overdue' ? value : ''
+  }
+
+  get filterValues(): Readonly<Record<string, string>> {
+    return {
+      product: this.productFilter,
+      status: this.statusFilter,
+      dueDate: this.dateFilter,
+    }
   }
 
   get viewLabel(): string {
@@ -134,11 +172,24 @@ export class FinancingActivityComponent {
     return formatDate(this.nextDueDateValue(record), true)
   }
 
+  onFilterValuesChange(values: Record<string, string>): void {
+    this.productFilter = values['product'] ?? ''
+    this.statusFilter = values['status'] ?? ''
+    this.dateFilter = values['dueDate'] ?? ''
+    this.page = 1
+  }
+
+  onSearchValueChange(value: string): void {
+    this.searchQuery = value
+    this.page = 1
+  }
+
   resetFilters(): void {
     this.view = ''
     this.productFilter = ''
     this.statusFilter = ''
     this.dateFilter = ''
+    this.searchQuery = ''
     this.page = 1
   }
 
