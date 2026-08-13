@@ -57,6 +57,12 @@ export const routes: Routes = [
             .then(module => module.DesignLabComponent),
       },
       {
+        path: 'changelog',
+        loadComponent: () =>
+          import('./features/changelog/changelog.component')
+            .then(module => module.ChangelogComponent),
+      },
+      {
         path: 'support',
         loadComponent: () =>
           import('./features/support/support.component').then(module => module.SupportComponent),

@@ -54,6 +54,10 @@ export class AvailableFinancingComponent {
     return Math.max(1, Math.ceil(this.filteredCreditLines.length / this.pageSize))
   }
 
+  get pageNumbers(): number[] {
+    return Array.from({ length: this.totalPages }, (_, index) => index + 1)
+  }
+
   get rangeStart(): number {
     return this.filteredCreditLines.length ? (this.page - 1) * this.pageSize + 1 : 0
   }

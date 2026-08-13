@@ -1,10 +1,10 @@
-<div class="portal-page baseline-page" (click)="closeMenus()">
+<div class="portal-page baseline-page manage-users-page" (click)="closeMenus()">
   <div class="manage-users-head">
     <div class="baseline-hero">
       <h1>Manage Users</h1>
       <p>Add and manage people who can access the portal for <strong>{{ businessName }}</strong>.</p>
     </div>
-    <button type="button" class="baseline-button baseline-button--primary" (click)="$event.stopPropagation(); openInvite()">+ Invite user</button>
+    <button type="button" class="baseline-button baseline-button--primary" (click)="$event.stopPropagation(); openInvite()"><span aria-hidden="true">+</span><span>Invite user</span></button>
   </div>
 
   <div class="baseline-toolbar">
@@ -39,7 +39,7 @@
                 <td class="is-right">
                   @if (userActions(user).length) {
                     <span class="user-actions" (click)="$event.stopPropagation()">
-                      <button type="button" class="user-actions__trigger" (click)="toggleMenu('user:' + user.id)">...</button>
+                      <button type="button" class="user-actions__trigger" (click)="toggleMenu('user:' + user.id)">•••</button>
                       @if (openMenuId === 'user:' + user.id) {
                         <span class="user-actions__menu">
                           @for (item of userActions(user); track item.label) {
@@ -89,7 +89,7 @@
                 <td><span class="baseline-status status-warning">Pending</span></td>
                 <td>{{ formatDate(invitation.invitedAt) }}</td>
                 <td>{{ formatDate(invitation.expiresAt) }}</td>
-                <td class="is-right"><span class="user-actions" (click)="$event.stopPropagation()"><button type="button" class="user-actions__trigger" (click)="toggleMenu('invite:' + invitation.id)">...</button>@if (openMenuId === 'invite:' + invitation.id) { <span class="user-actions__menu"><button type="button" (click)="resendInvitation(invitation)">Resend invite</button><button type="button" class="is-danger" (click)="cancelInvitation(invitation)">Cancel invite</button></span> }</span></td>
+                <td class="is-right"><span class="user-actions" (click)="$event.stopPropagation()"><button type="button" class="user-actions__trigger" (click)="toggleMenu('invite:' + invitation.id)">•••</button>@if (openMenuId === 'invite:' + invitation.id) { <span class="user-actions__menu"><button type="button" (click)="resendInvitation(invitation)">Resend invite</button><button type="button" class="is-danger" (click)="cancelInvitation(invitation)">Cancel invite</button></span> }</span></td>
               </tr>
             } @empty { <tr><td colspan="7"><div class="baseline-empty"><strong>No pending invitations</strong><p>Invite someone using the button above.</p></div></td></tr> }
           </tbody>
@@ -112,7 +112,7 @@
 
 @if (inviteOpen) {
   <div class="baseline-modal-backdrop" role="presentation" (click)="closeInvite()">
-    <section class="baseline-modal" role="dialog" aria-modal="true" aria-labelledby="invite-title" (click)="$event.stopPropagation()">
+    <section class="baseline-modal invite-user-modal" role="dialog" aria-modal="true" aria-labelledby="invite-title" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head"><h2 id="invite-title">Invite user</h2><button type="button" class="baseline-modal__close" (click)="closeInvite()" aria-label="Close">&times;</button></header>
       <div class="baseline-modal__body">
         @if (inviteSent) {
@@ -123,13 +123,13 @@
           <p class="baseline-helper">An email invite will be sent to the address below. Customer Admins can invite and manage users. Customer Users can view and use allowed portal actions.</p>
           <form class="baseline-form" (ngSubmit)="sendInvite()">
             <div class="baseline-form-row">
-              <div class="baseline-field"><label for="invite-first">First name</label><input id="invite-first" class="baseline-control" [(ngModel)]="inviteFirstName" name="firstName" placeholder="First name" required></div>
-              <div class="baseline-field"><label for="invite-last">Last name</label><input id="invite-last" class="baseline-control" [(ngModel)]="inviteLastName" name="lastName" placeholder="Last name" required></div>
+              <div class="invite-solid-field"><label for="invite-first">First name<span class="invite-required">*</span></label><input id="invite-first" [(ngModel)]="inviteFirstName" name="firstName" placeholder="First name" required></div>
+              <div class="invite-solid-field"><label for="invite-last">Last name<span class="invite-required">*</span></label><input id="invite-last" [(ngModel)]="inviteLastName" name="lastName" placeholder="Last name" required></div>
             </div>
-            <div class="baseline-field"><label for="invite-email">Email</label><input id="invite-email" class="baseline-control" type="email" [(ngModel)]="inviteEmail" name="email" placeholder="colleague@business.co.ke" required></div>
-            <div class="baseline-field"><label for="invite-phone">Phone number</label><input id="invite-phone" class="baseline-control" type="tel" [(ngModel)]="invitePhone" name="phone" placeholder="+254 7XX XXX XXX" required></div>
-            <div class="baseline-field"><label for="invite-role">Role</label><select id="invite-role" class="baseline-control" [(ngModel)]="inviteRole" name="role"><option value="user">Customer User - can view and use the portal</option><option value="admin">Customer Admin - can also manage users</option></select></div>
-            <label class="baseline-checkbox"><input type="checkbox" [(ngModel)]="inviteAccepted" name="accepted"><span>I confirm that this user is an authorized Funds Request signatory for this business and may submit Funds Requests on behalf of the business. I accept the <button type="button" class="baseline-button baseline-button--ghost" style="min-height:0;padding:0" (click)="termsOpen = true">Funds Request Terms &amp; Conditions.</button></span></label>
+            <div class="invite-solid-field"><label for="invite-email">Email<span class="invite-required">*</span></label><input id="invite-email" type="email" [(ngModel)]="inviteEmail" name="email" placeholder="colleague@business.co.ke" required></div>
+            <div class="invite-solid-field"><label for="invite-phone">Phone number<span class="invite-required">*</span></label><input id="invite-phone" type="tel" [(ngModel)]="invitePhone" name="phone" placeholder="+254 7XX XXX XXX" required></div>
+            <div class="baseline-field invite-role-field"><label for="invite-role">Role</label><select id="invite-role" class="baseline-control" [(ngModel)]="inviteRole" name="role"><option value="user">Customer User — can view and use the portal</option><option value="admin">Customer Admin — can also manage users</option></select></div>
+            <label class="baseline-checkbox"><input type="checkbox" [(ngModel)]="inviteAccepted" name="accepted"><span>I confirm that this user is an authorized Funds Request signatory for this business and may submit Funds Requests on behalf of the business. I accept the <button type="button" class="baseline-button baseline-button--ghost" style="min-height:0;height:auto;padding:0" (click)="termsOpen = true">Funds Request Terms &amp; Conditions.</button></span></label>
             <button type="submit" class="baseline-button baseline-button--primary baseline-button--block" [disabled]="!inviteValid">Send invite</button>
           </form>
         }

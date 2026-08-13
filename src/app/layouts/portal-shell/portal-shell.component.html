@@ -88,6 +88,26 @@
     }
   </nav>
 
+  <div class="developer-tools">
+    <button
+      type="button"
+      class="developer-tools__trigger"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="developerOpen"
+      (click)="toggleDeveloperMenu()"
+    >
+      <span>Developer</span>
+      <av-icon name="chevron-down" [size]="14" />
+    </button>
+    @if (developerOpen) {
+      <button class="developer-tools__backdrop" type="button" aria-label="Close developer menu" (click)="closeDeveloperMenu()"></button>
+      <div class="developer-tools__menu" role="menu" aria-label="Developer tools">
+        <a routerLink="/design-lab" role="menuitem" (click)="closeDeveloperMenu()">Design Lab</a>
+        <a routerLink="/changelog" role="menuitem" (click)="closeDeveloperMenu()">Changelog</a>
+      </div>
+    }
+  </div>
+
   @if (menuOpen) {
     <button class="menu-backdrop" type="button" (click)="closeMenu()" aria-label="Close profile menu"></button>
     <div class="profile-menu" role="menu" aria-label="Profile menu">

@@ -54,6 +54,7 @@ export class PortalShellComponent {
   readonly mobileNavItems = CUSTOMER_MOBILE_NAV_ITEMS
   readonly adminNavItem = CUSTOMER_ADMIN_NAV_ITEM
   menuOpen = false
+  developerOpen = false
 
   get initials(): string {
     if (!this.session) return 'AV'
@@ -66,6 +67,7 @@ export class PortalShellComponent {
   }
 
   toggleMenu(): void {
+    this.developerOpen = false
     this.menuOpen = !this.menuOpen
   }
 
@@ -73,14 +75,28 @@ export class PortalShellComponent {
     this.menuOpen = false
   }
 
+  toggleDeveloperMenu(): void {
+    this.menuOpen = false
+    this.developerOpen = !this.developerOpen
+  }
+
+  closeDeveloperMenu(): void {
+    this.developerOpen = false
+  }
+
+  closeOverlays(): void {
+    this.closeMenu()
+    this.closeDeveloperMenu()
+  }
+
   @HostListener('document:keydown.escape')
   onEscape(): void {
-    this.closeMenu()
+    this.closeOverlays()
   }
 
   logout(): void {
     this.auth.logout()
-    this.closeMenu()
+    this.closeOverlays()
     void this.router.navigate(['/login'])
   }
 }

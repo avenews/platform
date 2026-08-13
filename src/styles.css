@@ -1,5 +1,6 @@
 @import './app/shared/customer-portal-baseline.css';
 @import './app/shared/customer-portal-parity-overrides.css';
+@import './app/shared/customer-portal-prototype-parity.css';
 
 :root {
   color-scheme: light;

@@ -14,6 +14,13 @@ Closes #
 
 Describe any intentional baseline deviation:
 
+## Staging changelog
+
+- [ ] `src/app/shared/staging-changelog.data.ts` includes this PR number, staging date, work owner/contributor, title, and accepted change summary.
+- [ ] Or: this is documentation/internal maintenance only and the reviewer agrees no staging changelog entry is required.
+
+See `docs/STAGING_CHANGELOG.md`.
+
 ## Validation
 
 - [ ] `npm run check:baseline`
