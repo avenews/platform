@@ -89,17 +89,19 @@ select.baseline-control {
   }
 
   /*
-   * Keep internal tooling in a compact top strip. This preserves the required
-   * top-right Developer control without stealing horizontal room from the
-   * customer page header below it.
+   * Internal tooling stays entirely above the customer content's 24px top
+   * inset. !important is intentional here because the trigger lives inside an
+   * Angular component stylesheet with stronger emulated-encapsulation specificity.
    */
   .developer-tools__trigger {
-    height: 24px;
-    min-height: 24px;
+    height: 20px !important;
+    min-height: 20px !important;
+    padding-inline: 10px !important;
+    font-size: 10px !important;
   }
 
   .developer-tools__menu {
-    top: 28px;
+    top: 24px !important;
   }
 
   /* Match the source Manage Users header: customer action owns the true right edge. */
