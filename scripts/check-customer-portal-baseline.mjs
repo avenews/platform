@@ -110,7 +110,7 @@ requireText(precisionCss, '.manage-users-page .baseline-table td:nth-child(2)', 
 requireText(precisionCss, 'text-overflow: ellipsis;', 'Manage Users email ellipsis')
 requireText(precisionCss, '.profile-button .avenews-avatar__initials', 'Sidebar avatar initial size')
 requireText(precisionCss, '.support-grid {\n    align-items: stretch;', 'Equal-height Support card row')
-requireText(precisionCss, '.developer-tools__trigger {\n    height: 24px;', 'Compact Developer control strip')
+requireText(precisionCss, '.developer-tools__trigger {\n    height: 20px !important;', 'Developer control stays above customer content')
 requireText(precisionCss, '.manage-users-head {\n    padding-right: 0;', 'Manage Users action uses the true right edge')
 requireText(precisionCss, '.manage-users-head > .baseline-button {\n    margin-left: auto;', 'Manage Users action stays right aligned')
 
