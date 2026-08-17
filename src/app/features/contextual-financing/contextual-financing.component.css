@@ -1,0 +1,304 @@
+:host {
+  display: block;
+}
+
+.contextual-financing {
+  display: grid;
+  gap: 24px;
+}
+
+.contextual-financing__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.contextual-financing__hero > div {
+  display: grid;
+  gap: 6px;
+}
+
+.contextual-financing__hero h1,
+.contextual-financing__hero p {
+  margin: 0;
+}
+
+.contextual-financing__hero h1 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.contextual-financing__hero > div > p:not(.page-eyebrow) {
+  max-width: 720px;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 13px;
+}
+
+.contextual-overview-grid,
+.contextual-relationship-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.contextual-overview-card {
+  min-width: 0;
+}
+
+.contextual-step-list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--av-color-text, #25384a);
+  font-size: 13px;
+}
+
+.contextual-decision-banner,
+.contextual-inline-note,
+.contextual-relationship-message {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid var(--av-color-primary-border, #bdeff3);
+  border-radius: 10px;
+  background: var(--av-color-primary-subtle, #eefbfc);
+}
+
+.contextual-decision-banner strong,
+.contextual-inline-note strong,
+.contextual-relationship-message strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 13px;
+}
+
+.contextual-decision-banner p,
+.contextual-inline-note span,
+.contextual-relationship-message span {
+  margin: 0;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+}
+
+.contextual-relationship-card {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.contextual-relationship-card > div:first-child {
+  display: grid;
+  gap: 2px;
+}
+
+.contextual-relationship-card > div:first-child strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 15px;
+}
+
+.contextual-relationship-card > div:first-child span {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+}
+
+.contextual-relationship-card dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.contextual-relationship-card dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 8px;
+  border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+
+.contextual-relationship-card dt,
+.contextual-relationship-card dd {
+  margin: 0;
+  font-size: 12px;
+}
+
+.contextual-relationship-card dt {
+  color: var(--av-color-text-muted, #66788a);
+}
+
+.contextual-relationship-card dd {
+  color: var(--av-color-text-heading, #0d343f);
+  font-weight: 700;
+  text-align: right;
+}
+
+.contextual-table {
+  min-width: 820px;
+}
+
+.contextual-period-table {
+  min-width: 1040px;
+}
+
+.contextual-period-cards {
+  display: none;
+}
+
+.contextual-period-available {
+  display: grid;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--av-color-primary-border, #bdeff3);
+  border-radius: 10px;
+  background: var(--av-color-primary-subtle, #eefbfc);
+}
+
+.contextual-period-available small {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 11px;
+}
+
+.contextual-period-available strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 22px;
+}
+
+.contextual-flow-modal {
+  width: min(100%, 560px);
+}
+
+.contextual-flow-intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.contextual-flow-intro strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 15px;
+}
+
+.contextual-flow-intro p {
+  margin: 4px 0 0;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+}
+
+.contextual-change-link {
+  border: 0;
+  background: transparent;
+  color: var(--av-color-action, #16b3c4);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.contextual-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.contextual-choice-grid button {
+  min-height: 150px;
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  padding: 16px;
+  border: 1px solid var(--av-color-surface-border, #dfe4e8);
+  border-radius: 10px;
+  background: var(--av-color-surface, #fff);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.contextual-choice-grid button:hover,
+.contextual-choice-grid button:focus-visible {
+  border-color: var(--av-color-action, #16b3c4);
+  background: var(--av-color-primary-subtle, #eefbfc);
+}
+
+.contextual-choice-grid strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 14px;
+}
+
+.contextual-choice-grid span {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+}
+
+.contextual-flow-section {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--av-color-surface-border, #dfe4e8);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.contextual-flow-section h3,
+.contextual-flow-section p,
+.contextual-flow-section ul {
+  margin: 0;
+}
+
+.contextual-flow-section h3 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 15px;
+}
+
+.contextual-flow-section p,
+.contextual-flow-section li {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+}
+
+.contextual-flow-section ul {
+  display: grid;
+  gap: 6px;
+  padding-left: 20px;
+}
+
+@media (max-width: 767px) {
+  .contextual-financing {
+    gap: 20px;
+  }
+
+  .contextual-financing__hero {
+    display: grid;
+    gap: 16px;
+  }
+
+  .contextual-financing__hero h1 {
+    font-size: 26px;
+  }
+
+  .contextual-financing__hero > .baseline-button {
+    width: 100%;
+  }
+
+  .contextual-overview-grid,
+  .contextual-relationship-grid,
+  .contextual-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contextual-period-cards {
+    display: grid;
+  }
+
+  .contextual-flow-modal {
+    width: 100%;
+  }
+
+  .contextual-choice-grid button {
+    min-height: 0;
+  }
+}
