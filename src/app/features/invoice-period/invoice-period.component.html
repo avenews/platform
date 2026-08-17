@@ -1,0 +1,169 @@
+@if (period; as currentPeriod) {
+  <div class="portal-page baseline-page invoice-period-page" [attr.data-period-status]="currentPeriod.status">
+    <button type="button" class="invoice-period-back" (click)="back()">Back to Invoice Financing</button>
+
+    <section class="invoice-period-hero baseline-card">
+      <div class="invoice-period-hero__copy">
+        <p class="page-eyebrow">Dynamic Period</p>
+        <h1>{{ currentPeriod.buyerName }}</h1>
+        <p>{{ relationshipModelLabel(currentPeriod.relationshipModel) }} - Invoices due {{ formatDate(currentPeriod.dueDate) }} - {{ currentPeriod.daysRemaining }} days remaining</p>
+        <span class="baseline-status" [class]="'baseline-status ' + periodStatusTone(currentPeriod.status)">{{ currentPeriod.statusLabel }}</span>
+      </div>
+      <div class="invoice-period-availability">
+        <small>Available to Withdraw</small>
+        <strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong>
+        <span>Last recalculated {{ formatDate(currentPeriod.lastRecalculatedAt) }}</span>
+      </div>
+    </section>
+
+    <section class="invoice-period-actions" aria-label="Dynamic Period actions">
+      <button type="button" class="baseline-button baseline-button--secondary" (click)="scrollToInvoices()">View invoices</button>
+      <button
+        type="button"
+        class="baseline-button baseline-button--primary"
+        data-action="funds-request"
+        [disabled]="!canRequestFunds"
+        (click)="openRequest()"
+      >{{ canRequestFunds ? 'Request funds' : 'Requests unavailable' }}</button>
+    </section>
+
+    <section class="invoice-period-explanation" [class.invoice-period-explanation--warning]="!canRequestFunds">
+      <div>
+        <strong>Why this amount?</strong>
+        <p>{{ currentPeriod.bindingConstraint }}</p>
+      </div>
+      <span>{{ formatKes(currentPeriod.borrowingBase) }} borrowing base</span>
+    </section>
+
+    <section class="baseline-section" aria-labelledby="availability-calculation-title">
+      <div class="baseline-section-heading">
+        <div>
+          <p class="page-eyebrow">Availability</p>
+          <h2 id="availability-calculation-title">How Available to Withdraw is calculated</h2>
+        </div>
+      </div>
+      <div class="invoice-period-money-grid">
+        <div><span>Total Receivables</span><strong>{{ formatKes(currentPeriod.totalReceivables) }}</strong></div>
+        <div><span>Eligible Receivables</span><strong>{{ formatKes(currentPeriod.eligibleReceivables) }}</strong></div>
+        <div><span>Advance Rate</span><strong>{{ formatPercent(currentPeriod.advanceRate) }}</strong></div>
+        <div><span>Borrowing Base</span><strong>{{ formatKes(currentPeriod.borrowingBase) }}</strong></div>
+        <div><span>Already Drawn</span><strong>{{ formatKes(currentPeriod.drawnPrincipal) }}</strong></div>
+        <div><span>Reserved Amount</span><strong>{{ formatKes(currentPeriod.reservedAmount) }}</strong></div>
+        <div class="invoice-period-money-grid__available"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
+      </div>
+      <div class="invoice-period-limits">
+        <span>Buyer sub-limit remaining <strong>{{ formatKes(currentPeriod.buyerSubLimitRemaining) }}</strong></span>
+        <span>Invoice Financing facility remaining <strong>{{ formatKes(currentPeriod.facilityCreditRemaining) }}</strong></span>
+        <span>Business Available Credit <strong>{{ formatKes(currentPeriod.businessCreditRemaining) }}</strong></span>
+      </div>
+    </section>
+
+    <section id="dynamic-period-invoices" class="baseline-section" aria-labelledby="dynamic-period-invoices-title">
+      <div class="baseline-section-heading">
+        <div>
+          <p class="page-eyebrow">Receivables</p>
+          <h2 id="dynamic-period-invoices-title">Invoices in this Dynamic Period</h2>
+        </div>
+        <span class="invoice-period-count">{{ invoices.length }} invoices</span>
+      </div>
+
+      <div class="baseline-table-wrap">
+        <table class="baseline-table invoice-period-table">
+          <thead><tr><th>Invoice</th><th>Amount</th><th>Uploaded</th><th>Uploaded By</th><th>Status</th><th>Linked Advance</th></tr></thead>
+          <tbody>
+            @for (invoice of invoices; track invoice.id) {
+              <tr>
+                <td><strong>{{ invoice.reference }}</strong></td>
+                <td>{{ formatKes(invoice.amount) }}</td>
+                <td>{{ formatDate(invoice.uploadedAt) }}</td>
+                <td>{{ invoice.uploadedBy }}</td>
+                <td><span class="baseline-status" [class]="'baseline-status ' + invoiceStatusTone(invoice.status)">{{ invoiceStatusLabel(invoice.status) }}</span></td>
+                <td>{{ invoice.linkedAdvanceReference ?? '-' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6"><div class="baseline-empty"><strong>No invoices</strong><p>Invoices appear here when accepted into this Dynamic Period.</p></div></td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="baseline-cards invoice-period-cards">
+        @for (invoice of invoices; track invoice.id) {
+          <article class="baseline-record-card">
+            <div class="baseline-record-card__head"><strong>{{ invoice.reference }}</strong><span class="baseline-status" [class]="'baseline-status ' + invoiceStatusTone(invoice.status)">{{ invoiceStatusLabel(invoice.status) }}</span></div>
+            <div class="baseline-metrics"><span class="baseline-metric"><small>Amount</small><strong>{{ formatKes(invoice.amount) }}</strong></span><span class="baseline-metric"><small>Uploaded</small><strong>{{ formatDate(invoice.uploadedAt) }}</strong></span></div>
+            <p class="baseline-muted">Uploaded by {{ invoice.uploadedBy }}</p>
+          </article>
+        } @empty {
+          <div class="baseline-empty"><strong>No invoices</strong><p>Invoices appear here when accepted into this Dynamic Period.</p></div>
+        }
+      </div>
+    </section>
+
+    <section class="baseline-section" aria-labelledby="dynamic-period-advances-title">
+      <div class="baseline-section-heading">
+        <div>
+          <p class="page-eyebrow">Funds Requests</p>
+          <h2 id="dynamic-period-advances-title">Advances against this Dynamic Period</h2>
+        </div>
+        <span class="invoice-period-count">{{ advances.length }} Advances</span>
+      </div>
+
+      @if (advances.length) {
+        <div class="baseline-table-wrap">
+          <table class="baseline-table invoice-period-advance-table">
+            <thead><tr><th>Reference</th><th>Request Date</th><th>Disbursement</th><th>Principal</th><th>Daily Markup</th><th>Tenor</th><th>Total Repayable</th><th>Status</th></tr></thead>
+            <tbody>
+              @for (advance of advances; track advance.id) {
+                <tr>
+                  <td><strong>{{ advance.reference }}</strong></td>
+                  <td>{{ formatDate(advance.requestDate) }}</td>
+                  <td>{{ advance.disbursementDate ? formatDate(advance.disbursementDate) : 'Pending' }}</td>
+                  <td>{{ formatKes(advance.principal) }}</td>
+                  <td>{{ formatDailyRate(advance.dailyMarkupRate) }}</td>
+                  <td>{{ advance.tenorDays }} days</td>
+                  <td>{{ formatKes(advance.totalRepayable) }}</td>
+                  <td><span class="baseline-status" [class]="'baseline-status ' + advanceStatusTone(advance.status)">{{ advanceStatusLabel(advance.status) }}</span></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <div class="baseline-cards invoice-period-cards">
+          @for (advance of advances; track advance.id) {
+            <article class="baseline-record-card">
+              <div class="baseline-record-card__head"><strong>{{ advance.reference }}</strong><span class="baseline-status" [class]="'baseline-status ' + advanceStatusTone(advance.status)">{{ advanceStatusLabel(advance.status) }}</span></div>
+              <div class="baseline-metrics"><span class="baseline-metric"><small>Principal</small><strong>{{ formatKes(advance.principal) }}</strong></span><span class="baseline-metric"><small>Total Repayable</small><strong>{{ formatKes(advance.totalRepayable) }}</strong></span></div>
+              <p class="baseline-muted">{{ formatDailyRate(advance.dailyMarkupRate) }} per day - {{ advance.tenorDays }} days</p>
+            </article>
+          }
+        </div>
+      } @else {
+        <div class="baseline-empty"><strong>No Advances yet</strong><p>This Dynamic Period has not been drawn against.</p></div>
+      }
+    </section>
+
+    <section class="baseline-card invoice-period-settlement">
+      <div class="baseline-card__header"><p class="page-eyebrow">Settlement</p><h2>Buyer payment and settlement</h2></div>
+      <div class="baseline-card__body"><p>The Buyer pays the invoice value into the Client Clearing Account. Avenews applies the permitted amounts and transfers the remaining proceeds to the Client Supplier.</p></div>
+    </section>
+  </div>
+
+  @if (requestOpen) {
+    <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="closeRequest()">
+      <section class="baseline-modal baseline-modal--sheet invoice-period-request" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
+        <header class="baseline-modal__head"><h2>Request funds from this Dynamic Period</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRequest()">&times;</button></header>
+        <div class="baseline-modal__body">
+          <div class="invoice-period-request__summary"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
+          <div class="baseline-field"><label for="period-request-amount">Requested amount</label><input id="period-request-amount" class="baseline-control" type="text" [value]="formatKes(currentPeriod.availableToWithdraw)"></div>
+          <p class="baseline-muted">This Funds Request is scoped to {{ currentPeriod.buyerName }} invoices due {{ formatDate(currentPeriod.dueDate) }}.</p>
+          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeRequest()">Continue Funds Request</button>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
+} @else {
+  <div class="portal-page baseline-empty"><strong>Dynamic Period not found</strong><p>This prototype does not contain the requested Dynamic Period.</p><button type="button" class="baseline-button baseline-button--secondary" (click)="back()">Back to Invoice Financing</button></div>
+}
