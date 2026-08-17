@@ -16,6 +16,10 @@
       </div>
     </section>
 
+    <app-prototype-explainer tone="handbook" title="A Dynamic Period groups one Client Supplier, one Buyer, and one invoice Due Date">
+      <p>Invoices with the same Buyer and Due Date join the same period when eligible. Invoices for another Buyer must stay in another period even when the Due Date is identical.</p>
+    </app-prototype-explainer>
+
     <section class="invoice-period-actions" aria-label="Dynamic Period actions">
       <button type="button" class="baseline-button baseline-button--secondary" (click)="scrollToInvoices()">View invoices</button>
       <button
@@ -26,6 +30,10 @@
         (click)="openRequest()"
       >{{ canRequestFunds ? 'Request funds' : 'Requests unavailable' }}</button>
     </section>
+
+    <app-prototype-explainer tone="action" title="This is the correct level for the Client Supplier's Funds Request">
+      <p>The request is tied to this Buyer's invoices, this Due Date, this request window, and this period's Available to Withdraw. A generic product-level request would hide those controls.</p>
+    </app-prototype-explainer>
 
     <section class="invoice-period-explanation" [class.invoice-period-explanation--warning]="!canRequestFunds">
       <div>
@@ -42,6 +50,11 @@
           <h2 id="availability-calculation-title">How Available to Withdraw is calculated</h2>
         </div>
       </div>
+
+      <app-prototype-explainer tone="handbook" title="Availability is constrained by both receivables and approved credit">
+        <p>Available to Withdraw is based on Eligible Receivables multiplied by the applicable Advance Rate, constrained by Available Credit and the Buyer sub-limit, then reduced by Principal already financed, reserved or pending amounts, and other applicable deductions.</p>
+      </app-prototype-explainer>
+
       <div class="invoice-period-money-grid">
         <div><span>Total Receivables</span><strong>{{ formatKes(currentPeriod.totalReceivables) }}</strong></div>
         <div><span>Eligible Receivables</span><strong>{{ formatKes(currentPeriod.eligibleReceivables) }}</strong></div>
@@ -66,6 +79,16 @@
         </div>
         <span class="invoice-period-count">{{ invoices.length }} invoices</span>
       </div>
+
+      @if (currentPeriod.relationshipModel === 'partner-buyer') {
+        <app-prototype-explainer tone="role" title="The Partner Buyer normally supplies these invoices">
+          <p>The Client Supplier can view the invoices and request financing, but it normally does not upload them for this Financing Relationship unless responsibility has been reassigned and documented.</p>
+        </app-prototype-explainer>
+      } @else {
+        <app-prototype-explainer tone="role" title="The Client Supplier normally uploads invoices for this Counterparty Buyer">
+          <p>The Counterparty Buyer does not normally participate in upload or onboarding. Invoices pass through the applicable verification process before they become Eligible Receivables.</p>
+        </app-prototype-explainer>
+      }
 
       <div class="baseline-table-wrap">
         <table class="baseline-table invoice-period-table">
@@ -109,6 +132,10 @@
         <span class="invoice-period-count">{{ advances.length }} Advances</span>
       </div>
 
+      <app-prototype-explainer tone="handbook" title="One approved Funds Request becomes one Advance">
+        <p>Several Advances may exist against the same Dynamic Period while availability remains. Each Advance keeps its own Principal, disbursement date, Financing Period, and Markup while sharing the period's invoice Due Date as the repayment date.</p>
+      </app-prototype-explainer>
+
       @if (advances.length) {
         <div class="baseline-table-wrap">
           <table class="baseline-table invoice-period-advance-table">
@@ -145,8 +172,16 @@
 
     <section class="baseline-card invoice-period-settlement">
       <div class="baseline-card__header"><p class="page-eyebrow">Settlement</p><h2>Buyer payment and settlement</h2></div>
-      <div class="baseline-card__body"><p>The Buyer pays the invoice value into the Client Clearing Account. Avenews applies the permitted amounts and transfers the remaining proceeds to the Client Supplier.</p></div>
+      <div class="baseline-card__body"><p>The Buyer pays the full invoice or receivables amount into the designated Client Clearing Account. Avenews allocates the payment, retains the applicable Principal and Markup, and transfers the remaining invoice proceeds to the Client Supplier.</p></div>
     </section>
+
+    <app-prototype-explainer tone="role" title="Partner Buyer economics are not part of the Client Supplier calculation">
+      <p>Any approved Partner Buyer rebate is calculated separately and must not appear in the Client Supplier's Available to Withdraw, repayment obligation, or settlement breakdown.</p>
+    </app-prototype-explainer>
+
+    <app-prototype-explainer tone="limitation" title="Settlement instructions are not connected on this prototype">
+      <p>This branch deliberately does not show a bank account number, payment reference, live allocation status, or production settlement instruction because those integrations and final data sources are not established here.</p>
+    </app-prototype-explainer>
   </div>
 
   @if (requestOpen) {
@@ -154,6 +189,9 @@
       <section class="baseline-modal baseline-modal--sheet invoice-period-request" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
         <header class="baseline-modal__head"><h2>Request funds from this Dynamic Period</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRequest()">&times;</button></header>
         <div class="baseline-modal__body">
+          <app-prototype-explainer tone="action" title="The request cannot exceed this period's Available to Withdraw">
+            <p>The final production flow must also enforce the request window, account status, applicable limits, and any Credit, Risk, verification, or operational restrictions.</p>
+          </app-prototype-explainer>
           <div class="invoice-period-request__summary"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
           <div class="baseline-field"><label for="period-request-amount">Requested amount</label><input id="period-request-amount" class="baseline-control" type="text" [value]="formatKes(currentPeriod.availableToWithdraw)"></div>
           <p class="baseline-muted">This Funds Request is scoped to {{ currentPeriod.buyerName }} invoices due {{ formatDate(currentPeriod.dueDate) }}.</p>
