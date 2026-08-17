@@ -15,8 +15,8 @@ import { SupplierPeriodDetailComponent } from './supplier-period-detail.componen
   template: `
     @if (period; as currentPeriod) {
       <app-supplier-period-detail [period]="currentPeriod" />
-    } @else if (line; as currentLine) {
-      <app-credit-line-detail [line]="currentLine" />
+    } @else if (line) {
+      <app-credit-line-detail [line]="line" />
     } @else {
       <div class="portal-page baseline-empty">
         <strong>Financing record not found</strong>
