@@ -6,7 +6,7 @@ import {
   inject,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { Router } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import {
   AvButtonDirective,
   AvIconComponent,
@@ -15,6 +15,8 @@ import {
   type SegmentOption,
 } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
+import { isExperienceScenario } from '../../core/experience/contextual-experience.data'
+import { PortalExperienceService } from '../../core/experience/portal-experience.service'
 
 type LoginStep = 'idle' | 'loading' | 'verification' | 'verifying' | 'error'
 type InputMethod = 'email' | 'phone'
@@ -39,6 +41,8 @@ const RESEND_COUNTDOWN_SECONDS = 110
 })
 export class LoginComponent implements OnDestroy {
   private readonly auth = inject(AuthService)
+  private readonly experiences = inject(PortalExperienceService)
+  private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly cdr = inject(ChangeDetectorRef)
 
@@ -126,6 +130,17 @@ export class LoginComponent implements OnDestroy {
 
     // Prototype-only OTP flow: any non-empty verification code succeeds.
     this.auth.login('admin')
+
+    const scenario = this.route.snapshot.queryParamMap.get('access')
+    if (isExperienceScenario(scenario)) {
+      // Resolve current access again for every contextual login. The previous
+      // product/access choice is deliberately cleared rather than remembered.
+      this.experiences.resetForLogin(scenario)
+      void this.router.navigate(this.experiences.resolvePostLoginRoute())
+      return
+    }
+
+    // Keep the accepted staging baseline available for side-by-side review.
     void this.router.navigate(['/'])
   }
 
