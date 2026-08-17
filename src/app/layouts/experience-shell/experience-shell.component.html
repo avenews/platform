@@ -96,6 +96,9 @@
   </aside>
 
   <main class="experience-main">
+    <app-prototype-explainer tone="decision" title="You are viewing one product or Partner role at a time">
+      <p>The shell intentionally shows only the navigation relevant to <strong>{{ currentExperience.switcherLabel }}</strong> and <strong>{{ currentExperience.roleLabel }}</strong>. The selector changes the whole workspace, not just a filter, and the choice is cleared on logout.</p>
+    </app-prototype-explainer>
     <router-outlet />
   </main>
 
@@ -147,6 +150,10 @@
     @if (developerOpen) {
       <button class="experience-overlay-backdrop" type="button" aria-label="Close developer menu" (click)="closeOverlays()"></button>
       <div class="experience-developer-tools__menu" role="menu" aria-label="Developer experience shortcuts">
+        <div class="experience-developer-tools__label">Review controls</div>
+        <button type="button" role="menuitem" class="experience-explainer-toggle" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">
+          Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}
+        </button>
         <div class="experience-developer-tools__label">Experiences</div>
         <a routerLink="/access" [queryParams]="{ scenario: 'multiple' }" role="menuitem" (click)="closeOverlays()">Access chooser</a>
         @for (experience of allExperiences; track experience.id) {
