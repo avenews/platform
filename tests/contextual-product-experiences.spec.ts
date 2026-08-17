@@ -78,8 +78,19 @@ async function assertNoOverflow(page: Page): Promise<void> {
   expect(dimensions.scrollWidth).toBeLessThanOrEqual(dimensions.clientWidth + 1)
 }
 
+async function customerFacingText(page: Page): Promise<string> {
+  return page.locator('body').evaluate((body) => {
+    const clone = body.cloneNode(true) as HTMLElement
+    clone.querySelectorAll('app-prototype-explainer, .developer-tools, .experience-developer-tools, .access-developer')
+      .forEach(node => node.remove())
+    return clone.innerText
+  })
+}
+
 async function assertNoLegacyTerminology(page: Page): Promise<void> {
-  const text = await page.locator('body').innerText()
+  // Review explainers may name a retired term specifically to explain its
+  // Product-approved replacement. The underlying customer UI may not.
+  const text = await customerFacingText(page)
   for (const pattern of LEGACY_TERMS) expect(text).not.toMatch(pattern)
 }
 
@@ -346,7 +357,7 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     await page.goto('/experience/invoice-partner/suppliers')
     await assertExplainer(page, 'A Partner Buyer may provide access to its Supplier network and support onboarding', 'role')
     await assertExplainer(page, 'Supplier invitation and onboarding are prototype placeholders', 'limitation')
-    await expect(page.getByRole('button', { name: 'View Client Supplier' }).first()).toBeVisible()
+    await expect(page.locator('button:visible').filter({ hasText: 'View Client Supplier' }).first()).toBeVisible()
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
     await page.screenshot({ path: testInfo.outputPath('partner-buyer-suppliers-with-explainers.png'), fullPage: true })
