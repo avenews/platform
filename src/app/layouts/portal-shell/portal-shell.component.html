@@ -103,7 +103,7 @@
       <button class="developer-tools__backdrop" type="button" aria-label="Close developer menu" (click)="closeDeveloperMenu()"></button>
       <div class="developer-tools__menu" role="menu" aria-label="Developer tools">
         <div role="presentation" style="padding:8px 16px 4px;color:#66788a;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Review controls</div>
-        <button type="button" role="menuitem" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}</button>
+        <button type="button" role="menuitemcheckbox" [attr.aria-checked]="explainers.enabled()" (click)="toggleExplainers()">Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}</button>
         <div role="presentation" style="padding:8px 16px 4px;border-top:1px solid #ededed;color:#66788a;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Contextual prototype</div>
         <a routerLink="/access" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Access chooser</a>
         <a routerLink="/experience/acl/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Agri Credit Line</a>
