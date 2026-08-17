@@ -14,10 +14,12 @@ import {
   relationshipModelLabel,
   type InvoiceFinancingPeriod,
 } from '../../core/experience/invoice-financing.data'
+import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 
 @Component({
   selector: 'app-invoice-period',
   standalone: true,
+  imports: [PrototypeExplainerComponent],
   templateUrl: './invoice-period.component.html',
   styleUrl: './invoice-period.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
