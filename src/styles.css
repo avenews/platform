@@ -2,6 +2,7 @@
 @import './app/shared/customer-portal-parity-overrides.css';
 @import './app/shared/customer-portal-prototype-parity.css';
 @import './app/shared/customer-portal-precision-fixes.css';
+@import './app/shared/prototype-explainer-overrides.css';
 
 :root {
   color-scheme: light;
