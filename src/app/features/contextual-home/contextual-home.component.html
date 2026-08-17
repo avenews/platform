@@ -1,0 +1,107 @@
+<div class="portal-page contextual-home">
+  <section class="contextual-home__hero">
+    <div>
+      <p class="page-eyebrow">{{ experience.roleLabel }}</p>
+      <h1>{{ experience.homeHeading }}</h1>
+      <p>{{ experience.homeIntro }}</p>
+    </div>
+    <button
+      type="button"
+      class="baseline-button baseline-button--primary contextual-home__primary"
+      [attr.data-action-kind]="experience.primaryActionKind"
+      (click)="takeAction(experience.primaryActionKind)"
+    >
+      {{ experience.primaryActionLabel }}
+    </button>
+  </section>
+
+  <section class="contextual-metrics" aria-label="Product summary">
+    @for (metric of experience.metrics; track metric.label) {
+      <article class="contextual-metric baseline-card">
+        <span>{{ metric.label }}</span>
+        <strong>{{ metric.value }}</strong>
+        <small>{{ metric.helper }}</small>
+      </article>
+    }
+  </section>
+
+  <section class="baseline-section contextual-action-rule">
+    <div class="baseline-section-heading">
+      <div>
+        <p class="page-eyebrow">Action placement</p>
+        <h2>Where the next action belongs</h2>
+      </div>
+    </div>
+
+    @switch (experience.id) {
+      @case ('invoice-financing') {
+        <div class="contextual-rule-card">
+          <strong>No generic Funds Request action</strong>
+          <p>Open the relevant Buyer relationship and Dynamic Period. The Client Supplier requests funds from that specific Dynamic Period.</p>
+        </div>
+      }
+      @case ('invoice-partner') {
+        <div class="contextual-rule-card">
+          <strong>The Partner Buyer uploads invoices</strong>
+          <p>This workspace has an invoice uploader and no Funds Request action. Client Suppliers request funds from their Dynamic Periods.</p>
+        </div>
+      }
+      @default {
+        <div class="contextual-rule-card">
+          <strong>Start with a Funds Request</strong>
+          <p>The invoice and supporting documents are collected inside the product-specific Funds Request rather than through a separate top-level uploader.</p>
+        </div>
+      }
+    }
+  </section>
+
+  <section class="baseline-section">
+    <div class="baseline-section-heading">
+      <div>
+        <p class="page-eyebrow">Current activity</p>
+        <h2>{{ experience.kind === 'partner' ? 'Items requiring attention' : 'Recent financing' }}</h2>
+      </div>
+      <button type="button" class="baseline-button baseline-button--secondary" (click)="takeAction('view-financing')">View all</button>
+    </div>
+
+    <div class="baseline-table-wrap">
+      <table class="baseline-table contextual-home__table">
+        <thead>
+          <tr>
+            <th>Financing</th>
+            <th>{{ experience.kind === 'partner' ? 'Result' : 'Amount' }}</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (record of experience.records; track record.title + record.subtitle) {
+            <tr>
+              <td><span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span></td>
+              <td><span class="baseline-financing-cell"><span>{{ record.amountLabel }}</span><strong>{{ record.amount }}</strong></span></td>
+              <td><span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span></td>
+              <td><button type="button" class="baseline-button baseline-button--secondary" (click)="takeAction(record.actionKind)">{{ record.actionLabel }}</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="baseline-cards">
+      @for (record of experience.records; track record.title + record.subtitle) {
+        <article class="baseline-record-card">
+          <div class="baseline-record-card__head">
+            <span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span>
+            <span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span>
+          </div>
+          <div class="baseline-metrics">
+            <span class="baseline-metric"><small>{{ record.amountLabel }}</small><strong>{{ record.amount }}</strong></span>
+          </div>
+          <div class="baseline-card-actions">
+            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="takeAction(record.actionKind)">{{ record.actionLabel }}</button>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</div>
