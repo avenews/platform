@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, HostListener, inject } from '@angul
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router'
 import { AvAvatarComponent, AvIconComponent } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
+import { PrototypeExplainerService } from '../../shared/prototype-explainer.service'
 import { PortalNavIconComponent, type PortalNavIconName } from './portal-nav-icon.component'
 
 interface NavItem {
@@ -49,6 +50,7 @@ export class PortalShellComponent {
   private readonly auth = inject(AuthService)
   private readonly router = inject(Router)
 
+  readonly explainers = inject(PrototypeExplainerService)
   readonly session = this.auth.getSession()
   readonly primaryNavItems = CUSTOMER_DESKTOP_NAV_ITEMS
   readonly mobileNavItems = CUSTOMER_MOBILE_NAV_ITEMS
@@ -78,6 +80,10 @@ export class PortalShellComponent {
   toggleDeveloperMenu(): void {
     this.menuOpen = false
     this.developerOpen = !this.developerOpen
+  }
+
+  toggleExplainers(): void {
+    this.explainers.toggle()
   }
 
   closeDeveloperMenu(): void {
