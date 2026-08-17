@@ -1,0 +1,83 @@
+<div class="access-page">
+  <header class="access-header">
+    <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="access-logo">
+    <button type="button" class="access-logout" (click)="logout()">Log out</button>
+  </header>
+
+  <main class="access-main">
+    <section class="access-hero">
+      <p class="page-eyebrow">Avenews portal</p>
+      <h1>What would you like to manage?</h1>
+      <p>
+        Choose the business, role, and financing experience you need for this session.
+        This selection is not remembered after you log out.
+      </p>
+      @if (session) {
+        <span class="access-user">Signed in as {{ session.contactFirstName }} {{ session.contactLastName }}</span>
+      }
+    </section>
+
+    @if (customerDestinations.length) {
+      <section class="access-group" aria-labelledby="financing-access-title">
+        <div class="access-group__heading">
+          <div>
+            <p class="page-eyebrow">Your financing</p>
+            <h2 id="financing-access-title">Customer product access</h2>
+          </div>
+          <span>{{ customerDestinations.length }} destinations</span>
+        </div>
+
+        <div class="access-grid">
+          @for (destination of customerDestinations; track destination.id) {
+            <button
+              type="button"
+              class="access-card"
+              [attr.data-experience-id]="destination.id"
+              (click)="openDestination(destination.id)"
+            >
+              <span class="access-card__role">{{ destination.roleLabel }}</span>
+              <strong>{{ destination.productName }}</strong>
+              <span class="access-card__business">{{ destination.businessName }}</span>
+              <p>{{ destination.description }}</p>
+              <span class="access-card__action">Open experience <span aria-hidden="true">-&gt;</span></span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    @if (partnerDestinations.length) {
+      <section class="access-group" aria-labelledby="partner-access-title">
+        <div class="access-group__heading">
+          <div>
+            <p class="page-eyebrow">Partner access</p>
+            <h2 id="partner-access-title">Partner workspaces</h2>
+          </div>
+          <span>{{ partnerDestinations.length }} destination</span>
+        </div>
+
+        <div class="access-grid access-grid--partner">
+          @for (destination of partnerDestinations; track destination.id) {
+            <button
+              type="button"
+              class="access-card access-card--partner"
+              [attr.data-experience-id]="destination.id"
+              (click)="openDestination(destination.id)"
+            >
+              <span class="access-card__role">{{ destination.roleLabel }}</span>
+              <strong>{{ destination.productName }}</strong>
+              <span class="access-card__business">{{ destination.businessName }}</span>
+              <p>{{ destination.description }}</p>
+              <span class="access-card__action">Open workspace <span aria-hidden="true">-&gt;</span></span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    <aside class="access-note">
+      <strong>Prototype routing rule</strong>
+      <p>One destination routes directly after OTP. More than one destination always shows this chooser on a new login.</p>
+    </aside>
+  </main>
+</div>
