@@ -11,6 +11,7 @@ import {
   experienceById,
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
+import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 
 type PrototypeFlow = 'acl' | 'abf' | 'stf' | 'infx' | 'invoice-upload' | ''
 type AbfInvoiceType = 'fully-paid' | 'unpaid' | ''
@@ -18,6 +19,7 @@ type AbfInvoiceType = 'fully-paid' | 'unpaid' | ''
 @Component({
   selector: 'app-contextual-financing',
   standalone: true,
+  imports: [PrototypeExplainerComponent],
   templateUrl: './contextual-financing.component.html',
   styleUrl: './contextual-financing.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
