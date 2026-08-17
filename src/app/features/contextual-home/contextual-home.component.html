@@ -15,6 +15,17 @@
     </button>
   </section>
 
+  <app-prototype-explainer tone="purpose" title="This Home answers the first product-specific questions">
+    @switch (experience.id) {
+      @case ('acl') { <p>How much ACL credit is available, what Principal is outstanding, and when is the next Instalment due?</p> }
+      @case ('abf') { <p>How much ABF credit remains, which Supplier invoice path is relevant, and what is currently financed?</p> }
+      @case ('stf') { <p>Which Partner Suppliers are available, how much can be financed, and which request needs attention?</p> }
+      @case ('invoice-financing') { <p>How much is available across Dynamic Periods, which Buyer relationships exist, and which periods need action?</p> }
+      @case ('infx') { <p>How much INFX credit remains, which one-invoice requests are active, and when must the Client Supplier repay Avenews?</p> }
+      @case ('invoice-partner') { <p>Which invoice uploads need attention, how many Client Suppliers participate, and what full invoice value is due next?</p> }
+    }
+  </app-prototype-explainer>
+
   <section class="contextual-metrics" aria-label="Product summary">
     @for (metric of experience.metrics; track metric.label) {
       <article class="contextual-metric baseline-card">
@@ -25,35 +36,42 @@
     }
   </section>
 
-  <section class="baseline-section contextual-action-rule">
-    <div class="baseline-section-heading">
-      <div>
-        <p class="page-eyebrow">Action placement</p>
-        <h2>Where the next action belongs</h2>
-      </div>
-    </div>
-
-    @switch (experience.id) {
-      @case ('invoice-financing') {
-        <div class="contextual-rule-card">
-          <strong>No generic Funds Request action</strong>
-          <p>Open the relevant Buyer relationship and Dynamic Period. The Client Supplier requests funds from that specific Dynamic Period.</p>
-        </div>
-      }
-      @case ('invoice-partner') {
-        <div class="contextual-rule-card">
-          <strong>The Partner Buyer uploads invoices</strong>
-          <p>This workspace has an invoice uploader and no Funds Request action. Client Suppliers request funds from their Dynamic Periods.</p>
-        </div>
-      }
-      @default {
-        <div class="contextual-rule-card">
-          <strong>Start with a Funds Request</strong>
-          <p>The invoice and supporting documents are collected inside the product-specific Funds Request rather than through a separate top-level uploader.</p>
-        </div>
-      }
+  @switch (experience.id) {
+    @case ('acl') {
+      <app-prototype-explainer tone="action" title="ACL starts from a Funds Request against an eligible transaction">
+        <p>The Client Buyer selects the amount and Instalment option, then supplies the transaction documents inside the request. A separate invoice-uploader page would split one task into two disconnected steps.</p>
+      </app-prototype-explainer>
     }
-  </section>
+    @case ('abf') {
+      <app-prototype-explainer tone="action" title="ABF must branch before documents are requested">
+        <p>A <strong>Fully Paid Invoice</strong> reimburses the Client Buyer and requires Proof of Payment. An <strong>Unpaid Invoice</strong> directs the approved disbursement to the Supplier. The Financing page demonstrates both paths.</p>
+      </app-prototype-explainer>
+    }
+    @case ('stf') {
+      <app-prototype-explainer tone="action" title="STF starts from an approved Partner Supplier relationship">
+        <p>The Partner Supplier invoice, delivery date, delivery confirmation, amount, and Instalment choice belong inside the STF Funds Request. Avenews disburses the approved amount to the Partner Supplier.</p>
+      </app-prototype-explainer>
+    }
+    @case ('invoice-financing') {
+      <app-prototype-explainer tone="handbook" title="Invoice Financing is organised around Financing Relationships and Dynamic Periods">
+        <p>A Dynamic Period groups one Client Supplier, one Buyer, and one invoice Due Date. The Client Supplier requests funds from that period, subject to its Available to Withdraw and request window.</p>
+      </app-prototype-explainer>
+    }
+    @case ('infx') {
+      <app-prototype-explainer tone="action" title="INFX finances one approved invoice per Funds Request">
+        <p>The approved Buyer, invoice, Due Date, POD, and requested amount stay inside one request. The Client Supplier manually repays Avenews at the end of the Financing Period.</p>
+      </app-prototype-explainer>
+    }
+    @case ('invoice-partner') {
+      <app-prototype-explainer tone="role" title="The Partner Buyer uploads invoices but does not borrow for the Client Supplier">
+        <p>The Partner Buyer supplies invoice information and manages the full payment obligation. The Client Supplier remains the financing Client and submits any Funds Request from its Dynamic Period.</p>
+      </app-prototype-explainer>
+    }
+  }
+
+  <app-prototype-explainer tone="limitation" title="The figures and actions on this branch are fictional review data">
+    <p>No metric on this prototype is connected to CRM, a bank, a live uploader, settlement allocation, payment processing, or disbursement. The screens test information hierarchy and action placement only.</p>
+  </app-prototype-explainer>
 
   <section class="baseline-section">
     <div class="baseline-section-heading">
