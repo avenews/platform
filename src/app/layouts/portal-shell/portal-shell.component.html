@@ -102,6 +102,15 @@
     @if (developerOpen) {
       <button class="developer-tools__backdrop" type="button" aria-label="Close developer menu" (click)="closeDeveloperMenu()"></button>
       <div class="developer-tools__menu" role="menu" aria-label="Developer tools">
+        <div role="presentation" style="padding:8px 16px 4px;color:#66788a;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Contextual prototype</div>
+        <a routerLink="/access" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Access chooser</a>
+        <a routerLink="/experience/acl/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Agri Credit Line</a>
+        <a routerLink="/experience/abf/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Agri Buyer Financing</a>
+        <a routerLink="/experience/stf/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Stockist Financing</a>
+        <a routerLink="/experience/invoice-financing/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Invoice Financing</a>
+        <a routerLink="/experience/infx/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Invoice Financing Express</a>
+        <a routerLink="/experience/invoice-partner/home" [queryParams]="{ scenario: 'multiple' }" (click)="closeDeveloperMenu()">Invoice Financing - Partner Buyer</a>
+        <div role="presentation" style="padding:8px 16px 4px;border-top:1px solid #ededed;color:#66788a;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;">Reference</div>
         <a routerLink="/design-lab" role="menuitem" (click)="closeDeveloperMenu()">Design Lab</a>
         <a routerLink="/changelog" role="menuitem" (click)="closeDeveloperMenu()">Changelog</a>
       </div>
