@@ -1,7 +1,26 @@
 <div class="access-page">
   <header class="access-header">
     <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="access-logo">
-    <button type="button" class="access-logout" (click)="logout()">Log out</button>
+    <div class="access-header__actions">
+      <div class="access-developer">
+        <button type="button" class="access-developer__trigger" aria-haspopup="menu" [attr.aria-expanded]="developerOpen" (click)="toggleDeveloper()">Developer</button>
+        @if (developerOpen) {
+          <button type="button" class="access-developer__backdrop" aria-label="Close developer menu" (click)="developerOpen = false"></button>
+          <div class="access-developer__menu" role="menu" aria-label="Developer review controls">
+            <button type="button" role="menuitem" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">
+              Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}
+            </button>
+            <button type="button" role="menuitem" (click)="openDestination('acl')">Agri Credit Line - ACL</button>
+            <button type="button" role="menuitem" (click)="openDestination('abf')">Agri Buyer Financing - ABF</button>
+            <button type="button" role="menuitem" (click)="openDestination('stf')">Stockist Financing - STF</button>
+            <button type="button" role="menuitem" (click)="openDestination('invoice-financing')">Invoice Financing</button>
+            <button type="button" role="menuitem" (click)="openDestination('infx')">Invoice Financing Express - INFX</button>
+            <button type="button" role="menuitem" (click)="openDestination('invoice-partner')">Invoice Financing - Partner Buyer</button>
+          </div>
+        }
+      </div>
+      <button type="button" class="access-logout" (click)="logout()">Log out</button>
+    </div>
   </header>
 
   <main class="access-main">
@@ -16,6 +35,18 @@
         <span class="access-user">Signed in as {{ session.contactFirstName }} {{ session.contactLastName }}</span>
       }
     </section>
+
+    <app-prototype-explainer tone="purpose" title="This screen appears only when the identity has more than one destination">
+      <p>A destination combines the <strong>business</strong>, the user's <strong>financing or Partner role</strong>, and the <strong>product or workspace</strong>. If only one destination is available, the portal opens it directly after OTP.</p>
+    </app-prototype-explainer>
+
+    <app-prototype-explainer tone="decision" title="The portal asks again on every new login">
+      <p>The product or workspace choice is kept only for the current authenticated session. It is cleared on logout so a user with several products is never silently returned to yesterday's choice.</p>
+    </app-prototype-explainer>
+
+    <app-prototype-explainer tone="terminology" title="Product labels follow the Product-approved legacy-to-current mapping">
+      <p>The contextual prototype uses <strong>ACL, ABF, STF, Invoice Financing, and INFX</strong>. Partner Buyer access is shown as a role-specific workspace under Invoice Financing, not as another financing product.</p>
+    </app-prototype-explainer>
 
     @if (customerDestinations.length) {
       <section class="access-group" aria-labelledby="financing-access-title">
@@ -47,6 +78,10 @@
     }
 
     @if (partnerDestinations.length) {
+      <app-prototype-explainer tone="role" title="Partner access is separated from the business's own financing">
+        <p>A <strong>Partner Buyer</strong> uploads invoice information and manages its payment obligations. It is not the borrowing Client in this workspace and therefore does not submit the Client Supplier's Funds Request.</p>
+      </app-prototype-explainer>
+
       <section class="access-group" aria-labelledby="partner-access-title">
         <div class="access-group__heading">
           <div>
@@ -74,10 +109,5 @@
         </div>
       </section>
     }
-
-    <aside class="access-note">
-      <strong>Prototype routing rule</strong>
-      <p>One destination routes directly after OTP. More than one destination always shows this chooser on a new login.</p>
-    </aside>
   </main>
 </div>
