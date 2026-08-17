@@ -22,6 +22,14 @@ const DESTINATIONS = [
   { id: 'invoice-partner', heading: 'Invoice Financing - Partner Buyer', role: 'Partner Buyer' },
 ] as const
 
+const FINANCING_EXPLAINERS = [
+  { id: 'acl', title: 'An approved Credit Limit does not create financing by itself' },
+  { id: 'abf', title: 'ABF has two materially different invoice paths' },
+  { id: 'stf', title: 'The Partner Supplier receives the approved disbursement' },
+  { id: 'invoice-financing', title: 'The Dynamic Period is the Client Supplier\'s financing object' },
+  { id: 'infx', title: 'INFX uses one invoice per Funds Request' },
+] as const
+
 const LEGACY_TERMS = [
   /\bASF\b/,
   /\bASFO\b/,
@@ -36,6 +44,8 @@ const LEGACY_TERMS = [
   /\bSupplier Financing\b/i,
   /\bSFX\b/,
 ]
+
+const EXPLAINER = '[data-explainer-tone]'
 
 function isMobile(testInfo: TestInfo): boolean {
   return testInfo.project.name === 'mobile' || testInfo.project.name === 'minimum-mobile'
@@ -73,8 +83,14 @@ async function assertNoLegacyTerminology(page: Page): Promise<void> {
   for (const pattern of LEGACY_TERMS) expect(text).not.toMatch(pattern)
 }
 
+async function assertExplainer(page: Page, title: string, tone?: string): Promise<void> {
+  const explainer = page.locator(`[data-explainer-title="${title}"]`)
+  await expect(explainer).toBeVisible()
+  if (tone) await expect(explainer).toHaveAttribute('data-explainer-tone', tone)
+}
+
 test.describe('post-OTP access resolution', () => {
-  test('multiple destinations always show the access chooser', async ({ page }, testInfo) => {
+  test('multiple destinations always show the chooser with review explainers', async ({ page }, testInfo) => {
     await completePrototypeLogin(page, 'multiple')
     await expect(page).toHaveURL(/\/access$/)
     await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 1 })).toBeVisible()
@@ -87,9 +103,13 @@ test.describe('post-OTP access resolution', () => {
       await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.role)
     }
 
+    await assertExplainer(page, 'This screen appears only when the identity has more than one destination', 'purpose')
+    await assertExplainer(page, 'The portal asks again on every new login', 'decision')
+    await assertExplainer(page, 'Product labels follow the Product-approved legacy-to-current mapping', 'terminology')
+    await assertExplainer(page, 'Partner access is separated from the business\'s own financing', 'role')
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('multi-destination-access-chooser.png'), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('multi-destination-access-chooser-with-explainers.png'), fullPage: true })
   })
 
   test('a single ABF destination routes directly after OTP', async ({ page }, testInfo) => {
@@ -98,6 +118,7 @@ test.describe('post-OTP access resolution', () => {
     await expect(page.getByRole('heading', { name: 'Agri Buyer Financing - ABF', level: 1 })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 1 })).toHaveCount(0)
     await expect(page.locator('.experience-context-menu')).toHaveCount(0)
+    await assertExplainer(page, 'This Home answers the first product-specific questions', 'purpose')
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
     await page.screenshot({ path: testInfo.outputPath('single-abf-direct-home.png'), fullPage: true })
@@ -109,6 +130,7 @@ test.describe('post-OTP access resolution', () => {
     await expect(page.getByRole('heading', { name: 'Invoice Financing - Partner Buyer', level: 1 })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Upload invoices' })).toBeVisible()
     await expect(page.locator('button[data-action="funds-request"]')).toHaveCount(0)
+    await assertExplainer(page, 'The Partner Buyer uploads invoices but does not borrow for the Client Supplier', 'role')
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
     await page.screenshot({ path: testInfo.outputPath('single-partner-direct-home.png'), fullPage: true })
@@ -121,15 +143,19 @@ test.describe('contextual product and role shell', () => {
   })
 
   for (const destination of DESTINATIONS) {
-    test(`${destination.id} has a product- or role-specific Home`, async ({ page }, testInfo) => {
+    test(`${destination.id} has a product- or role-specific Home with explainers`, async ({ page }, testInfo) => {
       await page.goto(`/experience/${destination.id}/home`)
       await expect(page.getByRole('heading', { name: destination.heading, level: 1 })).toBeVisible()
       await expect(page.locator('.contextual-metric')).toHaveCount(3)
       await expect(page.locator('.experience-context-copy')).toContainText(destination.heading)
       await expect(page.locator('.experience-context-copy')).toContainText(destination.role)
+      await assertExplainer(page, 'You are viewing one product or Partner role at a time', 'decision')
+      await assertExplainer(page, 'This Home answers the first product-specific questions', 'purpose')
+      await assertExplainer(page, 'The figures and actions on this branch are fictional review data', 'limitation')
+      expect(await page.locator(EXPLAINER).count()).toBeGreaterThanOrEqual(4)
       await assertNoLegacyTerminology(page)
       await assertNoOverflow(page)
-      await page.screenshot({ path: testInfo.outputPath(`${destination.id}-home.png`), fullPage: true })
+      await page.screenshot({ path: testInfo.outputPath(`${destination.id}-home-with-explainers.png`), fullPage: true })
     })
   }
 
@@ -177,20 +203,53 @@ test.describe('contextual product and role shell', () => {
     }), { scenarioKey: SCENARIO_KEY, contextKey: CONTEXT_KEY })
     expect(stored).toEqual({ scenario: null, context: null })
   })
+
+  test('desktop Developer menu toggles all explainers without changing context', async ({ page }, testInfo) => {
+    test.skip(isMobile(testInfo), 'Developer review controls are desktop only')
+
+    await page.goto('/experience/abf/home')
+    await expect(page.locator(EXPLAINER).first()).toBeVisible()
+    const originalUrl = page.url()
+
+    await page.locator('.experience-developer-tools__trigger').click()
+    const menu = page.getByRole('menu', { name: 'Developer experience shortcuts' })
+    const toggleOn = menu.getByRole('menuitem', { name: 'Explainers: On' })
+    await expect(toggleOn).toBeVisible()
+    await toggleOn.click()
+    await expect(page.locator(EXPLAINER)).toHaveCount(0)
+    expect(page.url()).toBe(originalUrl)
+
+    const toggleOff = menu.getByRole('menuitem', { name: 'Explainers: Off' })
+    await expect(toggleOff).toBeVisible()
+    await toggleOff.click()
+    await expect(page.locator(EXPLAINER).first()).toBeVisible()
+    expect(page.url()).toBe(originalUrl)
+  })
 })
 
-test.describe('product-specific action placement', () => {
+test.describe('product-specific action placement and Handbook boundaries', () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page, 'multiple')
   })
 
-  test('ACL collects transaction documents inside its Funds Request', async ({ page }) => {
+  for (const item of FINANCING_EXPLAINERS) {
+    test(`${item.id} Financing states its governing rule`, async ({ page }, testInfo) => {
+      await page.goto(`/experience/${item.id}/financing`)
+      await assertExplainer(page, item.title)
+      await assertNoLegacyTerminology(page)
+      await assertNoOverflow(page)
+      await page.screenshot({ path: testInfo.outputPath(`${item.id}-financing-with-explainers.png`), fullPage: true })
+    })
+  }
+
+  test('ACL collects approved transaction evidence inside its Funds Request', async ({ page }) => {
     await page.goto('/experience/acl/financing')
     await expect(page.locator('[data-upload-placement="inside-funds-request"]')).toBeVisible()
     await expect(page.locator('[data-action="upload-invoices"]')).toHaveCount(0)
     await page.getByRole('button', { name: 'Start Funds Request' }).first().click()
     const dialog = page.getByRole('dialog')
-    await expect(dialog).toContainText('Invoice, proforma, POD, purchase order, or other approved evidence')
+    await expect(dialog).toContainText('Approved transaction evidence')
+    await assertExplainer(page, 'This is not the final ACL application form', 'limitation')
     await assertNoLegacyTerminology(page)
   })
 
@@ -198,6 +257,7 @@ test.describe('product-specific action placement', () => {
     await page.goto('/experience/abf/financing')
     await page.getByRole('button', { name: 'Start Funds Request' }).first().click()
     const dialog = page.getByRole('dialog')
+    await assertExplainer(page, 'This decision controls the rest of the ABF request', 'action')
     await expect(dialog.getByRole('button', { name: /Fully Paid Invoice/ })).toBeVisible()
     await expect(dialog.getByRole('button', { name: /Unpaid Invoice/ })).toBeVisible()
 
@@ -223,7 +283,8 @@ test.describe('product-specific action placement', () => {
 
   test('Invoice Financing separates relationship upload from Dynamic Period Funds Requests', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-financing/financing')
-    await expect(page.getByText('There is no product-level Funds Request button.', { exact: true })).toBeVisible()
+    await assertExplainer(page, 'Funds Requests belong to the Dynamic Period, not the product or relationship', 'action')
+    await assertExplainer(page, 'Who uploads invoices changes; who borrows does not', 'role')
 
     const partnerRelationship = page.locator('[data-relationship-model="partner-buyer"]')
     const counterpartyRelationship = page.locator('[data-relationship-model="counterparty-buyer"]')
@@ -244,22 +305,50 @@ test.describe('product-specific action placement', () => {
     await expect(page.getByRole('heading', { name: 'Invoices in this Dynamic Period', level: 2 })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Advances against this Dynamic Period', level: 2 })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Request funds' })).toBeEnabled()
+    await assertExplainer(page, 'This is the correct level for the Client Supplier\'s Funds Request', 'action')
+    await assertExplainer(page, 'Availability is constrained by both receivables and approved credit', 'handbook')
+    await assertExplainer(page, 'The Partner Buyer normally supplies these invoices', 'role')
+    await assertExplainer(page, 'Settlement instructions are not connected on this prototype', 'limitation')
+    await expect(page.locator('[data-partner-rebate]')).toHaveCount(0)
+    await expect(page.getByText(/rebate.*KES/i)).toHaveCount(0)
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('invoice-financing-dynamic-period.png'), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('invoice-financing-dynamic-period-with-explainers.png'), fullPage: true })
   })
 
   test('Partner Buyer uploads invoices and never receives a Funds Request action', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/invoice-uploads')
     await expect(page.getByRole('heading', { name: 'Invoice Uploads', level: 1 })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Upload invoices' })).toBeVisible()
-    await expect(page.locator('[data-funds-request-available="false"]')).toContainText('does not submit Funds Requests')
+    await expect(page.locator('[data-funds-request-available="false"]')).toContainText('No Funds Request action')
     await expect(page.locator('button[data-action="funds-request"]')).toHaveCount(0)
-    await expect(page.locator('[data-partner-section="invoice-uploads"]')).toContainText('37')
-    await expect(page.locator('[data-partner-section="invoice-uploads"]')).toContainText('Needs attention')
-    await expect(page.locator('[data-partner-section="invoice-uploads"]')).toContainText('2')
+    await assertExplainer(page, 'The Partner Buyer supplies invoice information but does not submit the Client Supplier\'s Funds Request', 'role')
+    await assertExplainer(page, 'Per-row batch outcomes are a proposed future-state Partner experience', 'limitation')
+    await expect(page.locator('[data-future-state="batch-outcomes"]')).toBeVisible()
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('partner-buyer-invoice-uploads.png'), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('partner-buyer-invoice-uploads-with-explainers.png'), fullPage: true })
+  })
+
+  test('Partner Buyer obligations expose no invented settlement identifiers', async ({ page }, testInfo) => {
+    await page.goto('/experience/invoice-partner/obligations')
+    await assertExplainer(page, 'This page answers what the Partner Buyer must pay and when', 'purpose')
+    await assertExplainer(page, 'No production bank account or payment reference is available on this branch', 'limitation')
+    await expect(page.getByText('0123 456 789', { exact: true })).toHaveCount(0)
+    await expect(page.getByText('TWIGA-15SEP26', { exact: true })).toHaveCount(0)
+    await expect(page.getByText('To be supplied by Avenews', { exact: true })).toBeVisible()
+    await assertNoLegacyTerminology(page)
+    await assertNoOverflow(page)
+    await page.screenshot({ path: testInfo.outputPath('partner-buyer-obligations-with-explainers.png'), fullPage: true })
+  })
+
+  test('Partner Buyer Suppliers page keeps onboarding separate from Client financing', async ({ page }, testInfo) => {
+    await page.goto('/experience/invoice-partner/suppliers')
+    await assertExplainer(page, 'A Partner Buyer may provide access to its Supplier network and support onboarding', 'role')
+    await assertExplainer(page, 'Supplier invitation and onboarding are prototype placeholders', 'limitation')
+    await expect(page.getByRole('button', { name: 'View Client Supplier' }).first()).toBeVisible()
+    await assertNoLegacyTerminology(page)
+    await assertNoOverflow(page)
+    await page.screenshot({ path: testInfo.outputPath('partner-buyer-suppliers-with-explainers.png'), fullPage: true })
   })
 })
