@@ -1,0 +1,57 @@
+:host { display: block; }
+.invoice-period-page { gap: 20px; }
+.invoice-period-back { justify-self: start; min-height: 38px; padding: 0; border: 0; background: transparent; color: var(--av-color-action, #16b3c4); font: inherit; font-size: 13px; font-weight: 700; cursor: pointer; }
+.invoice-period-back::before { content: "\2190"; margin-right: 8px; }
+.invoice-period-hero { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; padding: 24px; }
+.invoice-period-hero__copy { display: grid; justify-items: start; gap: 7px; min-width: 0; }
+.invoice-period-hero__copy h1, .invoice-period-hero__copy p { margin: 0; }
+.invoice-period-hero__copy h1 { color: var(--av-color-text-heading, #0d343f); font-size: 32px; line-height: 1.18; }
+.invoice-period-hero__copy > p:not(.page-eyebrow) { color: var(--av-color-text-muted, #66788a); font-size: 13px; }
+.invoice-period-availability { min-width: 310px; display: grid; gap: 4px; padding: 18px 20px; border: 1px solid var(--av-color-primary-border, #bdeff3); border-radius: 12px; background: var(--av-color-primary-subtle, #eefbfc); }
+.invoice-period-availability small, .invoice-period-availability span { color: var(--av-color-text-muted, #66788a); font-size: 12px; }
+.invoice-period-availability strong { color: var(--av-color-text-heading, #0d343f); font-size: 32px; line-height: 1.15; }
+.invoice-period-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.invoice-period-explanation { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; padding: 16px 18px; border: 1px solid var(--av-color-primary-border, #bdeff3); border-radius: 10px; background: var(--av-color-primary-subtle, #eefbfc); }
+.invoice-period-explanation--warning { border-color: #f5d87b; background: #fff9e8; }
+.invoice-period-explanation strong, .invoice-period-explanation p, .invoice-period-explanation span { margin: 0; }
+.invoice-period-explanation p { margin-top: 4px; color: var(--av-color-text-muted, #66788a); font-size: 13px; }
+.invoice-period-explanation > span { color: var(--av-color-text-muted, #66788a); font-size: 12px; white-space: nowrap; }
+.invoice-period-money-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); overflow: hidden; border: 1px solid var(--av-color-surface-border, #e1e7eb); border-radius: 10px; background: #fff; }
+.invoice-period-money-grid > div { min-width: 0; display: grid; gap: 5px; padding: 16px; border-right: 1px solid var(--av-color-surface-border, #e1e7eb); border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb); }
+.invoice-period-money-grid > div:nth-child(4n) { border-right: 0; }
+.invoice-period-money-grid span { color: var(--av-color-text-muted, #66788a); font-size: 11px; }
+.invoice-period-money-grid strong { color: var(--av-color-text-heading, #0d343f); font-size: 15px; overflow-wrap: anywhere; }
+.invoice-period-money-grid__available { background: var(--av-color-primary-subtle, #eefbfc); }
+.invoice-period-money-grid__available strong { font-size: 20px; }
+.invoice-period-limits { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.invoice-period-limits span { padding: 10px 12px; border-radius: 8px; background: var(--av-color-surface-subtle, #f6f7f9); color: var(--av-color-text-muted, #66788a); font-size: 11px; }
+.invoice-period-limits strong { display: block; margin-top: 2px; color: var(--av-color-text-heading, #0d343f); font-size: 13px; }
+.invoice-period-count { flex: 0 0 auto; padding: 5px 9px; border: 1px solid var(--av-color-surface-border, #e1e7eb); border-radius: 999px; background: #fff; color: var(--av-color-text-muted, #66788a); font-size: 11px; font-weight: 700; }
+.invoice-period-table { min-width: 980px; }
+.invoice-period-advance-table { min-width: 1180px; }
+.invoice-period-cards { display: none; }
+.invoice-period-settlement p { margin: 0; color: var(--av-color-text-muted, #66788a); font-size: 13px; }
+.invoice-period-request__summary { display: grid; gap: 4px; padding: 14px 16px; border-radius: 8px; background: var(--av-color-primary-subtle, #eefbfc); }
+.invoice-period-request__summary span { color: var(--av-color-text-muted, #66788a); font-size: 12px; }
+.invoice-period-request__summary strong { color: var(--av-color-text-heading, #0d343f); font-size: 24px; }
+@media (max-width: 900px) {
+  .invoice-period-hero { display: grid; }
+  .invoice-period-availability { width: 100%; min-width: 0; }
+  .invoice-period-money-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .invoice-period-money-grid > div:nth-child(4n) { border-right: 1px solid var(--av-color-surface-border, #e1e7eb); }
+  .invoice-period-money-grid > div:nth-child(2n) { border-right: 0; }
+  .invoice-period-limits { grid-template-columns: 1fr; }
+}
+@media (max-width: 767px) {
+  .invoice-period-page { gap: 16px; }
+  .invoice-period-hero { padding: 18px; }
+  .invoice-period-hero__copy h1 { font-size: 26px; }
+  .invoice-period-availability strong { font-size: 28px; }
+  .invoice-period-actions { display: grid; grid-template-columns: 1fr; }
+  .invoice-period-actions .baseline-button { width: 100%; }
+  .invoice-period-explanation { display: grid; gap: 8px; }
+  .invoice-period-money-grid { grid-template-columns: 1fr; }
+  .invoice-period-money-grid > div { border-right: 0 !important; }
+  .baseline-table-wrap { display: none; }
+  .invoice-period-cards { display: grid; }
+}
