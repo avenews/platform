@@ -13,10 +13,12 @@ import {
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
 import { PortalExperienceService } from '../../core/experience/portal-experience.service'
+import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
+  imports: [PrototypeExplainerComponent],
   templateUrl: './contextual-home.component.html',
   styleUrl: './contextual-home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
