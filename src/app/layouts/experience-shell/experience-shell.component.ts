@@ -18,6 +18,8 @@ import {
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
 import { PortalExperienceService } from '../../core/experience/portal-experience.service'
+import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
+import { PrototypeExplainerService } from '../../shared/prototype-explainer.service'
 import {
   PortalNavIconComponent,
   type PortalNavIconName,
@@ -54,6 +56,7 @@ const PARTNER_NAV: readonly ExperienceNavItem[] = [
     AvAvatarComponent,
     AvIconComponent,
     PortalNavIconComponent,
+    PrototypeExplainerComponent,
   ],
   templateUrl: './experience-shell.component.html',
   styleUrl: './experience-shell.component.css',
@@ -67,6 +70,7 @@ export class ExperienceShellComponent implements OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef)
   private readonly destroyed$ = new Subject<void>()
 
+  readonly explainers = inject(PrototypeExplainerService)
   readonly session = this.auth.getSession()
   readonly allExperiences = EXPERIENCES
   currentExperience: PortalExperience
@@ -173,6 +177,10 @@ export class ExperienceShellComponent implements OnDestroy {
     this.profileOpen = false
     this.contextOpen = false
     this.developerOpen = !this.developerOpen
+  }
+
+  toggleExplainers(): void {
+    this.explainers.toggle()
   }
 
   closeOverlays(): void {
