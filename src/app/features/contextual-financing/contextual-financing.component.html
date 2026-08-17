@@ -5,20 +5,28 @@
         <div>
           <p class="page-eyebrow">Client Buyer</p>
           <h1>Agri Credit Line - ACL</h1>
-          <p>Use your approved Credit Facility for eligible inventory and business purchases.</p>
+          <p>Use an approved Credit Facility for eligible inventory and business purchases.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('acl')">Start Funds Request</button>
       </section>
 
+      <app-prototype-explainer tone="handbook" title="An approved Credit Limit does not create financing by itself">
+        <p>The Client Buyer activates ACL financing by submitting a Funds Request against an eligible commercial transaction. Available Credit, transaction eligibility, sub-limits, documentation, and Credit or Risk conditions still apply.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="action" title="Transaction documents belong inside the ACL Funds Request">
+        <p>The amount, Instalment option, supporting invoice or other transaction evidence, and approved disbursement recipient form one request. This avoids creating an invoice record that is disconnected from the financing instruction.</p>
+      </app-prototype-explainer>
+
       <section class="contextual-overview-grid">
         <article class="baseline-card contextual-overview-card">
-          <div class="baseline-card__header"><h2>Credit Facility</h2><p>Current ACL availability</p></div>
+          <div class="baseline-card__header"><h2>Credit Facility</h2><p>Example ACL approval for this prototype</p></div>
           <div class="baseline-card__body">
             <dl class="baseline-data-list">
               <div><dt>Credit Limit</dt><dd>KES 2,500,000</dd></div>
               <div><dt>Outstanding Principal</dt><dd>KES 1,200,000</dd></div>
               <div><dt>Available Credit</dt><dd>KES 1,300,000</dd></div>
-              <div><dt>Maximum Instalments</dt><dd>2</dd></div>
+              <div><dt>Maximum approved Instalments</dt><dd>2</dd></div>
             </dl>
           </div>
         </article>
@@ -27,10 +35,10 @@
           <div class="baseline-card__header"><h2>Funds Request contents</h2><p>Documentation stays inside the request</p></div>
           <div class="baseline-card__body">
             <ol class="contextual-step-list">
-              <li>Select financing amount.</li>
-              <li>Select 1 or 2 Instalments.</li>
-              <li>Upload invoice, proforma, POD, purchase order, or other approved evidence.</li>
-              <li>Select the approved disbursement recipient.</li>
+              <li>Select the financing amount.</li>
+              <li>Select an available Instalment option.</li>
+              <li>Upload the approved transaction evidence required for this request.</li>
+              <li>Select or confirm the approved disbursement recipient.</li>
             </ol>
           </div>
         </article>
@@ -59,15 +67,21 @@
         <div>
           <p class="page-eyebrow">Client Buyer</p>
           <h1>Agri Buyer Financing - ABF</h1>
-          <p>Finance an eligible Supplier invoice or receive reimbursement for an invoice you have already paid.</p>
+          <p>Finance an eligible Supplier invoice or receive reimbursement for an eligible invoice already paid.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('abf')">Start Funds Request</button>
       </section>
 
-      <div class="contextual-decision-banner" data-upload-placement="inside-funds-request">
-        <strong>The first Funds Request decision is invoice status.</strong>
-        <p>Choose Fully Paid Invoice or Unpaid Invoice before the portal asks for the matching documents and disbursement destination.</p>
-      </div>
+      <app-prototype-explainer tone="handbook" title="ABF has two materially different invoice paths">
+        <ul>
+          <li><strong>Fully Paid Invoice:</strong> the Client Buyer already paid the Supplier and requests reimbursement.</li>
+          <li><strong>Unpaid Invoice:</strong> Avenews pays the approved amount to the Supplier.</li>
+        </ul>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="action" title="Choose Fully Paid or Unpaid before asking for documents">
+        <p>The choice changes the required evidence and the disbursement recipient. Keeping the invoice upload inside the request prevents the portal from asking for irrelevant documents.</p>
+      </app-prototype-explainer>
 
       <section class="baseline-section">
         <div class="baseline-section-heading"><div><p class="page-eyebrow">Supplier sub-limits</p><h2>Available financing by Supplier</h2></div></div>
@@ -108,9 +122,17 @@
         <div>
           <p class="page-eyebrow">Client Buyer - Stockist</p>
           <h1>Stockist Financing - STF</h1>
-          <p>Select the approved Partner Supplier before starting the Funds Request.</p>
+          <p>Select an approved Partner Supplier before starting the Funds Request.</p>
         </div>
       </section>
+
+      <app-prototype-explainer tone="role" title="The Partner Supplier receives the approved disbursement">
+        <p>The Stockist is the Client Buyer. The approved Supplier participates as a <strong>Partner Supplier</strong>, provides goods to the Stockist, and receives the approved financing amount directly from Avenews.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="action" title="STF invoice and delivery evidence belong inside the Funds Request">
+        <p>The Partner Supplier invoice, delivery date, online delivery confirmation, amount, and Instalment choice are parts of one financing instruction. There is no separate top-level invoice uploader in this customer context.</p>
+      </app-prototype-explainer>
 
       <section class="baseline-section" data-upload-placement="inside-funds-request">
         <div class="baseline-section-heading"><div><p class="page-eyebrow">Partner Supplier relationships</p><h2>Available financing</h2></div></div>
@@ -126,7 +148,6 @@
             <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="funds-request" (click)="openFundsRequest('stf')">Start Funds Request</button>
           </article>
         </div>
-        <div class="contextual-inline-note"><strong>No separate invoice uploader.</strong><span>The Partner Supplier invoice, delivery date, online delivery confirmation, amount, and Instalment selection all belong inside the Funds Request.</span></div>
       </section>
     }
 
@@ -139,13 +160,29 @@
         </div>
       </section>
 
-      <div class="contextual-decision-banner">
-        <strong>There is no product-level Funds Request button.</strong>
-        <p>Open a Dynamic Period to request up to its Available to Withdraw amount. Invoice upload depends on the Financing Relationship.</p>
-      </div>
+      <app-prototype-explainer tone="terminology" title="Invoice Financing is the Product-approved current name for former ASF and ASFO structures">
+        <p>The Partner Buyer and Counterparty Buyer variants are <strong>Financing Relationship models under one product</strong>. They are not separate products.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="handbook" title="The Dynamic Period is the Client Supplier's financing object">
+        <p>One Dynamic Period groups one Client Supplier, one Buyer, and one invoice Due Date. It recalculates when invoices, Funds Requests, disbursements, Buyer payments, settlements, or approved adjustments change the period.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="action" title="Funds Requests belong to the Dynamic Period, not the product or relationship">
+        <p>The requested amount cannot exceed that period's Available to Withdraw. Multiple Funds Requests may be submitted while the request window is open and sufficient availability remains.</p>
+      </app-prototype-explainer>
 
       <section class="baseline-section">
         <div class="baseline-section-heading"><div><p class="page-eyebrow">Financing Relationships</p><h2>Buyer relationships</h2></div></div>
+
+        <app-prototype-explainer tone="role" title="Who uploads invoices changes; who borrows does not">
+          <ul>
+            <li><strong>Partner Buyer:</strong> normally uploads the invoices or receivables information.</li>
+            <li><strong>Counterparty Buyer:</strong> normally does not participate; the Client Supplier uploads invoices.</li>
+            <li><strong>Client Supplier:</strong> always submits the Funds Request in both relationship models.</li>
+          </ul>
+        </app-prototype-explainer>
+
         <div class="contextual-relationship-grid">
           <article class="baseline-card contextual-relationship-card" data-relationship-model="partner-buyer" data-can-upload-invoices="false">
             <div><strong>Twiga Foods Ltd</strong><span>Partner Buyer</span></div>
@@ -210,10 +247,18 @@
         <div>
           <p class="page-eyebrow">Client Supplier</p>
           <h1>Invoice Financing Express - INFX</h1>
-          <p>One approved invoice is financed per Funds Request. The Client Supplier repays Avenews directly.</p>
+          <p>Finance one approved invoice per Funds Request and manually repay Avenews.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('infx')">Start Funds Request</button>
       </section>
+
+      <app-prototype-explainer tone="handbook" title="INFX uses one invoice per Funds Request">
+        <p>The request identifies an approved Buyer, one invoice, the invoice value and Due Date, POD, and the requested amount. The Financing Period is established at request submission and starts on disbursement.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="action" title="The invoice uploader remains inside the INFX Funds Request">
+        <p>The invoice is the transaction being financed, so a separate invoice-library step would add complexity without creating a reusable Dynamic Period.</p>
+      </app-prototype-explainer>
 
       <section class="baseline-section" data-upload-placement="inside-funds-request">
         <div class="baseline-section-heading"><div><p class="page-eyebrow">Approved Buyers</p><h2>Available Buyer sub-limits</h2></div></div>
@@ -229,12 +274,11 @@
             <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openFundsRequest('infx')">Start Funds Request</button>
           </article>
         </div>
-        <div class="contextual-inline-note"><strong>No separate invoice uploader.</strong><span>Buyer, invoice, invoice value, Due Date, POD, and requested amount are all captured inside the INFX Funds Request.</span></div>
       </section>
     }
 
     @default {
-      <div class="baseline-empty"><strong>Use the Partner Buyer navigation</strong><p>Invoice Uploads, Obligations, and Suppliers are separate partner workspace sections.</p></div>
+      <div class="baseline-empty"><strong>Use the Partner Buyer navigation</strong><p>Invoice Uploads, Obligations, and Suppliers are separate Partner workspace sections.</p></div>
     }
   }
 </div>
@@ -259,6 +303,9 @@
         @switch (selectedFlow) {
           @case ('abf') {
             @if (!abfInvoiceType) {
+              <app-prototype-explainer tone="action" title="This decision controls the rest of the ABF request">
+                <p>The portal should not ask for all possible ABF documents at once. It first establishes whether the Client Buyer needs reimbursement or Supplier payment.</p>
+              </app-prototype-explainer>
               <div class="contextual-flow-intro"><strong>What type of invoice are you financing?</strong><p>This determines the documents, client contribution, and disbursement recipient.</p></div>
               <div class="contextual-choice-grid">
                 <button type="button" (click)="selectAbfInvoiceType('fully-paid')"><strong>Fully Paid Invoice</strong><span>You already paid the Supplier in full. Avenews reimburses the approved amount to you.</span></button>
@@ -281,9 +328,12 @@
           }
 
           @case ('acl') {
+            <app-prototype-explainer tone="limitation" title="This is not the final ACL application form">
+              <p>The prototype demonstrates the sequence and action placement only. Required fields and documents may vary by the approved transaction and Credit or Risk conditions.</p>
+            </app-prototype-explainer>
             <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
               <h3>Funds Request fields</h3>
-              <ul><li>Financing amount</li><li>1 or 2 Instalments</li><li>Invoice, proforma, POD, purchase order, or other approved evidence</li><li>Approved disbursement recipient</li></ul>
+              <ul><li>Financing amount</li><li>Available Instalment option</li><li>Approved transaction evidence</li><li>Approved disbursement recipient</li></ul>
             </div>
             <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('ACL Funds Request prototype opened.')">Continue Funds Request</button>
           }
@@ -291,7 +341,7 @@
           @case ('stf') {
             <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
               <h3>Funds Request fields</h3>
-              <ul><li>Partner Supplier invoice</li><li>Delivery date</li><li>Online delivery confirmation</li><li>Financing amount</li><li>Instalment option</li></ul>
+              <ul><li>Partner Supplier invoice</li><li>Delivery date</li><li>Online delivery confirmation</li><li>Financing amount</li><li>Available Instalment option</li></ul>
               <p>Avenews disburses the approved amount directly to the Partner Supplier.</p>
             </div>
             <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('STF Funds Request prototype opened.')">Continue Funds Request</button>
@@ -301,16 +351,19 @@
             <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
               <h3>One invoice per Funds Request</h3>
               <ul><li>Approved Buyer</li><li>Invoice</li><li>Invoice value</li><li>Invoice Due Date</li><li>Proof of Delivery</li><li>Requested amount</li></ul>
-              <p>The Client Supplier repays Avenews directly at the end of the Financing Period.</p>
+              <p>The Client Supplier manually repays Avenews at the end of the Financing Period.</p>
             </div>
             <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('INFX Funds Request prototype opened.')">Continue Funds Request</button>
           }
 
           @case ('invoice-upload') {
+            <app-prototype-explainer tone="role" title="This uploader appears because the Client Supplier owns upload responsibility for this relationship">
+              <p>A Counterparty Buyer does not normally participate in uploading invoices. Uploaded invoices remain subject to verification before they become Eligible Receivables.</p>
+            </app-prototype-explainer>
             <div class="contextual-flow-section">
               <h3>Counterparty Buyer relationship uploader</h3>
               <ul><li>Select or upload invoice files</li><li>Enter invoice reference and amount</li><li>Confirm invoice Due Date</li><li>Upload POD where required</li></ul>
-              <p>Submitted invoices enter verification before they become Eligible Receivables in a Dynamic Period.</p>
+              <p>Accepted invoices are grouped into the matching Dynamic Period.</p>
             </div>
             <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Invoice upload prototype prepared for the Counterparty Buyer relationship.')">Continue upload</button>
           }
