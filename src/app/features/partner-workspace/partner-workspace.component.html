@@ -10,13 +10,25 @@
         <button type="button" class="baseline-button baseline-button--primary" data-action="upload-invoices" (click)="openUpload()">Upload invoices</button>
       </section>
 
+      <app-prototype-explainer tone="role" title="The Partner Buyer supplies invoice information but does not submit the Client Supplier's Funds Request">
+        <p>Eligible invoices create or update Dynamic Periods for the relevant Client Supplier. The Client Supplier remains the financing Client and chooses whether to request financing.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="handbook" title="Partner Buyer invoice upload is the default relationship responsibility">
+        <p>The Partner Buyer may upload individual invoices, multiple invoices, a bulk file, or other approved receivables information. Responsibility may be reassigned only when the operational arrangement is clearly documented and duplicate uploads are controlled.</p>
+      </app-prototype-explainer>
+
       <section class="partner-boundary-note" data-funds-request-available="false">
-        <strong>The Partner Buyer does not submit Funds Requests.</strong>
+        <strong>No Funds Request action exists in this workspace.</strong>
         <span>After eligible invoices form a Dynamic Period, the Client Supplier decides whether to request financing.</span>
       </section>
 
-      <section class="baseline-section" aria-labelledby="upload-history-title">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Processing Results</p><h2 id="upload-history-title">Upload history</h2></div></div>
+      <app-prototype-explainer tone="limitation" title="Per-row batch outcomes are a proposed future-state Partner experience">
+        <p>The current source supports a branded uploader link and form-level feedback. A durable batch record with imported, skipped, and failed row results is not confirmed as a live Partner-facing capability. The table below demonstrates the intended review experience only.</p>
+      </app-prototype-explainer>
+
+      <section class="baseline-section" aria-labelledby="upload-history-title" data-future-state="batch-outcomes">
+        <div class="baseline-section-heading"><div><p class="page-eyebrow">Prototype processing results</p><h2 id="upload-history-title">Upload history</h2></div></div>
         <div class="baseline-table-wrap">
           <table class="baseline-table partner-upload-table">
             <thead><tr><th>File</th><th>Uploaded</th><th>Operator</th><th>Imported</th><th>Skipped</th><th>Failed</th><th>Status</th><th>Action</th></tr></thead>
@@ -30,7 +42,7 @@
                   <td>{{ batch.skipped }}</td>
                   <td>{{ batch.failed }}</td>
                   <td><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></td>
-                  <td><button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Opening per-row results for ' + batch.fileName + '.'">View results</button></td>
+                  <td><button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Opening prototype per-row results for ' + batch.fileName + '.'">View results</button></td>
                 </tr>
               }
             </tbody>
@@ -41,7 +53,7 @@
             <article class="baseline-record-card">
               <div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ batch.fileName }}</strong><span>{{ batch.uploadedAt }} - {{ batch.operator }}</span></span><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></div>
               <div class="partner-result-grid"><span><small>Imported</small><strong>{{ batch.imported }}</strong></span><span><small>Skipped</small><strong>{{ batch.skipped }}</strong></span><span><small>Failed</small><strong>{{ batch.failed }}</strong></span></div>
-              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="toast = 'Opening per-row results for ' + batch.fileName + '.'">View results</button>
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="toast = 'Opening prototype per-row results for ' + batch.fileName + '.'">View results</button>
             </article>
           }
         </div>
@@ -53,20 +65,27 @@
         <div>
           <p class="page-eyebrow">Invoice Financing - Partner Buyer</p>
           <h1>Obligations</h1>
-          <p>Review the full invoice value due for each payment date and the approved settlement instruction.</p>
+          <p>Review the full invoice value due for each payment date and the related financed amount.</p>
         </div>
       </section>
 
+      <app-prototype-explainer tone="purpose" title="This page answers what the Partner Buyer must pay and when">
+        <p>The Partner Buyer obligation is the <strong>full invoice or receivables value</strong> for the Due Date. The amount financed is shown for context but does not replace the underlying Buyer payment obligation.</p>
+      </app-prototype-explainer>
+
       <section class="partner-obligation-summary">
         <div><span>Next obligation</span><strong>KES 8,420,000</strong><small>Due 15 Sep 2026</small></div>
-        <div><span>Client Suppliers</span><strong>18</strong><small>Included in the next due date</small></div>
-        <div><span>Settlement destination</span><strong>Client Clearing Account</strong><small>Use the payment reference shown below</small></div>
+        <div><span>Client Suppliers</span><strong>18</strong><small>Included in the next Due Date</small></div>
+        <div><span>Settlement destination</span><strong>Provided by Avenews</strong><small>Final account and reference are not connected in this prototype</small></div>
       </section>
 
-      <section class="partner-boundary-note">
-        <strong>The obligation is the full invoice value.</strong>
-        <span>The financed amount is shown for operational context only and does not replace the Buyer payment obligation.</span>
-      </section>
+      <app-prototype-explainer tone="handbook" title="The Buyer pays the full invoice value into the designated Client Clearing Account">
+        <p>Avenews then allocates the payment to the applicable Dynamic Periods, retains the applicable Principal and Markup, and transfers the remaining invoice proceeds to the Client Supplier.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="limitation" title="No production bank account or payment reference is available on this branch">
+        <p>The current source does not establish the final Partner-facing clearing-account identifier for this page. The prototype therefore shows no invented account number, bank name, or settlement reference.</p>
+      </app-prototype-explainer>
 
       <section class="baseline-section">
         <div class="baseline-table-wrap">
@@ -74,21 +93,21 @@
             <thead><tr><th>Due Date</th><th>Client Suppliers</th><th>Invoices</th><th>Full Invoice Value</th><th>Financed Against</th><th>Status</th><th>Action</th></tr></thead>
             <tbody>
               @for (item of obligations; track item.dueDate) {
-                <tr><td><strong>{{ item.dueDate }}</strong></td><td>{{ item.supplierCount }}</td><td>{{ item.invoiceCount }}</td><td><strong>{{ item.invoiceValue }}</strong></td><td>{{ item.financedAgainst }}</td><td><span class="baseline-status" [class]="'baseline-status ' + item.statusTone">{{ item.status }}</span></td><td><button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Opening obligation details for ' + item.dueDate + '.'">View obligation</button></td></tr>
+                <tr><td><strong>{{ item.dueDate }}</strong></td><td>{{ item.supplierCount }}</td><td>{{ item.invoiceCount }}</td><td><strong>{{ item.invoiceValue }}</strong></td><td>{{ item.financedAgainst }}</td><td><span class="baseline-status" [class]="'baseline-status ' + item.statusTone">{{ item.status }}</span></td><td><button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Opening prototype obligation details for ' + item.dueDate + '.'">View obligation</button></td></tr>
               }
             </tbody>
           </table>
         </div>
         <div class="baseline-cards partner-workspace-cards">
           @for (item of obligations; track item.dueDate) {
-            <article class="baseline-record-card"><div class="baseline-record-card__head"><strong>{{ item.dueDate }}</strong><span class="baseline-status" [class]="'baseline-status ' + item.statusTone">{{ item.status }}</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Full Invoice Value</small><strong>{{ item.invoiceValue }}</strong></span><span class="baseline-metric"><small>Client Suppliers</small><strong>{{ item.supplierCount }}</strong></span></div><p class="baseline-muted">{{ item.invoiceCount }} invoices - {{ item.financedAgainst }} financed against</p><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="toast = 'Opening obligation details for ' + item.dueDate + '.'">View obligation</button></article>
+            <article class="baseline-record-card"><div class="baseline-record-card__head"><strong>{{ item.dueDate }}</strong><span class="baseline-status" [class]="'baseline-status ' + item.statusTone">{{ item.status }}</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Full Invoice Value</small><strong>{{ item.invoiceValue }}</strong></span><span class="baseline-metric"><small>Client Suppliers</small><strong>{{ item.supplierCount }}</strong></span></div><p class="baseline-muted">{{ item.invoiceCount }} invoices - {{ item.financedAgainst }} financed against</p><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="toast = 'Opening prototype obligation details for ' + item.dueDate + '.'">View obligation</button></article>
           }
         </div>
       </section>
 
       <section class="baseline-card partner-settlement-card">
-        <div class="baseline-card__header"><h2>Settlement instruction</h2><p>Use the same reference in the payment and settlement email.</p></div>
-        <div class="baseline-card__body"><dl><div><dt>Bank</dt><dd>Avenews Client Clearing Account</dd></div><div><dt>Account</dt><dd>0123 456 789</dd></div><div><dt>Payment reference</dt><dd>TWIGA-15SEP26</dd></div></dl></div>
+        <div class="baseline-card__header"><h2>Settlement instruction</h2><p>Final production values must come from the approved settlement source.</p></div>
+        <div class="baseline-card__body"><dl><div><dt>Payment destination</dt><dd>To be supplied by Avenews</dd></div><div><dt>Payment reference</dt><dd>Generated for the obligation</dd></div><div><dt>Instruction status</dt><dd>Prototype only</dd></div></dl></div>
       </section>
     }
 
@@ -99,8 +118,20 @@
           <h1>Suppliers</h1>
           <p>Review participating Client Suppliers, Buyer identifiers, onboarding status, and recent invoice volume.</p>
         </div>
-        <button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Prototype supplier invitation routed to Customer Ops.'">Invite Supplier</button>
+        <button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Prototype Supplier invitation routed to Customer Ops.'">Invite Supplier</button>
       </section>
+
+      <app-prototype-explainer tone="role" title="A Partner Buyer may provide access to its Supplier network and support onboarding">
+        <p>The businesses listed here are <strong>Client Suppliers</strong> when they receive financing. The Partner Buyer supports the program but does not become the financing Client for their Advances.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="decision" title="This page keeps Partner operations separate from customer financing">
+        <p>Supplier participation, Buyer identifiers, and upload readiness are Partner tasks. The Client Supplier's Available to Withdraw, Funds Requests, and Advances remain in the Client Supplier experience.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="limitation" title="Supplier invitation and onboarding are prototype placeholders">
+        <p>The button and stages demonstrate the intended information architecture. They are not connected to a production invitation, CRM onboarding workflow, or eligibility decision.</p>
+      </app-prototype-explainer>
 
       <section class="baseline-section">
         <div class="baseline-table-wrap">
@@ -108,14 +139,14 @@
             <thead><tr><th>Client Supplier</th><th>Buyer Identifier</th><th>Program Status</th><th>Last Invoice Upload</th><th>Recent Invoice Value</th><th>Action</th></tr></thead>
             <tbody>
               @for (supplier of suppliers; track supplier.identifier) {
-                <tr><td><strong>{{ supplier.business }}</strong></td><td>{{ supplier.identifier }}</td><td><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.stage }}</span></td><td>{{ supplier.lastUpload }}</td><td>{{ supplier.invoiceValue }}</td><td><button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Opening Supplier record for ' + supplier.business + '.'">View Supplier</button></td></tr>
+                <tr><td><strong>{{ supplier.business }}</strong></td><td>{{ supplier.identifier }}</td><td><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.stage }}</span></td><td>{{ supplier.lastUpload }}</td><td>{{ supplier.invoiceValue }}</td><td><button type="button" class="baseline-button baseline-button--secondary" (click)="toast = 'Opening prototype Client Supplier record for ' + supplier.business + '.'">View Client Supplier</button></td></tr>
               }
             </tbody>
           </table>
         </div>
         <div class="baseline-cards partner-workspace-cards">
           @for (supplier of suppliers; track supplier.identifier) {
-            <article class="baseline-record-card"><div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ supplier.identifier }}</span></span><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.stage }}</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Last Upload</small><strong>{{ supplier.lastUpload }}</strong></span><span class="baseline-metric"><small>Recent Invoice Value</small><strong>{{ supplier.invoiceValue }}</strong></span></div><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="toast = 'Opening Supplier record for ' + supplier.business + '.'">View Supplier</button></article>
+            <article class="baseline-record-card"><div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ supplier.identifier }}</span></span><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.stage }}</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Last Upload</small><strong>{{ supplier.lastUpload }}</strong></span><span class="baseline-metric"><small>Recent Invoice Value</small><strong>{{ supplier.invoiceValue }}</strong></span></div><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="toast = 'Opening prototype Client Supplier record for ' + supplier.business + '.'">View Client Supplier</button></article>
           }
         </div>
       </section>
@@ -128,11 +159,14 @@
     <section class="baseline-modal baseline-modal--sheet partner-upload-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head"><h2>Upload invoices</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeUpload()">&times;</button></header>
       <div class="baseline-modal__body">
+        <app-prototype-explainer tone="limitation" title="This dialog demonstrates placement, not a working bulk uploader">
+          <p>The file, Due Date, validation rules, parsing, duplicate checks, and row outcomes are fictional. No document leaves the browser and no production record is created.</p>
+        </app-prototype-explainer>
         <div class="baseline-field"><label for="partner-invoice-file">Invoice batch</label><input id="partner-invoice-file" class="baseline-control" type="text" value="twiga-suppliers-2026-08-17.xlsx" readonly></div>
         <div class="baseline-field"><label for="partner-due-date">Invoice Due Date</label><input id="partner-due-date" class="baseline-control" type="text" value="15 Sep 2026" readonly></div>
         <div class="baseline-field"><label for="partner-upload-notes">Notes</label><textarea id="partner-upload-notes" class="baseline-textarea" placeholder="Optional notes for Customer Ops"></textarea></div>
-        <div class="partner-boundary-note"><strong>Per-row outcome</strong><span>Valid rows import even when another row fails. Duplicates are skipped safely and failures state what must be corrected.</span></div>
-        <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeUpload()">Submit invoice batch</button>
+        <div class="partner-boundary-note"><strong>Intended outcome</strong><span>Valid rows should import even when another row fails. Duplicates should be skipped safely and failures should state what must be corrected.</span></div>
+        <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeUpload()">Submit prototype batch</button>
       </div>
     </section>
   </div>
