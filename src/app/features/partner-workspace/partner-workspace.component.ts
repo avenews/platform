@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
+import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 
 type PartnerSection = 'invoice-uploads' | 'obligations' | 'suppliers'
 
@@ -37,6 +38,7 @@ interface PartnerSupplierRow {
 @Component({
   selector: 'app-partner-workspace',
   standalone: true,
+  imports: [PrototypeExplainerComponent],
   templateUrl: './partner-workspace.component.html',
   styleUrl: './partner-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
