@@ -1,0 +1,33 @@
+/* Review-only explainer and Developer-menu integration for PR #46. */
+.experience-main > app-prototype-explainer {
+  display: block;
+  margin-bottom: 16px;
+}
+
+.developer-tools__menu button {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--av-space-4, 16px);
+  border: 0;
+  background: transparent;
+  color: var(--av-color-text, #111827);
+  font: inherit;
+  font-size: var(--av-font-size-sm, 13px);
+  font-weight: var(--av-font-weight-medium, 500);
+  text-align: left;
+  cursor: pointer;
+}
+
+.developer-tools__menu button:hover,
+.developer-tools__menu button:focus-visible {
+  background: var(--av-color-surface-subtle, #f6f7f9);
+}
+
+.developer-tools__menu button[aria-pressed="true"],
+.experience-developer-tools__menu button[aria-pressed="true"],
+.access-developer__menu button[aria-pressed="true"] {
+  color: var(--av-color-action, #16b3c4);
+  font-weight: 700;
+}
