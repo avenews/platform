@@ -11,7 +11,7 @@
       [attr.aria-expanded]="contextOpen"
       [attr.aria-haspopup]="availableExperiences.length > 1 ? 'menu' : null"
     >
-      <span>{{ currentExperience.switcherLabel }}</span>
+      <span>{{ displayProductName(currentExperience) }}</span>
       @if (availableExperiences.length > 1) { <av-icon name="chevron-down" [size]="14" /> }
     </button>
 
@@ -42,14 +42,14 @@
       >
         <span class="experience-context-copy">
           <small>{{ currentExperience.businessName }}</small>
-          <strong>{{ currentExperience.switcherLabel }}</strong>
+          <strong>{{ displayProductName(currentExperience) }}</strong>
           <span>{{ currentExperience.roleLabel }}</span>
         </span>
         @if (availableExperiences.length > 1) { <av-icon name="chevron-down" [size]="16" /> }
       </button>
     </div>
 
-    <nav class="experience-sidebar-nav" [attr.aria-label]="currentExperience.productName">
+    <nav class="experience-sidebar-nav" [attr.aria-label]="displayProductName(currentExperience)">
       @for (item of primaryNavItems; track item.segment) {
         <a
           [routerLink]="routeFor(item.segment)"
@@ -97,7 +97,7 @@
 
   <main class="experience-main">
     <app-prototype-explainer tone="decision" title="You are viewing one product or Partner role at a time">
-      <p>The shell intentionally shows only the navigation relevant to <strong>{{ currentExperience.switcherLabel }}</strong> and <strong>{{ currentExperience.roleLabel }}</strong>. The selector changes the whole workspace, not just a filter, and the choice is cleared on logout.</p>
+      <p>The shell intentionally shows only the navigation relevant to <strong>{{ displayProductName(currentExperience) }}</strong> and <strong>{{ currentExperience.roleLabel }}</strong>. The selector changes the whole workspace, not just a filter, and the choice is cleared on logout.</p>
     </app-prototype-explainer>
     <router-outlet />
   </main>
@@ -124,7 +124,7 @@
       @for (experience of availableExperiences; track experience.id) {
         @if (experience.kind === 'customer') {
           <button type="button" role="menuitem" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
-            <strong>{{ experience.switcherLabel }}</strong>
+            <strong>{{ displayProductName(experience) }}</strong>
             <span>{{ experience.roleLabel }}</span>
           </button>
         }
@@ -133,7 +133,7 @@
       @for (experience of availableExperiences; track experience.id) {
         @if (experience.kind === 'partner') {
           <button type="button" role="menuitem" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
-            <strong>{{ experience.switcherLabel }}</strong>
+            <strong>{{ displayProductName(experience) }}</strong>
             <span>{{ experience.businessName }}</span>
           </button>
         }
@@ -157,7 +157,7 @@
         <div class="experience-developer-tools__label">Experiences</div>
         <a routerLink="/access" [queryParams]="{ scenario: 'multiple' }" role="menuitem" (click)="closeOverlays()">Access chooser</a>
         @for (experience of allExperiences; track experience.id) {
-          <button type="button" role="menuitem" (click)="openDeveloperExperience(experience.id)">{{ experience.switcherLabel }}</button>
+          <button type="button" role="menuitem" (click)="openDeveloperExperience(experience.id)">{{ displayProductName(experience) }}</button>
         }
         <div class="experience-developer-tools__label">Reference</div>
         <a routerLink="/" role="menuitem" (click)="closeOverlays()">Current staging baseline</a>
