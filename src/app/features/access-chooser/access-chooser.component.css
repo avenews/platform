@@ -75,28 +75,26 @@
   padding: 48px 32px 64px;
 }
 
-.access-hero { max-width: 760px; display: grid; gap: 8px; }
+.access-hero { max-width: 780px; display: grid; gap: 7px; }
 .access-hero h1,
+.access-hero h2,
 .access-hero p { margin: 0; }
-.access-hero h1 { color: var(--av-color-text-heading, #0d343f); font-size: 36px; line-height: 1.15; }
-.access-hero > p:not(.page-eyebrow) { color: var(--av-color-text-muted, #66788a); font-size: 15px; }
-
-.access-user {
-  width: fit-content;
-  margin-top: 4px;
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: var(--av-color-primary-subtle, #eefbfc);
-  color: #087f90;
-  font-size: 12px;
-  font-weight: 600;
+.access-hero h1 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 22px;
+  line-height: 1.25;
 }
+.access-hero h2 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 36px;
+  line-height: 1.15;
+}
+.access-hero > p:not(.page-eyebrow) { color: var(--av-color-text-muted, #66788a); font-size: 15px; }
 
 .access-group { display: grid; gap: 14px; }
 .access-group__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
-.access-group__heading h2,
-.access-group__heading p { margin: 0; }
-.access-group__heading h2 { color: var(--av-color-text-heading, #0d343f); font-size: 20px; }
+.access-group__heading h2 { margin: 0; color: var(--av-color-text-heading, #0d343f); font-size: 20px; }
 .access-group__heading > span { color: var(--av-color-text-muted, #66788a); font-size: 12px; }
 
 .access-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
@@ -104,9 +102,10 @@
 
 .access-card {
   min-width: 0;
-  min-height: 210px;
+  min-height: 218px;
   display: grid;
-  grid-template-rows: auto auto auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto auto;
+  align-content: start;
   gap: 7px;
   padding: 20px;
   border: 1px solid var(--av-color-surface-border, #dfe4e8);
@@ -121,12 +120,38 @@
 }
 .access-card:hover,
 .access-card:focus-visible { border-color: var(--av-color-action, #16b3c4); box-shadow: 0 10px 26px rgba(16, 24, 40, .1); transform: translateY(-1px); }
-.access-card--partner { min-height: 176px; border-color: var(--av-color-primary-border, #bdeff3); background: linear-gradient(135deg, #fff 0%, var(--av-color-primary-subtle, #eefbfc) 100%); }
-.access-card__role { width: fit-content; padding: 4px 8px; border-radius: 999px; background: #f2f4f7; color: #667085; font-size: 11px; font-weight: 600; }
+.access-card--partner { min-height: 164px; border-color: var(--av-color-primary-border, #bdeff3); background: linear-gradient(135deg, #fff 0%, var(--av-color-primary-subtle, #eefbfc) 100%); }
 .access-card strong { color: var(--av-color-text-heading, #0d343f); font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif); font-size: 18px; line-height: 1.3; }
 .access-card__business { color: var(--av-color-text, #344054); font-size: 13px; font-weight: 600; }
 .access-card p { margin: 4px 0 0; color: var(--av-color-text-muted, #66788a); font-size: 13px; line-height: 1.55; }
 .access-card__action { color: var(--av-color-action, #16b3c4); font-size: 13px; font-weight: 700; }
+
+.access-card__summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-top: 12px;
+  border-top: 1px solid var(--av-color-surface-border, #edf0f2);
+}
+
+.access-card__summary > span {
+  min-width: 120px;
+  display: grid;
+  gap: 2px;
+}
+
+.access-card__summary small {
+  color: var(--av-color-text-muted, #8b98a8);
+  font-size: 10px;
+  line-height: 1.3;
+}
+
+.access-card__summary strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-family: var(--av-font-base, "Poppins", sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+}
 
 @media (min-width: 768px) {
   .access-developer__trigger { display: inline-flex; align-items: center; }
@@ -136,7 +161,8 @@
   .access-header { min-height: 56px; padding: 8px 12px; }
   .access-logo { height: 24px; }
   .access-main { gap: 20px; padding: 28px 16px 40px; }
-  .access-hero h1 { font-size: 28px; }
+  .access-hero h1 { font-size: 18px; }
+  .access-hero h2 { font-size: 28px; }
   .access-grid { grid-template-columns: 1fr; }
   .access-card,
   .access-card--partner { min-height: 0; }
