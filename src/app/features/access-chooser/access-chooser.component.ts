@@ -57,6 +57,16 @@ export class AccessChooserComponent implements OnInit {
     this.cdr.markForCheck()
   }
 
+  displayProductName(destination: PortalExperience): string {
+    const labels: Partial<Record<ExperienceId, string>> = {
+      acl: 'Agri Credit Line',
+      abf: 'Agri Buyer Financing',
+      stf: 'Stockist Financing',
+      infx: 'Invoice Financing Express',
+    }
+    return labels[destination.id] ?? destination.productName
+  }
+
   openDestination(id: ExperienceId): void {
     const destination = this.experiences.selectExperience(id)
     if (!destination) return
