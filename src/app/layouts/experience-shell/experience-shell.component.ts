@@ -35,12 +35,10 @@ interface ExperienceNavItem {
 const CUSTOMER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'financing', label: 'Financing', icon: 'wallet', exact: false },
-  { segment: 'support', label: 'Support', icon: 'help-circle', exact: false },
 ]
 
 const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'support', label: 'Support', icon: 'help-circle', exact: false },
 ]
 
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
@@ -48,8 +46,14 @@ const PARTNER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'invoice-uploads', label: 'Invoice Uploads', icon: 'receipt', exact: false },
   { segment: 'obligations', label: 'Obligations', icon: 'wallet', exact: false },
   { segment: 'suppliers', label: 'Suppliers', icon: 'person', exact: false },
-  { segment: 'support', label: 'Support', icon: 'help-circle', exact: false },
 ]
+
+const MANAGE_USERS_NAV: ExperienceNavItem = {
+  segment: 'manage-users',
+  label: 'Manage Users',
+  icon: 'person',
+  exact: false,
+}
 
 @Component({
   selector: 'app-experience-shell',
@@ -121,15 +125,17 @@ export class ExperienceShellComponent implements OnDestroy {
   }
 
   get primaryNavItems(): readonly ExperienceNavItem[] {
-    if (this.currentExperience.kind === 'partner') return PARTNER_NAV
-    if (this.currentExperience.id === 'acl') return AGRI_CREDIT_LINE_NAV
-    return CUSTOMER_NAV
+    const base = this.currentExperience.kind === 'partner'
+      ? PARTNER_NAV
+      : this.currentExperience.id === 'acl'
+        ? AGRI_CREDIT_LINE_NAV
+        : CUSTOMER_NAV
+
+    return this.session?.role === 'admin' ? [...base, MANAGE_USERS_NAV] : base
   }
 
   get mobileNavItems(): readonly ExperienceNavItem[] {
-    if (this.currentExperience.kind === 'partner') return PARTNER_NAV.slice(0, 4)
-    if (this.currentExperience.id === 'acl') return AGRI_CREDIT_LINE_NAV
-    return CUSTOMER_NAV
+    return this.primaryNavItems
   }
 
   get initials(): string {
@@ -140,10 +146,6 @@ export class ExperienceShellComponent implements OnDestroy {
   get fullName(): string {
     if (!this.session) return ''
     return `${this.session.contactFirstName} ${this.session.contactLastName}`
-  }
-
-  get roleDisplay(): string {
-    return this.currentExperience.roleLabel
   }
 
   displayProductName(experience: PortalExperience): string {
