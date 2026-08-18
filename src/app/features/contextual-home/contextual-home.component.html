@@ -2,7 +2,6 @@
   @if (experience.id === 'acl') {
     <section class="contextual-home__hero">
       <div>
-        <p class="page-eyebrow">Client Buyer</p>
         <h1>Agri Credit Line</h1>
         <p>Manage your available credit, Funds Requests, Advances, Instalments, and repayment details in one place.</p>
       </div>
@@ -16,8 +15,8 @@
       </button>
     </section>
 
-    <app-prototype-explainer tone="decision" title="Agri Credit Line uses one Client Buyer workspace">
-      <p>The credit facility belongs to the Client Buyer, so Home shows one product-level credit summary, Financing activity, record details, the Funds Request entry point, and repayment instructions. It does not create separate financing facilities for each Supplier.</p>
+    <app-prototype-explainer tone="decision" title="Agri Credit Line uses one customer workspace">
+      <p>The credit facility belongs to the financing customer, so Home shows one product-level credit summary, Financing activity, record details, the Funds Request entry point, and repayment instructions. Supplier relationships remain inside the relevant commercial transaction rather than appearing as separate facilities.</p>
     </app-prototype-explainer>
 
     <section class="contextual-metrics acl-summary" aria-label="Agri Credit Line summary">
@@ -37,25 +36,28 @@
           <span class="baseline-status" [class]="'baseline-status ' + nextAclInstallmentTone">{{ nextAclInstallmentStatus }}</span>
         </div>
         <strong>{{ formatKes(business.nextRepaymentAmount) }}</strong>
-        <small>Due {{ formatDate(business.nextRepaymentDate) }}</small>
-        <button type="button" class="acl-text-link" (click)="openRepaymentDetails()">View repayment details</button>
+        @if (nextAclRepaymentRecord; as nextRecord) {
+          <small>{{ fundsRequestReference(nextRecord) }} · Due {{ formatDate(business.nextRepaymentDate) }}</small>
+          <button type="button" class="acl-text-link" (click)="openRepaymentDetails(nextRecord)">View repayment details</button>
+        } @else {
+          <small>Due {{ formatDate(business.nextRepaymentDate) }}</small>
+        }
       </article>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="The summary answers what the customer can use and what is due next">
-      <p>Available Credit and Outstanding Principal come from the Client Buyer's Agri Credit Line facility. The next Instalment surfaces the customer's next repayment obligation; the full financing history remains below in Financing activity.</p>
+    <app-prototype-explainer tone="purpose" title="The summary connects the next repayment to its financing record">
+      <p>Available Credit and Outstanding Principal remain product-level values. The next Instalment now names the Funds Request reference it belongs to so repayment instructions never appear detached from the relevant Advance.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
-      <p>An Agri Credit Line Client Buyer may purchase eligible goods from a Counterparty Supplier, including a farmer, trader, processor, wholesaler, input supplier, or other approved Supplier. The Supplier may receive an approved disbursement, but the financing facility and repayment obligation remain with the Client Buyer.</p>
+      <p>An Agri Credit Line financing customer may purchase eligible goods from a Counterparty Supplier, including a farmer, trader, processor, wholesaler, input supplier, or other approved Supplier. The Supplier may receive an approved disbursement, but it does not become another customer credit facility.</p>
     </app-prototype-explainer>
 
     <section class="baseline-section acl-financing-activity">
       <div class="baseline-section-heading">
         <div>
-          <p class="page-eyebrow">Agri Credit Line</p>
           <h2>Financing activity</h2>
-          <p>Open a record for its full financing and Instalment details.</p>
+          <p>Open a record for its full financing and repayment details.</p>
         </div>
       </div>
 
@@ -63,13 +65,27 @@
         <p>This section keeps the production-representative fields from the existing portal: Financing, Disbursement Date, Repayment Due Date, Amount Financed, Status, Total Repaid, and Outstanding Balance. Older Funds Requests and Advances stay on Home and paginate here.</p>
       </app-prototype-explainer>
 
-      <app-prototype-explainer tone="decision" title="Record details move into a modal on desktop and a sheet on mobile">
+      <app-prototype-explainer tone="decision" title="Search and filters reuse the established customer-list pattern">
+        <p>The product is already fixed to Agri Credit Line, so the activity controls only need Status, Due Date, and search by financing or Funds Request reference. On mobile the existing compact Filters drawer is reused instead of stacking every control above the list.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="decision" title="Financing details are centered on desktop and a bottom drawer on mobile">
         <p>The main list stays scannable. Selecting a financing record reveals its Funds Request reference, repayment dates, payment progress, and Instalment schedule without introducing another page.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="limitation" title="Purpose is intentionally not shown">
-        <p>The old design demonstrated a Purpose column, but the current CRM and LMS dataset does not provide that field. This prototype therefore removes it instead of inventing a replacement.</p>
+        <p>The old design demonstrated a Purpose column, but the current CRM and LMS dataset does not provide that field. It remains excluded rather than being replaced with invented customer data.</p>
       </app-prototype-explainer>
+
+      <app-customer-filter-bar
+        [searchValue]="aclSearchQuery"
+        searchPlaceholder="Search financing or Funds Request"
+        searchAriaLabel="Search Agri Credit Line financing activity"
+        [filters]="aclFilterFields"
+        [values]="aclFilterValues"
+        (searchValueChange)="onAclSearchValueChange($event)"
+        (valuesChange)="onAclFilterValuesChange($event)"
+      />
 
       <div class="baseline-table-wrap">
         <table class="baseline-table acl-activity-table">
@@ -102,6 +118,8 @@
                 <td>{{ record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil' }}</td>
                 <td><strong>{{ formatKes(record.balance) }}</strong></td>
               </tr>
+            } @empty {
+              <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing records</strong><p>Try changing your search or filters.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -124,26 +142,30 @@
               <span class="acl-record-card-button__action">View details</span>
             </button>
           </article>
+        } @empty {
+          <div class="baseline-empty"><strong>No matching financing records</strong><p>Try changing your search or filters.</p></div>
         }
       </div>
 
-      <div class="acl-pagination-row">
-        <span>Showing {{ aclRangeStart }}-{{ aclRangeEnd }} of {{ aclFinancingRecords.length }} financing records</span>
-        <nav class="baseline-pagination" aria-label="Financing activity pages">
-          <button type="button" [disabled]="aclPage === 1" (click)="changeAclPage(aclPage - 1)" aria-label="Previous page">‹</button>
-          @for (page of aclPageNumbers; track page) {
-            <button type="button" [class.baseline-pagination__active]="page === aclPage" [attr.aria-current]="page === aclPage ? 'page' : null" (click)="changeAclPage(page)">{{ page }}</button>
-          }
-          <button type="button" [disabled]="aclPage === aclTotalPages" (click)="changeAclPage(aclPage + 1)" aria-label="Next page">›</button>
-        </nav>
-      </div>
+      @if (filteredAclFinancingRecords.length) {
+        <div class="baseline-pagination acl-pagination" aria-label="Financing activity pagination">
+          <p>Showing <strong>{{ aclRangeStart }}-{{ aclRangeEnd }}</strong> of {{ filteredAclFinancingRecords.length }} financing records</p>
+          <div class="baseline-pagination__controls">
+            <button type="button" [disabled]="aclPage === 1" (click)="changeAclPage(aclPage - 1)" aria-label="Previous page">‹</button>
+            @for (page of aclPageNumbers; track page) {
+              <button type="button" [class.is-active]="page === aclPage" [attr.aria-current]="page === aclPage ? 'page' : null" (click)="changeAclPage(page)">{{ page }}</button>
+            }
+            <button type="button" [disabled]="aclPage === aclTotalPages" (click)="changeAclPage(aclPage + 1)" aria-label="Next page">›</button>
+          </div>
+        </div>
+      }
     </section>
 
     <section class="acl-help-grid">
       <article class="baseline-card acl-help-card" data-upload-placement="inside-funds-request">
         <div>
           <p class="page-eyebrow">How to request funds</p>
-          <h2>Submit an Agri Credit Line Funds Request</h2>
+          <h2>Submitting a Funds Request</h2>
           <p>Select the financing amount, choose an available Instalment option, provide the approved transaction evidence, and confirm the approved disbursement recipient.</p>
         </div>
         <button type="button" class="acl-text-link acl-text-link--large" (click)="openFundsRequest()">Submit Funds Request</button>
@@ -152,14 +174,20 @@
       <article class="baseline-card acl-help-card">
         <div>
           <p class="page-eyebrow">Repayment</p>
-          <h2>Payment instructions</h2>
-          <p>View the Avenews bank-transfer and M-Pesa details used by the Client Buyer to repay an Instalment. This prototype does not process or confirm payments.</p>
+          <h2>Making a repayment</h2>
+          @if (nextAclRepaymentRecord; as nextRecord) {
+            <p>View the Avenews bank-transfer and M-Pesa details for your next repayment. The instructions are linked to {{ fundsRequestReference(nextRecord) }} so you can see which financing record you are repaying.</p>
+          } @else {
+            <p>View the Avenews bank-transfer and M-Pesa details for the financing record you need to repay.</p>
+          }
         </div>
-        <button type="button" class="acl-text-link acl-text-link--large" (click)="openRepaymentDetails()">View repayment details</button>
+        @if (nextAclRepaymentRecord; as nextRecord) {
+          <button type="button" class="acl-text-link acl-text-link--large" (click)="openRepaymentDetails(nextRecord)">View repayment for {{ fundsRequestReference(nextRecord) }}</button>
+        }
       </article>
     </section>
 
-    <app-prototype-explainer tone="action" title="Submit Funds Request opens the same Client Buyer flow wherever it appears">
+    <app-prototype-explainer tone="action" title="Submit Funds Request opens the same customer flow wherever it appears">
       <p>The primary button at the top of Home and the text action in the How to request funds card both open the same Agri Credit Line Funds Request. The Supplier or other approved disbursement recipient is selected inside that transaction-specific request rather than represented as a separate facility.</p>
     </app-prototype-explainer>
 
@@ -167,14 +195,17 @@
       <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the existing records together and paginates older records instead of splitting them into another product page.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="limitation" title="Repayment details are customer instructions only">
-      <p>The approved ABSA and M-Pesa details are shown for the Client Buyer's repayment into Avenews' collections flow. This prototype does not send money, confirm a payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
+    <app-prototype-explainer tone="decision" title="Repayment instructions belong to a specific financing record">
+      <p>The next repayment card, Financing details, and repayment drawer all carry the same Funds Request reference. This removes the previous disconnect where bank and M-Pesa details looked universal rather than being opened from the financing obligation the customer is reviewing.</p>
+    </app-prototype-explainer>
+
+    <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
+      <p>The approved ABSA and M-Pesa account details are displayed as repayment instructions only. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
     </app-prototype-explainer>
   } @else {
     <section class="contextual-home__hero">
       <div>
-        <p class="page-eyebrow">{{ experience.roleLabel }}</p>
-        <h1>{{ experience.homeHeading }}</h1>
+        <h1>{{ displayProductName(experience) }}</h1>
         <p>{{ experience.homeIntro }}</p>
       </div>
       <button
@@ -192,8 +223,8 @@
         @case ('abf') { <p>How much Agri Buyer Financing credit remains, which Supplier invoice path is relevant, and what is currently financed?</p> }
         @case ('stf') { <p>Which Partner Suppliers are available, how much can be financed, and which request needs attention?</p> }
         @case ('invoice-financing') { <p>How much is available across Dynamic Periods, which Buyer relationships exist, and which periods need action?</p> }
-        @case ('infx') { <p>How much Invoice Financing Express credit remains, which one-invoice requests are active, and when must the Client Supplier repay Avenews?</p> }
-        @case ('invoice-partner') { <p>Which invoice uploads need attention, how many Client Suppliers participate, and what full invoice value is due next?</p> }
+        @case ('infx') { <p>How much Invoice Financing Express credit remains, which one-invoice requests are active, and when must the financing customer repay Avenews?</p> }
+        @case ('invoice-partner') { <p>Which invoice uploads need attention, how many participating Suppliers need attention, and what full invoice value is due next?</p> }
       }
     </app-prototype-explainer>
 
@@ -210,7 +241,7 @@
     @switch (experience.id) {
       @case ('abf') {
         <app-prototype-explainer tone="action" title="Agri Buyer Financing must branch before documents are requested">
-          <p>A <strong>Fully Paid Invoice</strong> reimburses the Client Buyer and requires Proof of Payment. An <strong>Unpaid Invoice</strong> directs the approved disbursement to the Supplier. The Financing page demonstrates both paths.</p>
+          <p>A <strong>Fully Paid Invoice</strong> reimburses the financing customer and requires Proof of Payment. An <strong>Unpaid Invoice</strong> directs the approved disbursement to the Supplier. The Financing page demonstrates both paths.</p>
         </app-prototype-explainer>
       }
       @case ('stf') {
@@ -220,17 +251,17 @@
       }
       @case ('invoice-financing') {
         <app-prototype-explainer tone="handbook" title="Invoice Financing is organised around Financing Relationships and Dynamic Periods">
-          <p>A Dynamic Period groups one Client Supplier, one Buyer, and one invoice Due Date. The Client Supplier requests funds from that period, subject to its Available to Withdraw and request window.</p>
+          <p>A Dynamic Period groups one financing customer, one Buyer, and one invoice Due Date. Funds Requests are submitted from the applicable period, subject to Available to Withdraw and the request window.</p>
         </app-prototype-explainer>
       }
       @case ('infx') {
         <app-prototype-explainer tone="action" title="Invoice Financing Express finances one approved invoice per Funds Request">
-          <p>The approved Buyer, invoice, Due Date, POD, and requested amount stay inside one request. The Client Supplier manually repays Avenews at the end of the Financing Period.</p>
+          <p>The approved Buyer, invoice, Due Date, POD, and requested amount stay inside one request. The financing customer manually repays Avenews at the end of the Financing Period.</p>
         </app-prototype-explainer>
       }
       @case ('invoice-partner') {
-        <app-prototype-explainer tone="role" title="The Partner Buyer uploads invoices but does not borrow for the Client Supplier">
-          <p>The Partner Buyer supplies invoice information and manages the full payment obligation. The Client Supplier remains the financing Client and submits any Funds Request from its Dynamic Period.</p>
+        <app-prototype-explainer tone="role" title="The Partner Buyer uploads invoices but does not borrow for the participating Supplier">
+          <p>The Partner Buyer supplies invoice information and manages the full payment obligation. The financing customer submits any Funds Request from its applicable Dynamic Period.</p>
         </app-prototype-explainer>
       }
     }
@@ -292,8 +323,8 @@
 </div>
 
 @if (experience.id === 'acl' && selectedAclRecord; as record) {
-  <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="closeAclRecord()">
-    <section class="baseline-modal baseline-modal--sheet acl-record-modal" role="dialog" aria-modal="true" aria-labelledby="acl-record-title" (click)="$event.stopPropagation()">
+  <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeAclRecord()">
+    <section class="baseline-modal acl-sheet-modal acl-record-modal" role="dialog" aria-modal="true" aria-labelledby="acl-record-title" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head">
         <div>
           <p class="page-eyebrow">Financing details</p>
@@ -332,9 +363,11 @@
                 </div>
               }
             </div>
-            <button type="button" class="acl-text-link" (click)="openRepaymentDetails()">View repayment details</button>
+            @if (nextRepaymentFor(record)) {
+              <button type="button" class="acl-text-link" (click)="openRepaymentDetails(record)">View repayment details for {{ fundsRequestReference(record) }}</button>
+            }
           } @else {
-            <div class="baseline-empty"><strong>No Instalment schedule yet</strong><p>The financing record has not reached a repayment schedule in the current dataset.</p></div>
+            <div class="baseline-empty"><strong>No Instalment schedule yet</strong><p>This financing record does not yet have a repayment schedule in the current dataset.</p></div>
           }
         </section>
       </div>
@@ -343,24 +376,24 @@
 }
 
 @if (experience.id === 'acl' && fundsRequestOpen) {
-  <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="closeFundsRequest()">
-    <section class="baseline-modal baseline-modal--sheet acl-funds-request-modal" role="dialog" aria-modal="true" aria-labelledby="acl-funds-request-title" (click)="$event.stopPropagation()">
+  <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeFundsRequest()">
+    <section class="baseline-modal acl-sheet-modal acl-funds-request-modal" role="dialog" aria-modal="true" aria-labelledby="acl-funds-request-title" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head">
         <div><p class="page-eyebrow">Agri Credit Line</p><h2 id="acl-funds-request-title">Submit Funds Request</h2></div>
         <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeFundsRequest()">&times;</button>
       </header>
       <div class="baseline-modal__body">
-        <app-prototype-explainer tone="action" title="This is one Client Buyer Funds Request flow">
-          <p>The Client Buyer selects the amount, Instalment option, transaction evidence, and approved disbursement recipient in one flow. A Counterparty Supplier, including a farmer where relevant, is part of the commercial transaction rather than a separate financing facility.</p>
+        <app-prototype-explainer tone="action" title="This is one product-level Funds Request flow">
+          <p>The customer selects the amount, Instalment option, transaction evidence, and approved disbursement recipient in one flow. A Supplier, including a farmer where relevant, is part of the commercial transaction rather than a separate financing facility.</p>
         </app-prototype-explainer>
         <ol class="acl-request-steps">
           <li><strong>Financing amount</strong><span>Select the amount to request.</span></li>
           <li><strong>Instalment option</strong><span>Select an available repayment option.</span></li>
           <li><strong>Transaction evidence</strong><span>Provide the approved evidence required for the request.</span></li>
-          <li><strong>Disbursement recipient</strong><span>Select or confirm the approved Supplier or, where specifically approved, the Client.</span></li>
+          <li><strong>Disbursement recipient</strong><span>Select or confirm the approved Supplier or, where specifically approved, the customer.</span></li>
         </ol>
-        <app-prototype-explainer tone="limitation" title="This is not the final Agri Credit Line application form">
-          <p>The prototype demonstrates placement and sequence only. It does not submit a request to CRM, LMS, Credit, Risk, banking, or disbursement systems.</p>
+        <app-prototype-explainer tone="limitation" title="The internal training URL is not embedded in this public preview">
+          <p>The Handbook marks the Agri Credit Line Funds Request demo as internal Avenews training only. Because this repository and Netlify preview are public, the action remains isolated here until a customer-safe URL is approved.</p>
         </app-prototype-explainer>
         <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeFundsRequest()">Continue Funds Request</button>
       </div>
@@ -368,17 +401,33 @@
   </div>
 }
 
-@if (experience.id === 'acl' && repaymentDetailsOpen) {
-  <div class="baseline-modal-backdrop acl-repayment-backdrop" role="presentation" (click)="closeRepaymentDetails()">
-    <section class="baseline-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
+@if (experience.id === 'acl' && repaymentDetailsOpen && repaymentRecord; as record) {
+  <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeRepaymentDetails()">
+    <section class="baseline-modal acl-sheet-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head">
-        <div><p class="page-eyebrow">Agri Credit Line</p><h2 id="acl-repayment-title">Repayment details</h2></div>
+        <div><p class="page-eyebrow">Repayment details</p><h2 id="acl-repayment-title">{{ fundsRequestReference(record) }}</h2></div>
         <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRepaymentDetails()">&times;</button>
       </header>
       <div class="baseline-modal__body">
         <div class="acl-repayment-summary">
-          <div><span>Next Instalment</span><strong>{{ formatKes(business.nextRepaymentAmount) }}</strong><small>Due {{ formatDate(business.nextRepaymentDate) }}</small></div>
-          <span class="baseline-status" [class]="'baseline-status ' + nextAclInstallmentTone">{{ nextAclInstallmentStatus }}</span>
+          <div>
+            @if (knownRepaymentAmount(record); as amount) {
+              <span>Next repayment</span>
+              <strong>{{ formatKes(amount) }}</strong>
+            } @else {
+              <span>Outstanding balance</span>
+              <strong>{{ formatKes(record.balance) }}</strong>
+            }
+            <small>{{ nextDueDateValue(record) ? 'Due ' + formatDate(nextDueDateValue(record)) : 'No repayment date available' }}</small>
+          </div>
+          @if (nextRepaymentFor(record); as repayment) {
+            <span class="baseline-status" [class]="'baseline-status ' + installmentStatusTone(repayment.status)">{{ installmentStatusLabel(repayment.status) }}</span>
+          }
+        </div>
+
+        <div class="acl-payment-reference">
+          <span><small>Financing reference</small><strong>{{ fundsRequestReference(record) }}</strong></span>
+          <button type="button" (click)="copyPaymentValue(fundsRequestReference(record), 'Financing reference')">Copy</button>
         </div>
 
         <div class="acl-payment-methods" role="tablist" aria-label="Repayment method">
@@ -397,12 +446,12 @@
             @for (item of mpesaDetails; track item.label) {
               <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
             }
-            <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use the Client's registered phone number</em></span><button type="button" (click)="copyPaymentValue(clientPhone, 'Account Number')">Copy</button></div>
+            <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" (click)="copyPaymentValue(clientPhone, 'Account Number')">Copy</button></div>
           </div>
         }
 
         <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
-          <p>These are Client Buyer repayment instructions only. This prototype does not initiate a bank transfer or M-Pesa payment, confirm receipt, upload Proof of Payment, or submit an M-Pesa reference.</p>
+          <p>These are repayment instructions for {{ fundsRequestReference(record) }}. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
         </app-prototype-explainer>
       </div>
     </section>
