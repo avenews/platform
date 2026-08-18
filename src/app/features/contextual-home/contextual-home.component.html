@@ -9,6 +9,8 @@
         type="button"
         class="baseline-button baseline-button--primary contextual-home__primary"
         data-action-kind="funds-request"
+        [attr.data-external-url]="aclFundsRequestDemoUrl"
+        aria-label="Submit Funds Request (opens in a new tab)"
         (click)="openFundsRequest()"
       >
         Submit Funds Request
@@ -19,6 +21,10 @@
       <p>The credit facility belongs to the financing customer, so Home shows one product-level credit summary, Financing activity, record details, and the Funds Request entry point. Supplier relationships remain inside the relevant commercial transaction rather than appearing as separate facilities.</p>
     </app-prototype-explainer>
 
+    <app-prototype-explainer tone="action" title="Request Funds opens the current Agri Credit Line journey">
+      <p>The Home action and the primary navigation item open the current Agri Credit Line demo in a new tab. That journey collects the financing amount, Instalment option, trade documents, approved disbursement recipient, summary, disclosures, and signature.</p>
+    </app-prototype-explainer>
+
     <section class="contextual-metrics acl-summary" aria-label="Agri Credit Line summary">
       <article class="contextual-metric baseline-card">
         <span>Available Credit</span>
@@ -26,30 +32,23 @@
         <small>{{ formatKes(primaryAclCreditLine?.used ?? 0) }} currently used</small>
       </article>
       <article class="contextual-metric baseline-card">
-        <span>Outstanding Principal</span>
+        <span>Outstanding Amount</span>
         <strong>{{ formatKes(primaryAclCreditLine?.used ?? 0) }}</strong>
-        <small>Across the active Agri Credit Line facility</small>
+        <small>Across active Agri Credit Line financing</small>
       </article>
-      <article class="contextual-metric baseline-card acl-next-installment">
-        <div class="acl-next-installment__label">
-          <span>Next Instalment</span>
-          <span class="baseline-status" [class]="'baseline-status ' + nextAclInstallmentTone">{{ nextAclInstallmentStatus }}</span>
-        </div>
-        <strong>{{ formatKes(business.nextRepaymentAmount) }}</strong>
-        @if (nextAclRepaymentRecord; as nextRecord) {
-          <small>{{ fundsRequestReference(nextRecord) }} · Due {{ formatDate(business.nextRepaymentDate) }}</small>
-        } @else {
-          <small>Due {{ formatDate(business.nextRepaymentDate) }}</small>
-        }
+      <article class="contextual-metric baseline-card acl-next-installment acl-payments-due">
+        <span>Payments Due</span>
+        <strong>{{ paymentsDueLabel }}</strong>
+        <small>Next due {{ formatDate(business.nextRepaymentDate) }}</small>
       </article>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="The next Instalment summary is informational only">
-      <p>Available Credit and Outstanding Principal remain product-level values. The next Instalment names the Funds Request reference it belongs to, but it does not open universal repayment instructions. To pay or review an obligation, the customer opens the specific record in Financing activity.</p>
+    <app-prototype-explainer tone="purpose" title="The product summary stays neutral when several payments exist">
+      <p>The summary shows how many payments are due and the next due date without selecting one Funds Request or exposing universal repayment instructions. The customer opens the relevant record in Financing activity to review and pay a specific obligation.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
-      <p>An Agri Credit Line financing customer may purchase eligible goods from a Counterparty Supplier, including a farmer, trader, processor, wholesaler, input supplier, or other approved Supplier. The Supplier may receive an approved disbursement, but it does not become another customer credit facility.</p>
+      <p>An Agri Credit Line financing customer may purchase eligible goods from a Counterparty Supplier, including a farmer, trader, processor, wholesaler, input supplier, or other approved Supplier. The Supplier may receive the approved disbursement, but it does not become another customer credit facility.</p>
     </app-prototype-explainer>
 
     <section class="baseline-section acl-financing-activity">
@@ -72,8 +71,18 @@
         />
       </div>
 
-      <app-prototype-explainer tone="purpose" title="Financing activity is the full record list, not a second navigation destination">
-        <p>This section keeps the production-representative fields from the existing portal: Financing, Disbursement Date, Repayment Due Date, Amount Financed, Status, Total Repaid, and Outstanding Balance. Older Funds Requests and Advances stay on Home and paginate here.</p>
+      <app-prototype-explainer tone="purpose" title="Financing activity combines requests and disbursed Advances">
+        <p>The list keeps the production-representative fields from the existing portal. It includes Funds Requests before disbursement and Advances after disbursement, while older records remain on Home and paginate here.</p>
+      </app-prototype-explainer>
+
+      <app-prototype-explainer tone="handbook" title="Requested and Live are different lifecycle stages">
+        <ul>
+          <li><strong>Requested:</strong> the Funds Request has been submitted; approval and disbursement have not yet created an Advance.</li>
+          <li><strong>Live:</strong> the approved amount has been disbursed and the Advance remains active.</li>
+          <li><strong>Repaid:</strong> the repayment obligation has been completed.</li>
+          <li><strong>Cancelled:</strong> the Funds Request was closed before disbursement.</li>
+          <li><strong>Declined:</strong> the Funds Request was not approved and no Advance was created.</li>
+        </ul>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="decision" title="Search and filters share the Financing activity header on desktop">
@@ -81,7 +90,7 @@
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="decision" title="Financing details are centered on desktop and a bottom drawer on mobile">
-        <p>The main list stays scannable. Selecting a financing record reveals its Funds Request reference, repayment dates, payment progress, and Instalment schedule. Repayment instructions can then be opened for that specific Advance only.</p>
+        <p>The main list stays scannable. Selecting a record reveals its request reference, dates, payment progress, and Instalment schedule. Repayment instructions can then be opened for that specific Advance only.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="limitation" title="Purpose is intentionally not shown">
@@ -106,18 +115,18 @@
               <tr
                 class="acl-activity-row"
                 tabindex="0"
-                [attr.aria-label]="'View financing details for ' + fundsRequestReference(record)"
+                [attr.aria-label]="'View details for ' + fundsRequestReference(record)"
                 (click)="openAclRecord(record)"
                 (keydown.enter)="openAclRecord(record)"
                 (keydown.space)="openAclRecord(record); $event.preventDefault()"
               >
                 <td><span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>{{ fundsRequestReference(record) }}</span></span></td>
-                <td>{{ record.disbursementDate ? formatDate(record.disbursementDate, true) : 'Pending' }}</td>
+                <td>{{ recordDisbursementDate(record) }}</td>
                 <td>{{ nextDueDate(record) }}</td>
-                <td>{{ formatKes(record.principal) }}</td>
+                <td>{{ tableFinancedAmount(record) }}</td>
                 <td><span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span></td>
-                <td>{{ record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil' }}</td>
-                <td><strong>{{ formatKes(record.balance) }}</strong></td>
+                <td>{{ recordTotalRepaid(record) }}</td>
+                <td><strong>{{ recordOutstandingBalance(record) }}</strong></td>
               </tr>
             } @empty {
               <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing records</strong><p>Try changing your search or filters.</p></div></td></tr>
@@ -135,10 +144,10 @@
                 <span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric"><small>Amount Financed</small><strong>{{ formatKes(record.principal) }}</strong></span>
+                <span class="baseline-metric"><small>{{ recordAmountLabel(record) }}</small><strong>{{ isDisbursedAdvance(record) ? formatKes(record.principal) : formatKes(record.principal) }}</strong></span>
                 <span class="baseline-metric"><small>Repayment Due</small><strong>{{ nextDueDate(record) }}</strong></span>
-                <span class="baseline-metric"><small>Total Repaid</small><strong>{{ record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil' }}</strong></span>
-                <span class="baseline-metric"><small>Outstanding Balance</small><strong>{{ formatKes(record.balance) }}</strong></span>
+                <span class="baseline-metric"><small>Total Repaid</small><strong>{{ recordTotalRepaid(record) }}</strong></span>
+                <span class="baseline-metric"><small>Outstanding Balance</small><strong>{{ recordOutstandingBalance(record) }}</strong></span>
               </div>
               <span class="acl-record-card-button__action">View details</span>
             </button>
@@ -162,16 +171,16 @@
       }
     </section>
 
-    <app-prototype-explainer tone="action" title="Funds Requests are product-level; repayments are financing-record level">
-      <p>Submit Funds Request remains a product-level action because it creates a new financing record. Repayment details are not exposed from the product summary because each Advance or Instalment can have a different due date, status, amount, and payment allocation.</p>
+    <app-prototype-explainer tone="action" title="Request Funds is product-level; repayment is record-level">
+      <p>Request Funds creates a new Funds Request and is therefore available from Home and primary navigation. Repayment details are available only after the customer opens a specific disbursed financing record.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Multiple Agri Credit Line Funds Requests may run in parallel">
-      <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the existing records together and paginates older records instead of splitting them into another product page.</p>
+      <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the records together and paginates older records instead of splitting them into another product page.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="decision" title="Repayment instructions are opened only from a financing record">
-      <p>The Next Instalment card is an informational alert. The customer opens the relevant Financing activity record, reviews its repayment schedule, and then opens repayment instructions for that specific Advance. This avoids ambiguity when one obligation is overdue and another is upcoming.</p>
+      <p>The customer opens the relevant Financing activity record, reviews its repayment schedule, and then opens repayment instructions for that specific Advance. This avoids ambiguity when one obligation is overdue and another is upcoming.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
@@ -302,7 +311,7 @@
     <section class="baseline-modal acl-sheet-modal acl-record-modal" role="dialog" aria-modal="true" aria-labelledby="acl-record-title" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head">
         <div>
-          <p class="page-eyebrow">Financing details</p>
+          <p class="page-eyebrow">{{ recordDetailsEyebrow(record) }}</p>
           <h2 id="acl-record-title">{{ fundsRequestReference(record) }}</h2>
         </div>
         <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeAclRecord()">&times;</button>
@@ -314,15 +323,15 @@
         </div>
 
         <dl class="acl-record-details">
-          <div><dt>Disbursement Date</dt><dd>{{ record.disbursementDate ? formatDate(record.disbursementDate) : 'Pending' }}</dd></div>
+          <div><dt>Disbursement Date</dt><dd>{{ recordDisbursementDate(record) }}</dd></div>
           <div><dt>Repayment Due Date</dt><dd>{{ nextDueDate(record) }}</dd></div>
-          <div><dt>Amount Financed</dt><dd>{{ formatKes(record.principal) }}</dd></div>
-          <div><dt>Total Repaid</dt><dd>{{ record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil' }}</dd></div>
-          <div><dt>Outstanding Balance</dt><dd>{{ formatKes(record.balance) }}</dd></div>
+          <div><dt>{{ recordAmountLabel(record) }}</dt><dd>{{ formatKes(record.principal) }}</dd></div>
+          <div><dt>Total Repaid</dt><dd>{{ recordTotalRepaid(record) }}</dd></div>
+          <div><dt>Outstanding Balance</dt><dd>{{ recordOutstandingBalance(record) }}</dd></div>
         </dl>
 
-        <app-prototype-explainer tone="decision" title="This modal keeps deeper financing details off the main activity table">
-          <p>The values come from the same financing record already represented in the portal demo. No Purpose or other unsourced customer fields are added.</p>
+        <app-prototype-explainer tone="decision" title="The modal reflects the record's actual lifecycle stage">
+          <p>A submitted Funds Request is not presented as a disbursed Advance. Disbursement, repayment schedule, and repayment actions appear only where the record supports them.</p>
         </app-prototype-explainer>
 
         <section class="acl-installments">
@@ -339,38 +348,21 @@
               }
             </div>
             @if (nextRepaymentFor(record)) {
-              <button type="button" class="acl-text-link" (click)="openRepaymentDetails(record)">View repayment details for {{ fundsRequestReference(record) }}</button>
+              <div class="acl-record-actions">
+                <button
+                  type="button"
+                  class="baseline-button baseline-button--secondary baseline-button--block"
+                  [attr.aria-label]="'View repayment details for ' + fundsRequestReference(record)"
+                  (click)="openRepaymentDetails(record)"
+                >
+                  View repayment details
+                </button>
+              </div>
             }
           } @else {
-            <div class="baseline-empty"><strong>No Instalment schedule yet</strong><p>This financing record does not yet have a repayment schedule in the current dataset.</p></div>
+            <div class="baseline-empty"><strong>No repayment schedule</strong><p>This request did not create a repayment schedule in the current dataset.</p></div>
           }
         </section>
-      </div>
-    </section>
-  </div>
-}
-
-@if (experience.id === 'acl' && fundsRequestOpen) {
-  <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeFundsRequest()">
-    <section class="baseline-modal acl-sheet-modal acl-funds-request-modal" role="dialog" aria-modal="true" aria-labelledby="acl-funds-request-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head">
-        <div><p class="page-eyebrow">Agri Credit Line</p><h2 id="acl-funds-request-title">Submit Funds Request</h2></div>
-        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeFundsRequest()">&times;</button>
-      </header>
-      <div class="baseline-modal__body">
-        <app-prototype-explainer tone="action" title="This is one product-level Funds Request flow">
-          <p>The customer selects the amount, Instalment option, transaction evidence, and approved disbursement recipient in one flow. A Supplier, including a farmer where relevant, is part of the commercial transaction rather than a separate financing facility.</p>
-        </app-prototype-explainer>
-        <ol class="acl-request-steps">
-          <li><strong>Financing amount</strong><span>Select the amount to request.</span></li>
-          <li><strong>Instalment option</strong><span>Select an available repayment option.</span></li>
-          <li><strong>Transaction evidence</strong><span>Provide the approved evidence required for the request.</span></li>
-          <li><strong>Disbursement recipient</strong><span>Select or confirm the approved Supplier or, where specifically approved, the customer.</span></li>
-        </ol>
-        <app-prototype-explainer tone="limitation" title="The internal training URL is not embedded in this public preview">
-          <p>The Handbook marks the Agri Credit Line Funds Request demo as internal Avenews training only. Because this repository and Netlify preview are public, the action remains isolated here until a customer-safe URL is approved.</p>
-        </app-prototype-explainer>
-        <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeFundsRequest()">Continue Funds Request</button>
       </div>
     </section>
   </div>
@@ -379,8 +371,19 @@
 @if (experience.id === 'acl' && repaymentDetailsOpen && repaymentRecord; as record) {
   <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeRepaymentDetails()">
     <section class="baseline-modal acl-sheet-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head">
-        <div><p class="page-eyebrow">Repayment details</p><h2 id="acl-repayment-title">{{ fundsRequestReference(record) }}</h2></div>
+      <header class="baseline-modal__head acl-repayment-modal__head">
+        <div class="acl-modal-heading-with-back">
+          <button
+            type="button"
+            class="acl-modal-back"
+            [attr.aria-label]="'Back to financing details for ' + fundsRequestReference(record)"
+            (click)="backToFinancingDetails()"
+          >
+            <span aria-hidden="true">‹</span>
+            Back
+          </button>
+          <div><p class="page-eyebrow">Repayment details</p><h2 id="acl-repayment-title">{{ fundsRequestReference(record) }}</h2></div>
+        </div>
         <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRepaymentDetails()">&times;</button>
       </header>
       <div class="baseline-modal__body">
@@ -393,7 +396,7 @@
               <span>Outstanding balance</span>
               <strong>{{ formatKes(record.balance) }}</strong>
             }
-            <small>{{ nextDueDateValue(record) ? 'Due ' + formatDate(nextDueDateValue(record)) : 'No repayment date available' }}</small>
+            <small>{{ nextRepaymentFor(record)?.dueDate ? 'Due ' + formatDate(nextRepaymentFor(record)?.dueDate) : 'No repayment date available' }}</small>
           </div>
           @if (nextRepaymentFor(record); as repayment) {
             <span class="baseline-status" [class]="'baseline-status ' + installmentStatusTone(repayment.status)">{{ installmentStatusLabel(repayment.status) }}</span>
