@@ -102,12 +102,19 @@
   text-decoration: underline;
 }
 
-.acl-text-link--large {
-  font-size: 14px;
-}
-
 .acl-financing-activity {
   gap: 16px;
+}
+
+.acl-activity-toolbar {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.acl-activity-toolbar .baseline-section-heading,
+.acl-activity-toolbar app-customer-filter-bar {
+  min-width: 0;
 }
 
 .acl-activity-table {
@@ -145,46 +152,6 @@
 
 .acl-pagination {
   margin-top: 0;
-}
-
-.acl-help-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.acl-help-card {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 18px;
-  min-height: 180px;
-  padding: 20px;
-}
-
-.acl-help-card > div {
-  display: grid;
-  gap: 6px;
-}
-
-.acl-help-card h2,
-.acl-help-card p {
-  margin: 0;
-}
-
-.acl-help-card h2 {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 18px;
-}
-
-.acl-help-card > div > p:not(.page-eyebrow) {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.acl-help-card .acl-text-link {
-  margin-top: auto;
 }
 
 .acl-sheet-backdrop {
@@ -479,6 +446,18 @@
   overflow-wrap: anywhere;
 }
 
+@media (min-width: 1280px) {
+  .acl-activity-toolbar {
+    grid-template-columns: minmax(240px, .7fr) minmax(0, 1.7fr);
+    align-items: end;
+    column-gap: 24px;
+  }
+
+  .acl-activity-toolbar .baseline-section-heading {
+    align-self: center;
+  }
+}
+
 @media (max-width: 767px) {
   .contextual-home {
     gap: 20px;
@@ -497,13 +476,8 @@
     width: 100%;
   }
 
-  .contextual-metrics,
-  .acl-help-grid {
+  .contextual-metrics {
     grid-template-columns: 1fr;
-  }
-
-  .acl-help-card {
-    min-height: 0;
   }
 
   .acl-record-details {
