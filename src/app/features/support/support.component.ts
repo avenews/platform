@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms'
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './support.component.html',
+  styleUrl: './support.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SupportComponent {
