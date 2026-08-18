@@ -10,11 +10,11 @@
             <button type="button" role="menuitem" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">
               Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}
             </button>
-            <button type="button" role="menuitem" (click)="openDestination('acl')">Agri Credit Line - ACL</button>
-            <button type="button" role="menuitem" (click)="openDestination('abf')">Agri Buyer Financing - ABF</button>
-            <button type="button" role="menuitem" (click)="openDestination('stf')">Stockist Financing - STF</button>
+            <button type="button" role="menuitem" (click)="openDestination('acl')">Agri Credit Line</button>
+            <button type="button" role="menuitem" (click)="openDestination('abf')">Agri Buyer Financing</button>
+            <button type="button" role="menuitem" (click)="openDestination('stf')">Stockist Financing</button>
             <button type="button" role="menuitem" (click)="openDestination('invoice-financing')">Invoice Financing</button>
-            <button type="button" role="menuitem" (click)="openDestination('infx')">Invoice Financing Express - INFX</button>
+            <button type="button" role="menuitem" (click)="openDestination('infx')">Invoice Financing Express</button>
             <button type="button" role="menuitem" (click)="openDestination('invoice-partner')">Invoice Financing - Partner Buyer</button>
           </div>
         }
@@ -44,8 +44,8 @@
       <p>The product or workspace choice is kept only for the current authenticated session. It is cleared on logout so a user with several products is never silently returned to yesterday's choice.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="terminology" title="Product labels follow the Product-approved legacy-to-current mapping">
-      <p>The contextual prototype uses <strong>ACL, ABF, STF, Invoice Financing, and INFX</strong>. Partner Buyer access is shown as a role-specific workspace under Invoice Financing, not as another financing product.</p>
+    <app-prototype-explainer tone="terminology" title="Customer-facing product names are written in full">
+      <p>The contextual prototype displays <strong>Agri Credit Line, Agri Buyer Financing, Stockist Financing, Invoice Financing, and Invoice Financing Express</strong> without customer-facing abbreviations. Partner Buyer access is shown as a role-specific workspace under Invoice Financing, not as another financing product.</p>
     </app-prototype-explainer>
 
     @if (customerDestinations.length) {
@@ -67,7 +67,7 @@
               (click)="openDestination(destination.id)"
             >
               <span class="access-card__role">{{ destination.roleLabel }}</span>
-              <strong>{{ destination.productName }}</strong>
+              <strong>{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
               <p>{{ destination.description }}</p>
               <span class="access-card__action">Open experience <span aria-hidden="true">-&gt;</span></span>
@@ -100,7 +100,7 @@
               (click)="openDestination(destination.id)"
             >
               <span class="access-card__role">{{ destination.roleLabel }}</span>
-              <strong>{{ destination.productName }}</strong>
+              <strong>{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
               <p>{{ destination.description }}</p>
               <span class="access-card__action">Open workspace <span aria-hidden="true">-&gt;</span></span>
