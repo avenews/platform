@@ -143,7 +143,7 @@ test.describe('post-OTP access resolution', () => {
     await expect(page.locator('[data-experience-id="acl"] .access-card__summary')).toContainText('Available Credit')
     await expect(page.locator('[data-experience-id="acl"] .access-card__summary')).toContainText('Outstanding Principal')
 
-    await assertExplainer(page, 'Customer financing now starts at this selector', 'purpose')
+    await assertExplainer(page, 'Product selection appears only when there is a choice', 'purpose')
     await assertExplainer(page, 'The portal asks again on every new login', 'decision')
     await assertExplainer(page, 'Internal financing-party labels are hidden from customer product cards', 'terminology')
     await assertExplainer(page, 'Partner workspace access is operationally separate from customer financing', 'role')
@@ -152,17 +152,13 @@ test.describe('post-OTP access resolution', () => {
     await page.screenshot({ path: testInfo.outputPath('product-selector-simplified.png'), fullPage: true })
   })
 
-  test('a single customer product still opens the selector before the product', async ({ page }, testInfo) => {
+  test('a single customer product routes directly after OTP', async ({ page }, testInfo) => {
     await completePrototypeLogin(page, 'abf-only')
-    await expect(page).toHaveURL(/\/access$/)
-    await expect(page.locator('.access-card')).toHaveCount(1)
-    await expect(page.getByRole('heading', { name: 'Your available products', level: 2 })).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Partner workspace', level: 2 })).toHaveCount(0)
-    await page.getByRole('button').filter({ hasText: 'Agri Buyer Financing' }).click()
     await expect(page).toHaveURL(/\/experience\/abf\/home$/)
     await expect(page.getByRole('heading', { name: 'Agri Buyer Financing', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 2 })).toHaveCount(0)
     await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('single-customer-selector-first.png'), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('single-customer-direct-home.png'), fullPage: true })
   })
 
   test('a single Partner Buyer destination routes directly after OTP', async ({ page }, testInfo) => {
