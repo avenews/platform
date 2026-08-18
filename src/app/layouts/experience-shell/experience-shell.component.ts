@@ -17,6 +17,7 @@ import {
   type ExperienceId,
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
+import { ACL_FUNDS_REQUEST_DEMO_URL } from '../../core/experience/experience-links'
 import { PortalExperienceService } from '../../core/experience/portal-experience.service'
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 import { PrototypeExplainerService } from '../../shared/prototype-explainer.service'
@@ -30,6 +31,7 @@ interface ExperienceNavItem {
   label: string
   icon: PortalNavIconName
   exact: boolean
+  externalUrl?: string
 }
 
 const CUSTOMER_NAV: readonly ExperienceNavItem[] = [
@@ -39,6 +41,13 @@ const CUSTOMER_NAV: readonly ExperienceNavItem[] = [
 
 const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
+  {
+    segment: 'request-funds',
+    label: 'Request Funds',
+    icon: 'wallet',
+    exact: false,
+    externalUrl: ACL_FUNDS_REQUEST_DEMO_URL,
+  },
 ]
 
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
