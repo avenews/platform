@@ -152,6 +152,12 @@
   font-size: 11px;
 }
 
+.acl-pagination-row .baseline-pagination {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .acl-help-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -491,6 +497,11 @@
   .acl-pagination-row {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .acl-pagination-row .baseline-pagination {
+    align-self: flex-end;
+    flex-direction: row;
   }
 
   .acl-record-details {
