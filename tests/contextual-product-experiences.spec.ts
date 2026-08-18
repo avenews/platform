@@ -312,13 +312,32 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await page.goto('/experience/acl/home')
   })
 
-  test('summary is neutral and the Home Funds Request action opens the current demo', async ({ page }, testInfo) => {
+  test('summary aggregates current payments and the Home Funds Request action opens the current demo', async ({ page }, testInfo) => {
     await expect(page.getByRole('heading', { name: 'Agri Credit Line', level: 1 })).toBeVisible()
     await expect(page.getByText('Outstanding Amount', { exact: true })).toBeVisible()
-    await expect(page.locator('.acl-next-installment')).toContainText('2 payments due')
-    await expect(page.locator('.acl-next-installment')).toContainText('Next due 25 May 2026')
-    await expect(page.locator('.acl-next-installment')).not.toContainText('FR-')
-    await expect(page.locator('.acl-next-installment').getByRole('button')).toHaveCount(0)
+    const paymentsSummary = page.locator('.acl-next-installment')
+    await expect(paymentsSummary).toContainText('2 payments due')
+    await expect(paymentsSummary).toContainText('Next due 25 May 2026')
+    await expect(paymentsSummary).not.toContainText('FR-')
+
+    const repaymentAction = paymentsSummary.getByRole('button', {
+      name: 'View repayment details for all payments due',
+    })
+    await expect(repaymentAction).toBeVisible()
+    await repaymentAction.click()
+
+    const repaymentDialog = page.locator('.acl-repayment-modal')
+    await expect(repaymentDialog).toBeVisible()
+    await expect(repaymentDialog).toContainText('Current payments')
+    await expect(repaymentDialog).toContainText('Total amount due')
+    await expect(repaymentDialog).toContainText('Ksh 2,500,000')
+    await expect(repaymentDialog).toContainText('2 payments due')
+    await expect(repaymentDialog).toContainText('1 overdue payment')
+    await expect(repaymentDialog).toContainText('1 upcoming payment')
+    await expect(repaymentDialog).not.toContainText('FR-')
+    await expect(repaymentDialog.getByRole('button', { name: 'Back to financing details' })).toHaveCount(0)
+    await assertCenteredOrBottomSheet(repaymentDialog, page, testInfo)
+    await repaymentDialog.getByRole('button', { name: 'Close' }).click()
 
     const submit = page.getByRole('button', { name: /Submit Funds Request/ }).first()
     await expect(submit).toHaveAttribute('data-external-url', ACL_DEMO_URL)
@@ -334,9 +353,10 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await expect(page.getByRole('dialog', { name: 'Submit Funds Request' })).toHaveCount(0)
 
     await assertExplainer(page, 'Request Funds opens the current Agri Credit Line journey', 'action')
-    await assertExplainer(page, 'The product summary stays neutral when several payments exist', 'purpose')
+    await assertExplainer(page, 'The product summary combines current payment obligations', 'purpose')
+    await assertExplainer(page, 'Repayment instructions combine current obligations', 'decision')
     await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('acl-neutral-summary.png'), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('acl-aggregate-repayment-summary.png'), fullPage: true })
   })
 
   test('Financing activity demonstrates Requested, Live, Repaid, Cancelled and Declined', async ({ page }, testInfo) => {
@@ -383,7 +403,7 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await page.screenshot({ path: testInfo.outputPath('acl-lifecycle-statuses.png'), fullPage: true })
   })
 
-  test('repayment opens from a Live record and returns to the same financing details', async ({ page }, testInfo) => {
+  test('generic repayment details can return to the same financing record', async ({ page }, testInfo) => {
     await openAclRecord(page, 'FR-2026-0318')
 
     const recordDialog = page.locator('.acl-record-modal')
@@ -394,15 +414,20 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await assertCenteredOrBottomSheet(recordDialog, page, testInfo)
 
     const repaymentButton = recordDialog.getByRole('button', {
-      name: 'View repayment details for FR-2026-0318',
+      name: 'View repayment details for all payments due',
     })
     await expect(repaymentButton).toBeVisible()
+    await expect(repaymentButton).toContainText('View all repayment details')
     await repaymentButton.click()
 
     const repaymentDialog = page.locator('.acl-repayment-modal')
     await expect(repaymentDialog).toBeVisible()
-    await expect(repaymentDialog).toContainText('FR-2026-0318')
-    await expect(repaymentDialog).toContainText('Financing reference')
+    await expect(repaymentDialog).toContainText('Current payments')
+    await expect(repaymentDialog).toContainText('Ksh 2,500,000')
+    await expect(repaymentDialog).toContainText('1 overdue payment')
+    await expect(repaymentDialog).toContainText('1 upcoming payment')
+    await expect(repaymentDialog).not.toContainText('FR-2026-0318')
+    await expect(repaymentDialog).not.toContainText('Financing reference')
     await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
     await expect(repaymentDialog).toContainText('2046346095')
     await assertCenteredOrBottomSheet(repaymentDialog, page, testInfo)
@@ -411,9 +436,9 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await expect(repaymentDialog).toContainText('4567121')
     await expect(repaymentDialog).toContainText('Use your registered phone number')
 
-    await repaymentDialog
-      .getByRole('button', { name: 'Back to financing details for FR-2026-0318' })
-      .click()
+    const back = repaymentDialog.getByRole('button', { name: 'Back to financing details' })
+    await expect(back).toBeVisible()
+    await back.click()
     await expect(repaymentDialog).toHaveCount(0)
     await expect(page.locator('.acl-record-modal')).toContainText('FR-2026-0318')
     await assertNoOverflow(page)
