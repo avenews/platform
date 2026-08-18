@@ -17,6 +17,19 @@ import { PortalExperienceService } from '../../core/experience/portal-experience
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 import { PrototypeExplainerService } from '../../shared/prototype-explainer.service'
 
+interface AccessSummary {
+  label: string
+  value: string
+}
+
+const WELCOME_MESSAGES = [
+  'Welcome back',
+  'Good to see you again',
+  'Ready when you are',
+  'Welcome to Avenews',
+  "Let's get started",
+] as const
+
 @Component({
   selector: 'app-access-chooser',
   standalone: true,
@@ -33,7 +46,7 @@ export class AccessChooserComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef)
 
   readonly explainers = inject(PrototypeExplainerService)
-  readonly session = this.auth.getSession()
+  readonly welcomeMessage = WELCOME_MESSAGES[new Date().getMinutes() % WELCOME_MESSAGES.length]
   destinations: readonly PortalExperience[] = []
   developerOpen = false
 
@@ -50,10 +63,14 @@ export class AccessChooserComponent implements OnInit {
     if (isExperienceScenario(requestedScenario)) this.experiences.setScenario(requestedScenario)
 
     this.destinations = this.experiences.availableExperiences()
-    if (this.destinations.length === 1) {
+
+    // Customer financing always starts at the selector. A partner-only identity
+    // has one operational destination and can continue directly to it.
+    if (this.destinations.length === 1 && this.destinations[0].kind === 'partner') {
       this.openDestination(this.destinations[0].id)
       return
     }
+
     this.cdr.markForCheck()
   }
 
@@ -65,6 +82,19 @@ export class AccessChooserComponent implements OnInit {
       infx: 'Invoice Financing Express',
     }
     return labels[destination.id] ?? destination.productName
+  }
+
+  availabilitySummary(destination: PortalExperience): AccessSummary | null {
+    const metric = destination.metrics.find(item => /available/i.test(item.label))
+    return metric ? { label: metric.label, value: metric.value } : null
+  }
+
+  outstandingSummary(destination: PortalExperience): AccessSummary | null {
+    const metric = destination.metrics.find(item => /outstanding/i.test(item.label))
+    if (metric) return { label: metric.label, value: metric.value }
+
+    const record = destination.records.find(item => item.amountLabel.toLowerCase() === 'outstanding')
+    return record ? { label: 'Outstanding', value: record.amount } : null
   }
 
   openDestination(id: ExperienceId): void {
