@@ -40,11 +40,22 @@
         <span>Payments Due</span>
         <strong>{{ paymentsDueLabel }}</strong>
         <small>Next due {{ formatDate(business.nextRepaymentDate) }}</small>
+        <button
+          type="button"
+          avButton
+          variant="ghost"
+          size="sm"
+          class="acl-summary-repayment-action"
+          aria-label="View repayment details for all payments due"
+          (click)="openRepaymentDetails()"
+        >
+          View repayment details
+        </button>
       </article>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="The product summary stays neutral when several payments exist">
-      <p>The summary shows how many payments are due and the next due date without selecting one Funds Request or exposing universal repayment instructions. The customer opens the relevant record in Financing activity to review and pay a specific obligation.</p>
+    <app-prototype-explainer tone="purpose" title="The product summary combines current payment obligations">
+      <p>The summary shows the number of payments due, the next due date, and a customer-level repayment action. The repayment view uses the existing aggregate amount due so a customer can pay multiple due or overdue obligations without selecting one Funds Request as the payment reference.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
@@ -89,8 +100,8 @@
         <p>The product is already fixed to Agri Credit Line, so the controls only need Status, Due Date, and search by financing or Funds Request reference. Desktop uses the space beside the heading; tablet and mobile stack the controls and retain the compact Filters drawer.</p>
       </app-prototype-explainer>
 
-      <app-prototype-explainer tone="decision" title="Financing details are centered on desktop and a bottom drawer on mobile">
-        <p>The main list stays scannable. Selecting a record reveals its request reference, dates, payment progress, and Instalment schedule. Repayment instructions can then be opened for that specific Advance only.</p>
+      <app-prototype-explainer tone="decision" title="Financing details stay record-specific while payment instructions are shared">
+        <p>Selecting a record reveals that Funds Request or Advance, its dates, payment progress, and Instalment schedule. The payment destination is customer-level, so the repayment view combines all currently due and overdue obligations rather than treating one financing reference as the only payment target.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="limitation" title="Purpose is intentionally not shown">
@@ -171,16 +182,16 @@
       }
     </section>
 
-    <app-prototype-explainer tone="action" title="Request Funds is product-level; repayment is record-level">
-      <p>Request Funds creates a new Funds Request and is therefore available from Home and primary navigation. Repayment details are available only after the customer opens a specific disbursed financing record.</p>
+    <app-prototype-explainer tone="action" title="Request Funds is product-level; repayment instructions are customer-level">
+      <p>Request Funds creates a new Funds Request and is therefore available from Home and primary navigation. Repayment instructions use the customer collections destination and the existing aggregate amount due, while Financing activity continues to explain each individual request or Advance.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Multiple Agri Credit Line Funds Requests may run in parallel">
       <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the records together and paginates older records instead of splitting them into another product page.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="decision" title="Repayment instructions are opened only from a financing record">
-      <p>The customer opens the relevant Financing activity record, reviews its repayment schedule, and then opens repayment instructions for that specific Advance. This avoids ambiguity when one obligation is overdue and another is upcoming.</p>
+    <app-prototype-explainer tone="decision" title="Repayment instructions combine current obligations">
+      <p>The repayment view sums the existing amount due across current due and overdue payments. It does not ask the customer to identify one financing reference as the only payment target; Avenews allocates received funds to the applicable obligations.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
@@ -352,10 +363,10 @@
                 <button
                   type="button"
                   class="baseline-button baseline-button--secondary baseline-button--block"
-                  [attr.aria-label]="'View repayment details for ' + fundsRequestReference(record)"
+                  aria-label="View repayment details for all payments due"
                   (click)="openRepaymentDetails(record)"
                 >
-                  View repayment details
+                  View all repayment details
                 </button>
               </div>
             }
@@ -368,44 +379,52 @@
   </div>
 }
 
-@if (experience.id === 'acl' && repaymentDetailsOpen && repaymentRecord; as record) {
+@if (experience.id === 'acl' && repaymentDetailsOpen) {
   <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeRepaymentDetails()">
     <section class="baseline-modal acl-sheet-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
       <header class="baseline-modal__head acl-repayment-modal__head">
-        <div class="acl-modal-heading-with-back">
-          <button
-            type="button"
-            class="acl-modal-back"
-            [attr.aria-label]="'Back to financing details for ' + fundsRequestReference(record)"
-            (click)="backToFinancingDetails()"
-          >
-            <span aria-hidden="true">‹</span>
-            Back
-          </button>
-          <div><p class="page-eyebrow">Repayment details</p><h2 id="acl-repayment-title">{{ fundsRequestReference(record) }}</h2></div>
+        <div class="acl-repayment-modal__heading">
+          @if (repaymentReturnRecord) {
+            <button
+              type="button"
+              avButton
+              variant="ghost"
+              size="sm"
+              class="acl-modal-back"
+              aria-label="Back to financing details"
+              (click)="backToFinancingDetails()"
+            >
+              <av-icon name="chevron-left" [size]="18" />
+              <span>Back</span>
+            </button>
+          }
+          <div class="acl-repayment-modal__title">
+            <p class="page-eyebrow">Repayment details</p>
+            <h2 id="acl-repayment-title">Current payments</h2>
+          </div>
         </div>
         <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRepaymentDetails()">&times;</button>
       </header>
       <div class="baseline-modal__body">
         <div class="acl-repayment-summary">
           <div>
-            @if (knownRepaymentAmount(record); as amount) {
-              <span>Next repayment</span>
-              <strong>{{ formatKes(amount) }}</strong>
-            } @else {
-              <span>Outstanding balance</span>
-              <strong>{{ formatKes(record.balance) }}</strong>
-            }
-            <small>{{ nextRepaymentFor(record)?.dueDate ? 'Due ' + formatDate(nextRepaymentFor(record)?.dueDate) : 'No repayment date available' }}</small>
+            <span>Total amount due</span>
+            <strong>{{ formatKes(business.totalAmountDue) }}</strong>
+            <small>{{ paymentsDueLabel }} · Next due {{ formatDate(business.nextRepaymentDate) }}</small>
           </div>
-          @if (nextRepaymentFor(record); as repayment) {
-            <span class="baseline-status" [class]="'baseline-status ' + installmentStatusTone(repayment.status)">{{ installmentStatusLabel(repayment.status) }}</span>
-          }
+          <div class="acl-repayment-summary__statuses" aria-label="Payment status summary">
+            @if (overduePaymentsCount) {
+              <span class="baseline-status status-danger">{{ overduePaymentsLabel }}</span>
+            }
+            @if (upcomingPaymentsCount) {
+              <span class="baseline-status status-info">{{ upcomingPaymentsLabel }}</span>
+            }
+          </div>
         </div>
 
-        <div class="acl-payment-reference">
-          <span><small>Financing reference</small><strong>{{ fundsRequestReference(record) }}</strong></span>
-          <button type="button" (click)="copyPaymentValue(fundsRequestReference(record), 'Financing reference')">Copy</button>
+        <div class="acl-payment-allocation-note">
+          <strong>One payment destination for current obligations</strong>
+          <p>The total above combines all payments currently due or overdue. Use either payment method below; Avenews allocates received funds to the applicable obligations.</p>
         </div>
 
         <div class="acl-payment-methods" role="tablist" aria-label="Repayment method">
@@ -428,8 +447,12 @@
           </div>
         }
 
+        <app-prototype-explainer tone="handbook" title="The collections account supports customer-level payment allocation">
+          <p>The Avenews collections account receives repayments and Avenews identifies and allocates the received amount to the applicable Client, Advance, Instalment, Principal, Markup, Late Markup, or other permitted amount. This view therefore avoids presenting one financing reference as the universal payment target.</p>
+        </app-prototype-explainer>
+
         <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
-          <p>These are repayment instructions for {{ fundsRequestReference(record) }}. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
+          <p>These are customer-level repayment instructions for the current due and overdue obligations. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
         </app-prototype-explainer>
       </div>
     </section>
