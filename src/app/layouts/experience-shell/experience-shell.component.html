@@ -50,16 +50,30 @@
 
     <nav class="experience-sidebar-nav" [attr.aria-label]="displayProductName(currentExperience)">
       @for (item of primaryNavItems; track item.segment) {
-        <a
-          [routerLink]="routeFor(item.segment)"
-          routerLinkActive="experience-nav-link--active"
-          [routerLinkActiveOptions]="{ exact: item.exact }"
-          ariaCurrentWhenActive="page"
-          class="experience-nav-link"
-        >
-          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
-          <span>{{ item.label }}</span>
-        </a>
+        @if (item.externalUrl; as externalUrl) {
+          <a
+            [href]="externalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="experience-nav-link experience-nav-link--external"
+            [attr.aria-label]="item.label + ' (opens in a new tab)'"
+            [attr.data-external-url]="externalUrl"
+          >
+            <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        } @else {
+          <a
+            [routerLink]="routeFor(item.segment)"
+            routerLinkActive="experience-nav-link--active"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+            ariaCurrentWhenActive="page"
+            class="experience-nav-link"
+          >
+            <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        }
       }
     </nav>
 
@@ -88,16 +102,30 @@
 
   <nav class="experience-bottom-nav" [style.--cols]="mobileNavItems.length" aria-label="Current experience navigation">
     @for (item of mobileNavItems; track item.segment) {
-      <a
-        [routerLink]="routeFor(item.segment)"
-        routerLinkActive="experience-bottom-nav__item--active"
-        [routerLinkActiveOptions]="{ exact: item.exact }"
-        ariaCurrentWhenActive="page"
-        class="experience-bottom-nav__item"
-      >
-        <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
-        <span>{{ item.label }}</span>
-      </a>
+      @if (item.externalUrl; as externalUrl) {
+        <a
+          [href]="externalUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="experience-bottom-nav__item experience-bottom-nav__item--external"
+          [attr.aria-label]="item.label + ' (opens in a new tab)'"
+          [attr.data-external-url]="externalUrl"
+        >
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <a
+          [routerLink]="routeFor(item.segment)"
+          routerLinkActive="experience-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
+          class="experience-bottom-nav__item"
+        >
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
     }
   </nav>
 
