@@ -23,6 +23,7 @@ import {
 import {
   experienceById,
   type ExperienceActionKind,
+  type ExperienceId,
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
 import { PortalExperienceService } from '../../core/experience/portal-experience.service'
@@ -87,6 +88,16 @@ export class ContextualHomeComponent implements OnDestroy {
   private resolveExperience(): PortalExperience {
     const id = this.route.parent?.snapshot.paramMap.get('experienceId')
     return experienceById(id) ?? experienceById('acl')!
+  }
+
+  displayProductName(experience: PortalExperience): string {
+    const labels: Partial<Record<ExperienceId, string>> = {
+      acl: 'Agri Credit Line',
+      abf: 'Agri Buyer Financing',
+      stf: 'Stockist Financing',
+      infx: 'Invoice Financing Express',
+    }
+    return labels[experience.id] ?? experience.homeHeading
   }
 
   get primaryAclCreditLine(): CreditLine | undefined {
