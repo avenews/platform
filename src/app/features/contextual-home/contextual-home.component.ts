@@ -5,6 +5,7 @@ import {
   OnDestroy,
   inject,
 } from '@angular/core'
+import { AvButtonDirective, AvIconComponent } from '@avenews/design-system/angular'
 import { ActivatedRoute, Router } from '@angular/router'
 import { Subject, takeUntil } from 'rxjs'
 import {
@@ -74,7 +75,12 @@ function aclLifecycleRecord(id: string): FinancingRecord {
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
-  imports: [PrototypeExplainerComponent, CustomerFilterBarComponent],
+  imports: [
+    PrototypeExplainerComponent,
+    CustomerFilterBarComponent,
+    AvButtonDirective,
+    AvIconComponent,
+  ],
   templateUrl: './contextual-home.component.html',
   styleUrls: [
     './contextual-home.component.css',
@@ -122,7 +128,7 @@ export class ContextualHomeComponent implements OnDestroy {
   aclDueDateFilter = ''
   aclSearchQuery = ''
   selectedAclRecord: FinancingRecord | null = null
-  repaymentRecord: FinancingRecord | null = null
+  repaymentReturnRecord: FinancingRecord | null = null
   repaymentDetailsOpen = false
   repaymentMethod: RepaymentMethod = 'bank'
   toast = ''
@@ -162,15 +168,27 @@ export class ContextualHomeComponent implements OnDestroy {
       ?? CREDIT_LINES.find(line => line.product === 'ACL')
   }
 
-  get nextAclRepaymentRecord(): FinancingRecord | undefined {
-    return this.aclFinancingRecords.find(record =>
-      record.installments.some(installment => installment.dueDate === BUSINESS.nextRepaymentDate),
-    )
-  }
-
   get paymentsDueLabel(): string {
     const count = BUSINESS.duePeriodsCount
     return `${count} ${count === 1 ? 'payment' : 'payments'} due`
+  }
+
+  get overduePaymentsCount(): number {
+    return Math.min(BUSINESS.overdueLoansCount, BUSINESS.duePeriodsCount)
+  }
+
+  get upcomingPaymentsCount(): number {
+    return Math.max(BUSINESS.duePeriodsCount - this.overduePaymentsCount, 0)
+  }
+
+  get overduePaymentsLabel(): string {
+    const count = this.overduePaymentsCount
+    return `${count} ${count === 1 ? 'overdue payment' : 'overdue payments'}`
+  }
+
+  get upcomingPaymentsLabel(): string {
+    const count = this.upcomingPaymentsCount
+    return `${count} ${count === 1 ? 'upcoming payment' : 'upcoming payments'}`
   }
 
   get aclFilterValues(): Readonly<Record<string, string>> {
@@ -256,24 +274,23 @@ export class ContextualHomeComponent implements OnDestroy {
     this.cdr.markForCheck()
   }
 
-  openRepaymentDetails(record: FinancingRecord, method: RepaymentMethod = 'bank'): void {
-    if (!this.nextRepaymentFor(record)) return
+  openRepaymentDetails(returnRecord: FinancingRecord | null = null, method: RepaymentMethod = 'bank'): void {
+    if (BUSINESS.duePeriodsCount <= 0) return
     this.selectedAclRecord = null
-    this.repaymentRecord = record
+    this.repaymentReturnRecord = returnRecord
     this.repaymentMethod = method
     this.repaymentDetailsOpen = true
   }
 
   backToFinancingDetails(): void {
-    const record = this.repaymentRecord
-    this.repaymentDetailsOpen = false
-    this.repaymentRecord = null
-    this.selectedAclRecord = record
+    const record = this.repaymentReturnRecord
+    this.closeRepaymentDetails()
+    if (record) this.selectedAclRecord = record
   }
 
   closeRepaymentDetails(): void {
     this.repaymentDetailsOpen = false
-    this.repaymentRecord = null
+    this.repaymentReturnRecord = null
   }
 
   selectRepaymentMethod(method: RepaymentMethod): void {
@@ -343,13 +360,6 @@ export class ContextualHomeComponent implements OnDestroy {
     return record.installments.find(item => item.status !== 'paid')
   }
 
-  knownRepaymentAmount(record: FinancingRecord): number | null {
-    return record.id === this.nextAclRepaymentRecord?.id
-      && this.nextRepaymentFor(record)?.dueDate === BUSINESS.nextRepaymentDate
-      ? BUSINESS.nextRepaymentAmount
-      : null
-  }
-
   installmentStatusLabel(status: Installment['status']): string {
     if (status === 'paid') return 'Paid'
     if (status === 'overdue') return 'Overdue'
@@ -381,7 +391,7 @@ export class ContextualHomeComponent implements OnDestroy {
 
   closeAclOverlays(): void {
     this.selectedAclRecord = null
-    this.repaymentRecord = null
+    this.repaymentReturnRecord = null
     this.repaymentDetailsOpen = false
   }
 
