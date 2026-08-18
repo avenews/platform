@@ -322,7 +322,7 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     ])
     await expect(page.getByText('Purpose', { exact: true })).toHaveCount(0)
     await expect(page.getByText('Next Instalment', { exact: true })).toBeVisible()
-    await expect(page.getByText('FR-2026-0318', { exact: true }).first()).toBeVisible()
+    await expect(page.locator('.acl-next-installment')).toContainText('FR-2026-0318')
     await expect(page.locator('.acl-pagination')).toContainText('Showing 1-2 of 2 financing records')
     await expect(page.locator('.acl-pagination .baseline-pagination__controls .is-active')).toHaveText('1')
     await expect(page.getByRole('button', { name: 'Previous page' })).toBeDisabled()
@@ -353,9 +353,13 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     await search.fill('')
 
     if (isMobile(testInfo)) {
-      await page.locator('.acl-activity-cards .acl-record-card-button').first().click()
+      const firstCard = page.locator('.acl-activity-cards .acl-record-card-button').first()
+      await expect(firstCard).toContainText('FR-2026-0318')
+      await firstCard.click()
     } else {
-      await page.locator('.acl-activity-table .acl-activity-row').first().click()
+      const firstRow = page.locator('.acl-activity-table .acl-activity-row').first()
+      await expect(firstRow).toContainText('FR-2026-0318')
+      await firstRow.click()
     }
     const recordDialog = page.locator('.acl-record-modal')
     await expect(recordDialog).toBeVisible()
