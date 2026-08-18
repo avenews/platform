@@ -16,7 +16,7 @@
     </section>
 
     <app-prototype-explainer tone="decision" title="Agri Credit Line uses one customer workspace">
-      <p>The credit facility belongs to the financing customer, so Home shows one product-level credit summary, Financing activity, record details, the Funds Request entry point, and repayment instructions. Supplier relationships remain inside the relevant commercial transaction rather than appearing as separate facilities.</p>
+      <p>The credit facility belongs to the financing customer, so Home shows one product-level credit summary, Financing activity, record details, and the Funds Request entry point. Supplier relationships remain inside the relevant commercial transaction rather than appearing as separate facilities.</p>
     </app-prototype-explainer>
 
     <section class="contextual-metrics acl-summary" aria-label="Agri Credit Line summary">
@@ -38,15 +38,14 @@
         <strong>{{ formatKes(business.nextRepaymentAmount) }}</strong>
         @if (nextAclRepaymentRecord; as nextRecord) {
           <small>{{ fundsRequestReference(nextRecord) }} · Due {{ formatDate(business.nextRepaymentDate) }}</small>
-          <button type="button" class="acl-text-link" (click)="openRepaymentDetails(nextRecord)">View repayment details</button>
         } @else {
           <small>Due {{ formatDate(business.nextRepaymentDate) }}</small>
         }
       </article>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="The summary connects the next repayment to its financing record">
-      <p>Available Credit and Outstanding Principal remain product-level values. The next Instalment now names the Funds Request reference it belongs to so repayment instructions never appear detached from the relevant Advance.</p>
+    <app-prototype-explainer tone="purpose" title="The next Instalment summary is informational only">
+      <p>Available Credit and Outstanding Principal remain product-level values. The next Instalment names the Funds Request reference it belongs to, but it does not open universal repayment instructions. To pay or review an obligation, the customer opens the specific record in Financing activity.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
@@ -54,38 +53,40 @@
     </app-prototype-explainer>
 
     <section class="baseline-section acl-financing-activity">
-      <div class="baseline-section-heading">
-        <div>
-          <h2>Financing activity</h2>
-          <p>Open a record for its full financing and repayment details.</p>
+      <div class="acl-activity-toolbar">
+        <div class="baseline-section-heading">
+          <div>
+            <h2>Financing activity</h2>
+            <p>Open a record for its full financing and repayment details.</p>
+          </div>
         </div>
+
+        <app-customer-filter-bar
+          [searchValue]="aclSearchQuery"
+          searchPlaceholder="Search financing or Funds Request"
+          searchAriaLabel="Search Agri Credit Line financing activity"
+          [filters]="aclFilterFields"
+          [values]="aclFilterValues"
+          (searchValueChange)="onAclSearchValueChange($event)"
+          (valuesChange)="onAclFilterValuesChange($event)"
+        />
       </div>
 
       <app-prototype-explainer tone="purpose" title="Financing activity is the full record list, not a second navigation destination">
         <p>This section keeps the production-representative fields from the existing portal: Financing, Disbursement Date, Repayment Due Date, Amount Financed, Status, Total Repaid, and Outstanding Balance. Older Funds Requests and Advances stay on Home and paginate here.</p>
       </app-prototype-explainer>
 
-      <app-prototype-explainer tone="decision" title="Search and filters reuse the established customer-list pattern">
-        <p>The product is already fixed to Agri Credit Line, so the activity controls only need Status, Due Date, and search by financing or Funds Request reference. On mobile the existing compact Filters drawer is reused instead of stacking every control above the list.</p>
+      <app-prototype-explainer tone="decision" title="Search and filters share the Financing activity header on desktop">
+        <p>The product is already fixed to Agri Credit Line, so the controls only need Status, Due Date, and search by financing or Funds Request reference. Desktop uses the space beside the heading; tablet and mobile stack the controls and retain the compact Filters drawer.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="decision" title="Financing details are centered on desktop and a bottom drawer on mobile">
-        <p>The main list stays scannable. Selecting a financing record reveals its Funds Request reference, repayment dates, payment progress, and Instalment schedule without introducing another page.</p>
+        <p>The main list stays scannable. Selecting a financing record reveals its Funds Request reference, repayment dates, payment progress, and Instalment schedule. Repayment instructions can then be opened for that specific Advance only.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="limitation" title="Purpose is intentionally not shown">
         <p>The old design demonstrated a Purpose column, but the current CRM and LMS dataset does not provide that field. It remains excluded rather than being replaced with invented customer data.</p>
       </app-prototype-explainer>
-
-      <app-customer-filter-bar
-        [searchValue]="aclSearchQuery"
-        searchPlaceholder="Search financing or Funds Request"
-        searchAriaLabel="Search Agri Credit Line financing activity"
-        [filters]="aclFilterFields"
-        [values]="aclFilterValues"
-        (searchValueChange)="onAclSearchValueChange($event)"
-        (valuesChange)="onAclFilterValuesChange($event)"
-      />
 
       <div class="baseline-table-wrap">
         <table class="baseline-table acl-activity-table">
@@ -161,42 +162,16 @@
       }
     </section>
 
-    <section class="acl-help-grid">
-      <article class="baseline-card acl-help-card" data-upload-placement="inside-funds-request">
-        <div>
-          <p class="page-eyebrow">How to request funds</p>
-          <h2>Submitting a Funds Request</h2>
-          <p>Select the financing amount, choose an available Instalment option, provide the approved transaction evidence, and confirm the approved disbursement recipient.</p>
-        </div>
-        <button type="button" class="acl-text-link acl-text-link--large" (click)="openFundsRequest()">Submit Funds Request</button>
-      </article>
-
-      <article class="baseline-card acl-help-card">
-        <div>
-          <p class="page-eyebrow">Repayment</p>
-          <h2>Making a repayment</h2>
-          @if (nextAclRepaymentRecord; as nextRecord) {
-            <p>View the Avenews bank-transfer and M-Pesa details for your next repayment. The instructions are linked to {{ fundsRequestReference(nextRecord) }} so you can see which financing record you are repaying.</p>
-          } @else {
-            <p>View the Avenews bank-transfer and M-Pesa details for the financing record you need to repay.</p>
-          }
-        </div>
-        @if (nextAclRepaymentRecord; as nextRecord) {
-          <button type="button" class="acl-text-link acl-text-link--large" (click)="openRepaymentDetails(nextRecord)">View repayment for {{ fundsRequestReference(nextRecord) }}</button>
-        }
-      </article>
-    </section>
-
-    <app-prototype-explainer tone="action" title="Submit Funds Request opens the same customer flow wherever it appears">
-      <p>The primary button at the top of Home and the text action in the How to request funds card both open the same Agri Credit Line Funds Request. The Supplier or other approved disbursement recipient is selected inside that transaction-specific request rather than represented as a separate facility.</p>
+    <app-prototype-explainer tone="action" title="Funds Requests are product-level; repayments are financing-record level">
+      <p>Submit Funds Request remains a product-level action because it creates a new financing record. Repayment details are not exposed from the product summary because each Advance or Instalment can have a different due date, status, amount, and payment allocation.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Multiple Agri Credit Line Funds Requests may run in parallel">
       <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the existing records together and paginates older records instead of splitting them into another product page.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="decision" title="Repayment instructions belong to a specific financing record">
-      <p>The next repayment card, Financing details, and repayment drawer all carry the same Funds Request reference. This removes the previous disconnect where bank and M-Pesa details looked universal rather than being opened from the financing obligation the customer is reviewing.</p>
+    <app-prototype-explainer tone="decision" title="Repayment instructions are opened only from a financing record">
+      <p>The Next Instalment card is an informational alert. The customer opens the relevant Financing activity record, reviews its repayment schedule, and then opens repayment instructions for that specific Advance. This avoids ambiguity when one obligation is overdue and another is upcoming.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
