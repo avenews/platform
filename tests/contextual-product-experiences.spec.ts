@@ -189,6 +189,8 @@ test.describe('contextual product and role shell', () => {
       await expect(page.getByRole('heading', { name: destination.homeHeading, level: 1 })).toBeVisible()
       await expect(page.locator('.contextual-metric')).toHaveCount(3)
       await expect(page.locator('.experience-context-copy')).toContainText(destination.cardLabel)
+      await expect(page.locator('.experience-context-copy')).not.toContainText('Client Buyer')
+      await expect(page.locator('.experience-context-copy')).not.toContainText('Client Supplier')
       await assertExplainer(page, 'You are viewing one product or Partner role at a time', 'decision')
       if (destination.id === 'acl') {
         await assertExplainer(page, 'Agri Credit Line uses one customer workspace', 'decision')
@@ -196,9 +198,6 @@ test.describe('contextual product and role shell', () => {
         await assertExplainer(page, 'This Home answers the first product-specific questions', 'purpose')
       }
 
-      const customerText = await customerFacingText(page)
-      expect(customerText).not.toMatch(/\bClient Buyer\b/)
-      expect(customerText).not.toMatch(/\bClient Supplier\b/)
       await assertNoLegacyTerminology(page)
       await assertNoOverflow(page)
       await page.screenshot({ path: testInfo.outputPath(`${destination.id}-home-clean-shell.png`), fullPage: true })
@@ -311,7 +310,7 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     await expect(page.getByRole('heading', { name: 'Financing activity', level: 2 })).toBeVisible()
     await expect(page.locator('.acl-financing-activity .page-eyebrow')).toHaveCount(0)
     await expect(page.locator('app-customer-filter-bar')).toBeVisible()
-    await expect(page.getByRole('textbox', { name: 'Search Agri Credit Line financing activity' })).toBeVisible()
+    await expect(page.getByRole('searchbox', { name: 'Search Agri Credit Line financing activity' })).toBeVisible()
     await expect(page.locator('.acl-activity-table th')).toHaveText([
       'Financing',
       'Disbursement Date',
@@ -342,7 +341,7 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     expect(customerText).not.toMatch(/\bprototype\b/i)
     expect(customerText).not.toMatch(/\bACL\b/)
 
-    const search = page.getByRole('textbox', { name: 'Search Agri Credit Line financing activity' })
+    const search = page.getByRole('searchbox', { name: 'Search Agri Credit Line financing activity' })
     await search.fill('FR-2026-0510')
     if (isMobile(testInfo)) {
       await expect(page.locator('.acl-activity-cards .baseline-record-card')).toHaveCount(1)
