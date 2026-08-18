@@ -64,9 +64,9 @@ export class AccessChooserComponent implements OnInit {
 
     this.destinations = this.experiences.availableExperiences()
 
-    // Customer financing always starts at the selector. A partner-only identity
-    // has one operational destination and can continue directly to it.
-    if (this.destinations.length === 1 && this.destinations[0].kind === 'partner') {
+    // The selector is only useful when there is a real choice. If exactly one
+    // product or workspace is available, continue directly into that experience.
+    if (this.destinations.length === 1) {
       this.openDestination(this.destinations[0].id)
       return
     }
