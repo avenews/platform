@@ -47,10 +47,15 @@ export class PortalExperienceService {
 
   resolvePostLoginRoute(): string[] {
     const available = this.availableExperiences()
-    if (available.length === 1) {
+
+    // Customer financing always starts at the product selector, even when the
+    // identity currently has only one customer product. Partner-only access is
+    // operationally narrower, so it may continue directly into its workspace.
+    if (available.length === 1 && available[0].kind === 'partner') {
       this.selectExperience(available[0].id)
       return this.routeFor(available[0].id, 'home')
     }
+
     return ['/access']
   }
 
