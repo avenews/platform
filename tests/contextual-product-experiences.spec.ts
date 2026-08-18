@@ -87,8 +87,6 @@ async function customerFacingText(page: Page): Promise<string> {
 }
 
 async function assertNoLegacyTerminology(page: Page): Promise<void> {
-  // Review explainers may name a retired term specifically to explain its
-  // Product-approved replacement. The underlying customer UI may not.
   const text = await customerFacingText(page)
   for (const pattern of LEGACY_TERMS) expect(text).not.toMatch(pattern)
 }
@@ -161,7 +159,7 @@ test.describe('contextual product and role shell', () => {
       await expect(page.locator('.experience-context-copy')).toContainText(destination.role)
       await assertExplainer(page, 'You are viewing one product or Partner role at a time', 'decision')
       if (destination.id === 'acl') {
-        await assertExplainer(page, 'Agri Credit Line now uses one working Home instead of a separate Financing page', 'decision')
+        await assertExplainer(page, 'Agri Credit Line uses one Client Buyer workspace', 'decision')
       } else {
         await assertExplainer(page, 'This Home answers the first product-specific questions', 'purpose')
         await assertExplainer(page, 'The figures and actions on this branch are fictional review data', 'limitation')
@@ -264,12 +262,12 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     })
   }
 
-  test('Agri Credit Line is a complete single-screen workspace', async ({ page }, testInfo) => {
+  test('Agri Credit Line is a complete Client Buyer workspace', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
 
     await expect(page.getByRole('heading', { name: 'Agri Credit Line', level: 1 })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Submit Funds Request' }).first()).toBeVisible()
-    await expect(page.getByRole('heading', { name: 'Available financing', level: 2 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Available financing', level: 2 })).toHaveCount(0)
     await expect(page.getByRole('heading', { name: 'Financing activity', level: 2 })).toBeVisible()
     await expect(page.locator('.acl-activity-table th')).toHaveText([
       'Financing',
@@ -283,15 +281,23 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     await expect(page.getByText('Purpose', { exact: true })).toHaveCount(0)
     await expect(page.getByText('Next Instalment', { exact: true })).toBeVisible()
     await expect(page.getByText('Upcoming', { exact: true }).first()).toBeVisible()
+    await expect(page.locator('.acl-pagination-row')).toContainText('Showing 1-2 of 2 financing records')
+    await expect(page.getByRole('navigation', { name: 'Financing activity pages' })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Previous page' })).toBeDisabled()
+    await expect(page.getByRole('button', { name: 'Next page' })).toBeDisabled()
 
+    await assertExplainer(page, 'Agri Credit Line uses one Client Buyer workspace', 'decision')
+    await assertExplainer(page, 'Suppliers are transaction counterparties, not separate Agri Credit Line facilities', 'handbook')
     await assertExplainer(page, 'Financing activity is the full record list, not a second navigation destination', 'purpose')
     await assertExplainer(page, 'Record details move into a modal on desktop and a sheet on mobile', 'decision')
     await assertExplainer(page, 'Purpose is intentionally not shown', 'limitation')
-    await assertExplainer(page, 'Submit Funds Request opens the same single Agri Credit Line flow wherever it appears', 'action')
-    await assertExplainer(page, 'Repayment details are instructions only', 'limitation')
+    await assertExplainer(page, 'Submit Funds Request opens the same Client Buyer flow wherever it appears', 'action')
+    await assertExplainer(page, 'Multiple Agri Credit Line Funds Requests may run in parallel', 'handbook')
+    await assertExplainer(page, 'Repayment details are customer instructions only', 'limitation')
 
     const customerText = await customerFacingText(page)
     expect(customerText).not.toMatch(/\bACL\b/)
+    expect(customerText).not.toContain('Mt Kenya Cooperative')
 
     if (isMobile(testInfo)) {
       await page.locator('.acl-activity-cards .acl-record-card-button').first().click()
@@ -317,6 +323,21 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     await expect(repaymentDialog).toContainText('4567121')
     await expect(repaymentDialog).toContainText('+254712345678')
     await assertExplainer(page, 'Payment processing is not integrated', 'limitation')
+
+    const modalBox = await repaymentDialog.boundingBox()
+    const viewport = page.viewportSize()
+    expect(modalBox).not.toBeNull()
+    expect(viewport).not.toBeNull()
+    if (modalBox && viewport) {
+      if (isMobile(testInfo)) {
+        expect(Math.abs((modalBox.y + modalBox.height) - viewport.height)).toBeLessThanOrEqual(2)
+      } else {
+        const modalCenterX = modalBox.x + modalBox.width / 2
+        const modalCenterY = modalBox.y + modalBox.height / 2
+        expect(Math.abs(modalCenterX - viewport.width / 2)).toBeLessThanOrEqual(3)
+        expect(Math.abs(modalCenterY - viewport.height / 2)).toBeLessThanOrEqual(12)
+      }
+    }
     await repaymentDialog.getByRole('button', { name: 'Close' }).click()
 
     await page.locator('.acl-help-card').filter({ hasText: 'How to request funds' }).getByRole('button', { name: 'Submit Funds Request' }).click()
@@ -325,7 +346,8 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     await expect(fundsRequestDialog).toContainText('Instalment option')
     await expect(fundsRequestDialog).toContainText('Transaction evidence')
     await expect(fundsRequestDialog).toContainText('Disbursement recipient')
-    await assertExplainer(page, 'This is one product-level Funds Request flow', 'action')
+    await expect(fundsRequestDialog).toContainText('approved Supplier')
+    await assertExplainer(page, 'This is one Client Buyer Funds Request flow', 'action')
     await fundsRequestDialog.getByRole('button', { name: 'Close' }).click()
 
     await page.goto('/experience/acl/financing')
