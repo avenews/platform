@@ -61,12 +61,11 @@ export class ContextualHomeComponent implements OnDestroy {
 
   experience: PortalExperience = this.resolveExperience()
 
-  readonly aclCreditLines: readonly CreditLine[] = CREDIT_LINES.filter(line => line.product === 'ACL')
   readonly aclFinancingRecords: readonly FinancingRecord[] = FINANCING_RECORDS.filter(record => record.product === 'ACL')
   readonly bankDetails = BANK_DETAILS
   readonly mpesaDetails = MPESA_DETAILS
   readonly clientPhone = PROFILE.contact.phone ?? 'Client phone number'
-  readonly aclPageSize = 5
+  readonly aclPageSize = 10
 
   aclPage = 1
   selectedAclRecord: FinancingRecord | null = null
@@ -101,7 +100,8 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   get primaryAclCreditLine(): CreditLine | undefined {
-    return this.aclCreditLines.find(line => line.id === 'cl_acl_general') ?? this.aclCreditLines[0]
+    return CREDIT_LINES.find(line => line.id === 'cl_acl_general')
+      ?? CREDIT_LINES.find(line => line.product === 'ACL')
   }
 
   get nextAclInstallment(): Installment | undefined {
