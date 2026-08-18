@@ -91,10 +91,15 @@ export class AccessChooserComponent implements OnInit {
 
   outstandingSummary(destination: PortalExperience): AccessSummary | null {
     const metric = destination.metrics.find(item => /outstanding/i.test(item.label))
-    if (metric) return { label: metric.label, value: metric.value }
+    if (metric) {
+      return {
+        label: destination.id === 'acl' ? 'Outstanding Amount' : metric.label,
+        value: metric.value,
+      }
+    }
 
     const record = destination.records.find(item => item.amountLabel.toLowerCase() === 'outstanding')
-    return record ? { label: 'Outstanding', value: record.amount } : null
+    return record ? { label: 'Outstanding Amount', value: record.amount } : null
   }
 
   openDestination(id: ExperienceId): void {
