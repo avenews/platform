@@ -38,6 +38,11 @@ const CUSTOMER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'support', label: 'Support', icon: 'help-circle', exact: false },
 ]
 
+const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
+  { segment: 'home', label: 'Home', icon: 'home', exact: true },
+  { segment: 'support', label: 'Support', icon: 'help-circle', exact: false },
+]
+
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'invoice-uploads', label: 'Invoice Uploads', icon: 'receipt', exact: false },
@@ -116,11 +121,15 @@ export class ExperienceShellComponent implements OnDestroy {
   }
 
   get primaryNavItems(): readonly ExperienceNavItem[] {
-    return this.currentExperience.kind === 'partner' ? PARTNER_NAV : CUSTOMER_NAV
+    if (this.currentExperience.kind === 'partner') return PARTNER_NAV
+    if (this.currentExperience.id === 'acl') return AGRI_CREDIT_LINE_NAV
+    return CUSTOMER_NAV
   }
 
   get mobileNavItems(): readonly ExperienceNavItem[] {
-    return this.currentExperience.kind === 'partner' ? PARTNER_NAV.slice(0, 4) : CUSTOMER_NAV
+    if (this.currentExperience.kind === 'partner') return PARTNER_NAV.slice(0, 4)
+    if (this.currentExperience.id === 'acl') return AGRI_CREDIT_LINE_NAV
+    return CUSTOMER_NAV
   }
 
   get initials(): string {
