@@ -116,6 +116,7 @@ export class LoginComponent implements OnDestroy {
 
     this.sentDestination = this.currentValue.trim()
     this.verificationCode = ''
+    this.serverError = ''
     this.step = 'verification'
     this.startResendCountdown()
     this.cdr.markForCheck()
@@ -124,6 +125,7 @@ export class LoginComponent implements OnDestroy {
   async verifyCode(): Promise<void> {
     if (!this.canVerify) return
 
+    this.serverError = ''
     this.step = 'verifying'
     this.cdr.markForCheck()
     await new Promise(resolve => setTimeout(resolve, 900))
@@ -134,10 +136,21 @@ export class LoginComponent implements OnDestroy {
     const requestedScenario = this.route.snapshot.queryParamMap.get('access')
     const scenario = isExperienceScenario(requestedScenario) ? requestedScenario : 'multiple'
 
-    // Resolve current access again for every login. Customer financing starts
-    // at the selector; a partner-only identity may go directly to its workspace.
+    // Resolve access again for every login. Multiple destinations open the
+    // product selector; exactly one destination opens directly.
     this.experiences.resetForLogin(scenario)
-    void this.router.navigate(this.experiences.resolvePostLoginRoute())
+    const target = this.experiences.resolvePostLoginRoute()
+
+    try {
+      const navigated = await this.router.navigate(target)
+      if (!navigated) throw new Error('Navigation was cancelled')
+    } catch {
+      // Never leave the customer on an indefinite loading state if routing is
+      // cancelled or fails. Return to the code field with a retryable error.
+      this.step = 'verification'
+      this.serverError = 'We could not open your available products. Please try again.'
+      this.cdr.markForCheck()
+    }
   }
 
   resendCode(): void {
