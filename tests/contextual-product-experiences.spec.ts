@@ -3,7 +3,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test'
 const SESSION_KEY = 'av_customer_portal_session'
 const SCENARIO_KEY = 'av_experience_scenario'
 const CONTEXT_KEY = 'av_experience_context'
-const ACL_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ACLDemoV2'
+const ACL_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ACLDemoV2/formperma/yJ6BX6SANxu6zsGmFihcRuuAwT2dI9SbK4UGYlNIFog'
 
 const SESSION = {
   contactId: 'usr_001',
@@ -317,6 +317,8 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await expect(page.getByText('Outstanding Amount', { exact: true })).toBeVisible()
     const paymentsSummary = page.locator('.acl-next-installment')
     await expect(paymentsSummary).toContainText('2 payments due')
+    await expect(paymentsSummary).toContainText('1 overdue · 1 upcoming')
+    await expect(paymentsSummary).toContainText('30-day + 60-day financing periods')
     await expect(paymentsSummary).toContainText('Next due 25 May 2026')
     await expect(paymentsSummary).not.toContainText('FR-')
 
@@ -334,6 +336,10 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await expect(repaymentDialog).toContainText('2 payments due')
     await expect(repaymentDialog).toContainText('1 overdue payment')
     await expect(repaymentDialog).toContainText('1 upcoming payment')
+    await expect(repaymentDialog).toContainText('30-day financing period')
+    await expect(repaymentDialog).toContainText('60-day financing period')
+    await expect(repaymentDialog).toContainText('Due 25 Apr 2026')
+    await expect(repaymentDialog).toContainText('Due 25 May 2026')
     await expect(repaymentDialog).not.toContainText('FR-')
     await expect(repaymentDialog.getByRole('button', { name: 'Back to financing details' })).toHaveCount(0)
     await assertCenteredOrBottomSheet(repaymentDialog, page, testInfo)
@@ -426,6 +432,8 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await expect(repaymentDialog).toContainText('Ksh 2,500,000')
     await expect(repaymentDialog).toContainText('1 overdue payment')
     await expect(repaymentDialog).toContainText('1 upcoming payment')
+    await expect(repaymentDialog).toContainText('30-day financing period')
+    await expect(repaymentDialog).toContainText('60-day financing period')
     await expect(repaymentDialog).not.toContainText('FR-2026-0318')
     await expect(repaymentDialog).not.toContainText('Financing reference')
     await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
