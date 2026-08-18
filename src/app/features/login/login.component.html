@@ -26,6 +26,7 @@
               placeholder="Enter Verification Code"
               [required]="true"
               [disabled]="step === 'verifying'"
+              [error]="serverError || undefined"
               [value]="verificationCode"
               (valueChange)="verificationCode = $event"
             />
