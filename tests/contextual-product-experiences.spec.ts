@@ -3,6 +3,8 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test'
 const SESSION_KEY = 'av_customer_portal_session'
 const SCENARIO_KEY = 'av_experience_scenario'
 const CONTEXT_KEY = 'av_experience_context'
+const ACL_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ACLDemoV2'
+
 const SESSION = {
   contactId: 'usr_001',
   contactFirstName: 'Amara',
@@ -129,6 +131,16 @@ async function assertCenteredOrBottomSheet(
   expect(Math.abs(centerY - viewport.height / 2)).toBeLessThanOrEqual(12)
 }
 
+async function openAclRecord(page: Page, reference: string): Promise<void> {
+  const table = page.locator('.acl-activity-table')
+  if (await table.isVisible()) {
+    await table.locator('.acl-activity-row').filter({ hasText: reference }).click()
+    return
+  }
+
+  await page.locator('.acl-activity-cards .acl-record-card-button').filter({ hasText: reference }).click()
+}
+
 test.describe('post-OTP access resolution', () => {
   test('multiple destinations open the product selector', async ({ page }, testInfo) => {
     await completePrototypeLogin(page, 'multiple')
@@ -142,8 +154,9 @@ test.describe('post-OTP access resolution', () => {
     await expect(page.locator('.access-card')).toHaveCount(6)
     await expect(page.getByRole('heading', { name: 'Your available products', level: 2 })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Partner workspace', level: 2 })).toBeVisible()
-    await expect(page.getByText(/Signed in as/i)).toHaveCount(0)
-    await expect(page.locator('.access-card__role')).toHaveCount(0)
+    await expect(page.locator('[data-experience-id="acl"] .access-card__summary')).toContainText(
+      'Outstanding Amount',
+    )
 
     for (const destination of DESTINATIONS) {
       await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(
@@ -205,20 +218,26 @@ test.describe('contextual shell', () => {
     })
   }
 
-  test('primary navigation keeps frequent tasks and profile menu keeps secondary actions', async ({ page }, testInfo) => {
-    const mobile = isMobile(testInfo)
-
+  test('Agri Credit Line primary navigation includes Request Funds on desktop and mobile', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
-    const expectedAcl = ['Home', 'Manage Users']
-    if (mobile) {
-      await expect(page.locator('.experience-bottom-nav a')).toHaveText(expectedAcl)
-    } else {
-      await expect(page.locator('.experience-sidebar-nav .experience-nav-link span')).toHaveText(
-        expectedAcl,
-      )
-    }
 
-    const profileTrigger = mobile
+    const navigation = isMobile(testInfo)
+      ? page.locator('.experience-bottom-nav')
+      : page.locator('.experience-sidebar-nav')
+    await expect(navigation.locator('a')).toHaveText(['Home', 'Request Funds', 'Manage Users'])
+
+    const requestFunds = navigation.getByRole('link', { name: /Request Funds/ })
+    await expect(requestFunds).toHaveAttribute('href', ACL_DEMO_URL)
+    await expect(requestFunds).toHaveAttribute('target', '_blank')
+    await expect(requestFunds).toHaveAttribute('rel', 'noopener noreferrer')
+    await expect(requestFunds).toHaveAttribute('data-external-url', ACL_DEMO_URL)
+    await assertNoOverflow(page)
+  })
+
+  test('profile menu keeps secondary actions without duplicating Manage Users', async ({ page }, testInfo) => {
+    await page.goto('/experience/acl/home')
+
+    const profileTrigger = isMobile(testInfo)
       ? page.locator('.experience-avatar-trigger')
       : page.locator('.experience-profile-button')
     await profileTrigger.click()
@@ -243,7 +262,6 @@ test.describe('contextual shell', () => {
     await contextTrigger.click()
 
     const menu = page.getByRole('menu', { name: 'Switch product or access' })
-    await expect(menu).toBeVisible()
     await menu
       .locator('button')
       .filter({ hasText: 'Invoice Financing' })
@@ -288,34 +306,58 @@ test.describe('contextual shell', () => {
   })
 })
 
-test.describe('Agri Credit Line repayment scope', () => {
+test.describe('Agri Credit Line lifecycle and repayment scope', () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page)
     await page.goto('/experience/acl/home')
   })
 
-  test('summary is informational and repayment starts from Financing activity', async ({ page }, testInfo) => {
+  test('summary is neutral and the Home Funds Request action opens the current demo', async ({ page }, testInfo) => {
     await expect(page.getByRole('heading', { name: 'Agri Credit Line', level: 1 })).toBeVisible()
-    await expect(page.locator('.acl-next-installment')).toContainText('FR-2026-0318')
-    await expect(
-      page.locator('.acl-next-installment').getByRole('button', { name: /repayment details/i }),
-    ).toHaveCount(0)
-    await expect(page.locator('.acl-help-grid')).toHaveCount(0)
-    await expect(
-      page.getByRole('heading', { name: 'Submitting a Funds Request', level: 2 }),
-    ).toHaveCount(0)
-    await expect(page.getByRole('heading', { name: 'Making a repayment', level: 2 })).toHaveCount(0)
+    await expect(page.getByText('Outstanding Amount', { exact: true })).toBeVisible()
+    await expect(page.locator('.acl-next-installment')).toContainText('2 payments due')
+    await expect(page.locator('.acl-next-installment')).toContainText('Next due 25 May 2026')
+    await expect(page.locator('.acl-next-installment')).not.toContainText('FR-')
+    await expect(page.locator('.acl-next-installment').getByRole('button')).toHaveCount(0)
 
-    await assertExplainer(page, 'The next Instalment summary is informational only', 'purpose')
-    await assertExplainer(page, 'Funds Requests are product-level; repayments are financing-record level', 'action')
-    await assertExplainer(page, 'Repayment instructions are opened only from a financing record', 'decision')
+    const submit = page.getByRole('button', { name: /Submit Funds Request/ }).first()
+    await expect(submit).toHaveAttribute('data-external-url', ACL_DEMO_URL)
+
+    await page.evaluate(() => {
+      window.open = ((url?: string | URL) => {
+        document.body.dataset['openedFundsRequestUrl'] = String(url ?? '')
+        return null
+      }) as typeof window.open
+    })
+    await submit.click()
+    await expect(page.locator('body')).toHaveAttribute('data-opened-funds-request-url', ACL_DEMO_URL)
+    await expect(page.getByRole('dialog', { name: 'Submit Funds Request' })).toHaveCount(0)
+
+    await assertExplainer(page, 'Request Funds opens the current Agri Credit Line journey', 'action')
+    await assertExplainer(page, 'The product summary stays neutral when several payments exist', 'purpose')
+    await assertNoOverflow(page)
+    await page.screenshot({ path: testInfo.outputPath('acl-neutral-summary.png'), fullPage: true })
+  })
+
+  test('Financing activity demonstrates Requested, Live, Repaid, Cancelled and Declined', async ({ page }, testInfo) => {
+    const expectedStatuses = ['Requested', 'Live', 'Repaid', 'Cancelled', 'Declined']
+    const table = page.locator('.acl-activity-table')
+    const statuses = await table.isVisible()
+      ? table.locator('tbody .baseline-status')
+      : page.locator('.acl-activity-cards .baseline-status')
+
+    await expect(statuses).toHaveText(expectedStatuses)
+    await expect(page.locator('.acl-pagination')).toContainText('Showing 1-5 of 5 financing records')
+    await assertExplainer(page, 'Requested and Live are different lifecycle stages', 'handbook')
+
+    const requestedRecord = await table.isVisible()
+      ? table.locator('.acl-activity-row').filter({ hasText: 'FR-2026-0510' })
+      : page.locator('.acl-activity-cards .baseline-record-card').filter({ hasText: 'FR-2026-0510' })
+    await expect(requestedRecord).toContainText('Not disbursed')
 
     const toolbar = page.locator('.acl-activity-toolbar')
     const heading = toolbar.locator('.baseline-section-heading')
     const filters = toolbar.locator('app-customer-filter-bar')
-    await expect(heading).toBeVisible()
-    await expect(filters).toBeVisible()
-
     const headingBox = await heading.boundingBox()
     const filterBox = await filters.boundingBox()
     expect(headingBox).not.toBeNull()
@@ -324,38 +366,31 @@ test.describe('Agri Credit Line repayment scope', () => {
     if (headingBox && filterBox) {
       if (testInfo.project.name === 'desktop') {
         expect(filterBox.x).toBeGreaterThan(headingBox.x + headingBox.width - 1)
-        expect(Math.abs(filterBox.y - headingBox.y)).toBeLessThanOrEqual(12)
+        expect(Math.abs(filterBox.y - headingBox.y)).toBeLessThanOrEqual(4)
       } else {
         expect(filterBox.y).toBeGreaterThanOrEqual(headingBox.y + headingBox.height)
       }
     }
 
-    await expect(
-      page.getByRole('searchbox', { name: 'Search Agri Credit Line financing activity' }),
-    ).toBeVisible()
-    await expect(page.locator('.acl-pagination')).toContainText(
-      'Showing 1-2 of 2 financing records',
-    )
     await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('acl-summary-and-activity.png'), fullPage: true })
+    await page.screenshot({ path: testInfo.outputPath('acl-lifecycle-statuses.png'), fullPage: true })
   })
 
-  test('record details and repayment instructions stay scoped to the selected financing record', async ({ page }, testInfo) => {
-    if (isMobile(testInfo)) {
-      await page.locator('.acl-activity-cards .acl-record-card-button').first().click()
-    } else {
-      await page.locator('.acl-activity-table .acl-activity-row').first().click()
-    }
+  test('repayment opens from a Live record and returns to the same financing details', async ({ page }, testInfo) => {
+    await openAclRecord(page, 'FR-2026-0318')
 
     const recordDialog = page.locator('.acl-record-modal')
     await expect(recordDialog).toBeVisible()
+    await expect(recordDialog).toContainText('Financing details')
     await expect(recordDialog).toContainText('FR-2026-0318')
-    await expect(recordDialog).toContainText('Instalments')
+    await expect(recordDialog).toContainText('Live')
     await assertCenteredOrBottomSheet(recordDialog, page, testInfo)
 
-    await recordDialog
-      .getByRole('button', { name: /View repayment details for FR-2026-0318/i })
-      .click()
+    const repaymentButton = recordDialog.getByRole('button', {
+      name: 'View repayment details for FR-2026-0318',
+    })
+    await expect(repaymentButton).toBeVisible()
+    await repaymentButton.click()
 
     const repaymentDialog = page.locator('.acl-repayment-modal')
     await expect(repaymentDialog).toBeVisible()
@@ -368,27 +403,41 @@ test.describe('Agri Credit Line repayment scope', () => {
     await repaymentDialog.getByRole('tab', { name: 'M-Pesa Paybill' }).click()
     await expect(repaymentDialog).toContainText('4567121')
     await expect(repaymentDialog).toContainText('Use your registered phone number')
-    await repaymentDialog.getByRole('button', { name: 'Close' }).click()
 
-    await page.getByRole('button', { name: 'Submit Funds Request' }).first().click()
-    const fundsRequestDialog = page.getByRole('dialog', { name: 'Submit Funds Request' })
-    await expect(fundsRequestDialog).toContainText('Financing amount')
-    await expect(fundsRequestDialog).toContainText('Disbursement recipient')
-    await fundsRequestDialog.getByRole('button', { name: 'Close' }).click()
+    await repaymentDialog
+      .getByRole('button', { name: 'Back to financing details for FR-2026-0318' })
+      .click()
+    await expect(repaymentDialog).toHaveCount(0)
+    await expect(page.locator('.acl-record-modal')).toContainText('FR-2026-0318')
+    await assertNoOverflow(page)
   })
 
-  test('search keeps the existing financing dataset', async ({ page }) => {
+  test('a Requested record is not presented as a disbursed Advance', async ({ page }, testInfo) => {
+    await openAclRecord(page, 'FR-2026-0510')
+
+    const recordDialog = page.locator('.acl-record-modal')
+    await expect(recordDialog).toBeVisible()
+    await expect(recordDialog).toContainText('Funds Request details')
+    await expect(recordDialog).toContainText('Requested Amount')
+    await expect(recordDialog).toContainText('Pending')
+    await expect(recordDialog).toContainText('No repayment schedule')
+    await expect(recordDialog.getByRole('button', { name: /View repayment details/ })).toHaveCount(0)
+    await assertCenteredOrBottomSheet(recordDialog, page, testInfo)
+  })
+
+  test('search keeps the lifecycle examples inside the existing activity structure', async ({ page }) => {
     const search = page.getByRole('searchbox', {
       name: 'Search Agri Credit Line financing activity',
     })
-    await search.fill('FR-2026-0510')
+    await search.fill('Declined')
 
-    if (await page.locator('.acl-activity-table').isVisible()) {
-      await expect(page.locator('.acl-activity-table .acl-activity-row')).toHaveCount(1)
-      await expect(page.locator('.acl-activity-table')).toContainText('FR-2026-0510')
+    const table = page.locator('.acl-activity-table')
+    if (await table.isVisible()) {
+      await expect(table.locator('.acl-activity-row')).toHaveCount(1)
+      await expect(table).toContainText('Declined')
     } else {
       await expect(page.locator('.acl-activity-cards .baseline-record-card')).toHaveCount(1)
-      await expect(page.locator('.acl-activity-cards')).toContainText('FR-2026-0510')
+      await expect(page.locator('.acl-activity-cards')).toContainText('Declined')
     }
   })
 })
@@ -408,12 +457,6 @@ test.describe('Support and remaining product boundaries', () => {
       'https://www.avenews-gt.com/help-categories/getting-started',
     )
     await expect(helpCentre).toHaveAttribute('target', '_blank')
-    await expect(
-      page.getByText(
-        'Browse step-by-step guides for getting started, Funds Requests, financing products, and repayments.',
-        { exact: true },
-      ),
-    ).toBeVisible()
     await assertNoOverflow(page)
   })
 
