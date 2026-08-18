@@ -26,36 +26,28 @@
   <main class="access-main">
     <section class="access-hero">
       <p class="page-eyebrow">Avenews portal</p>
-      <h1>What would you like to manage?</h1>
-      <p>
-        Choose the business, role, and financing experience you need for this session.
-        This selection is not remembered after you log out.
-      </p>
-      @if (session) {
-        <span class="access-user">Signed in as {{ session.contactFirstName }} {{ session.contactLastName }}</span>
-      }
+      <h1>{{ welcomeMessage }}</h1>
+      <h2>What would you like to manage?</h2>
+      <p>Choose the business, role, and financing experience you need for this session. This selection is not remembered after you log out.</p>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="This screen appears only when the identity has more than one destination">
-      <p>A destination combines the <strong>business</strong>, the user's <strong>financing or Partner role</strong>, and the <strong>product or workspace</strong>. If only one destination is available, the portal opens it directly after OTP.</p>
+    <app-prototype-explainer tone="purpose" title="Customer financing now starts at this selector">
+      <p>Customer users land here after OTP even when they currently have one financing product. This makes the entry point predictable as more businesses, products, or access types are added. A partner-only identity can still open its single operational workspace directly.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="decision" title="The portal asks again on every new login">
-      <p>The product or workspace choice is kept only for the current authenticated session. It is cleared on logout so a user with several products is never silently returned to yesterday's choice.</p>
+      <p>The product or workspace choice is kept only for the current authenticated session. It is cleared on logout so the next login starts from the user's currently available access.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="terminology" title="Customer-facing product names are written in full">
-      <p>The contextual prototype displays <strong>Agri Credit Line, Agri Buyer Financing, Stockist Financing, Invoice Financing, and Invoice Financing Express</strong> without customer-facing abbreviations. Partner Buyer access is shown as a role-specific workspace under Invoice Financing, not as another financing product.</p>
+    <app-prototype-explainer tone="terminology" title="Internal financing-party labels are hidden from customer product cards">
+      <p>The customer selects a business and product by the names they recognise. Client Buyer, Client Supplier, and similar role taxonomy remains useful for Product review and access rules, but it does not need to be a customer-facing tag on every card.</p>
     </app-prototype-explainer>
 
     @if (customerDestinations.length) {
-      <section class="access-group" aria-labelledby="financing-access-title">
+      <section class="access-group" aria-labelledby="available-products-title">
         <div class="access-group__heading">
-          <div>
-            <p class="page-eyebrow">Your financing</p>
-            <h2 id="financing-access-title">Customer product access</h2>
-          </div>
-          <span>{{ customerDestinations.length }} destinations</span>
+          <h2 id="available-products-title">Your available products</h2>
+          <span>{{ customerDestinations.length }} {{ customerDestinations.length === 1 ? 'product' : 'products' }}</span>
         </div>
 
         <div class="access-grid">
@@ -66,11 +58,20 @@
               [attr.data-experience-id]="destination.id"
               (click)="openDestination(destination.id)"
             >
-              <span class="access-card__role">{{ destination.roleLabel }}</span>
               <strong>{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
               <p>{{ destination.description }}</p>
-              <span class="access-card__action">Open experience <span aria-hidden="true">-&gt;</span></span>
+
+              @if (availabilitySummary(destination); as available) {
+                <div class="access-card__summary" aria-label="Product summary">
+                  <span><small>{{ available.label }}</small><strong>{{ available.value }}</strong></span>
+                  @if (outstandingSummary(destination); as outstanding) {
+                    <span><small>{{ outstanding.label }}</small><strong>{{ outstanding.value }}</strong></span>
+                  }
+                </div>
+              }
+
+              <span class="access-card__action">Open Product <span aria-hidden="true">-&gt;</span></span>
             </button>
           }
         </div>
@@ -78,17 +79,14 @@
     }
 
     @if (partnerDestinations.length) {
-      <app-prototype-explainer tone="role" title="Partner access is separated from the business's own financing">
-        <p>A <strong>Partner Buyer</strong> uploads invoice information and manages its payment obligations. It is not the borrowing Client in this workspace and therefore does not submit the Client Supplier's Funds Request.</p>
+      <app-prototype-explainer tone="role" title="Partner workspace access is operationally separate from customer financing">
+        <p>A Partner Buyer can have operational tasks such as invoice uploads and payment obligations without being the borrowing customer in that workspace. Partner-only access therefore continues directly to its workspace; mixed access remains visible here so the user can switch deliberately.</p>
       </app-prototype-explainer>
 
-      <section class="access-group" aria-labelledby="partner-access-title">
+      <section class="access-group" aria-labelledby="partner-workspace-title">
         <div class="access-group__heading">
-          <div>
-            <p class="page-eyebrow">Partner access</p>
-            <h2 id="partner-access-title">Partner workspaces</h2>
-          </div>
-          <span>{{ partnerDestinations.length }} destination</span>
+          <h2 id="partner-workspace-title">Partner workspace</h2>
+          <span>{{ partnerDestinations.length }} {{ partnerDestinations.length === 1 ? 'workspace' : 'workspaces' }}</span>
         </div>
 
         <div class="access-grid access-grid--partner">
@@ -99,11 +97,10 @@
               [attr.data-experience-id]="destination.id"
               (click)="openDestination(destination.id)"
             >
-              <span class="access-card__role">{{ destination.roleLabel }}</span>
               <strong>{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
               <p>{{ destination.description }}</p>
-              <span class="access-card__action">Open workspace <span aria-hidden="true">-&gt;</span></span>
+              <span class="access-card__action">Open Product <span aria-hidden="true">-&gt;</span></span>
             </button>
           }
         </div>
