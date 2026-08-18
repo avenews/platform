@@ -342,7 +342,8 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
   test('Financing activity demonstrates Requested, Live, Repaid, Cancelled and Declined', async ({ page }, testInfo) => {
     const expectedStatuses = ['Requested', 'Live', 'Repaid', 'Cancelled', 'Declined']
     const table = page.locator('.acl-activity-table')
-    const statuses = await table.isVisible()
+    const tableVisible = await table.isVisible()
+    const statuses = tableVisible
       ? table.locator('tbody .baseline-status')
       : page.locator('.acl-activity-cards .baseline-status')
 
@@ -350,10 +351,16 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await expect(page.locator('.acl-pagination')).toContainText('Showing 1-5 of 5 financing records')
     await assertExplainer(page, 'Requested and Live are different lifecycle stages', 'handbook')
 
-    const requestedRecord = await table.isVisible()
-      ? table.locator('.acl-activity-row').filter({ hasText: 'FR-2026-0510' })
-      : page.locator('.acl-activity-cards .baseline-record-card').filter({ hasText: 'FR-2026-0510' })
-    await expect(requestedRecord).toContainText('Not disbursed')
+    if (tableVisible) {
+      const requestedRow = table.locator('.acl-activity-row').filter({ hasText: 'FR-2026-0510' })
+      await expect(requestedRow).toContainText('Not disbursed')
+    } else {
+      const requestedCard = page.locator('.acl-activity-cards .baseline-record-card').filter({
+        hasText: 'FR-2026-0510',
+      })
+      await expect(requestedCard).toContainText('Requested Amount')
+      await expect(requestedCard).toContainText('Not applicable')
+    }
 
     const toolbar = page.locator('.acl-activity-toolbar')
     const heading = toolbar.locator('.baseline-section-heading')
