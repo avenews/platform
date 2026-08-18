@@ -39,6 +39,8 @@
       <article class="contextual-metric baseline-card acl-next-installment acl-payments-due">
         <span>Payments Due</span>
         <strong>{{ paymentsDueLabel }}</strong>
+        <small>{{ overduePaymentsCount }} overdue · {{ upcomingPaymentsCount }} upcoming</small>
+        <small class="acl-payments-due__periods">30-day + 60-day financing periods</small>
         <small>Next due {{ formatDate(business.nextRepaymentDate) }}</small>
         <button
           type="button"
@@ -55,7 +57,7 @@
     </section>
 
     <app-prototype-explainer tone="purpose" title="The product summary combines current payment obligations">
-      <p>The summary shows the number of payments due, the next due date, and a customer-level repayment action. The repayment view uses the existing aggregate amount due so a customer can pay multiple due or overdue obligations without selecting one Funds Request as the payment reference.</p>
+      <p>The summary shows the number of payments due, their financing periods, overdue and upcoming counts, the next due date, and a customer-level repayment action. The repayment view uses the existing aggregate amount due so a customer can pay multiple due or overdue obligations without selecting one Funds Request as the payment reference.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
@@ -191,7 +193,7 @@
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="decision" title="Repayment instructions combine current obligations">
-      <p>The repayment view sums the existing amount due across current due and overdue payments. It does not ask the customer to identify one financing reference as the only payment target; Avenews allocates received funds to the applicable obligations.</p>
+      <p>The repayment view sums the existing amount due across current due and overdue payments and shows the financing periods included in that total. It does not ask the customer to identify one financing reference as the only payment target; Avenews allocates received funds to the applicable obligations.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
@@ -422,9 +424,30 @@
           </div>
         </div>
 
+        <section class="acl-repayment-periods" aria-label="Financing periods included in current payments">
+          <div class="acl-repayment-periods__heading">
+            <span>Payments included</span>
+            <small>Financing period</small>
+          </div>
+          <div class="acl-repayment-period">
+            <div>
+              <strong>30-day financing period</strong>
+              <small>Due 25 Apr 2026</small>
+            </div>
+            <span class="baseline-status status-danger">Overdue</span>
+          </div>
+          <div class="acl-repayment-period">
+            <div>
+              <strong>60-day financing period</strong>
+              <small>Due 25 May 2026</small>
+            </div>
+            <span class="baseline-status status-info">Upcoming</span>
+          </div>
+        </section>
+
         <div class="acl-payment-allocation-note">
           <strong>One payment destination for current obligations</strong>
-          <p>The total above combines all payments currently due or overdue. Use either payment method below; Avenews allocates received funds to the applicable obligations.</p>
+          <p>The total above combines the financing periods listed here. Use either payment method below; Avenews allocates received funds to the applicable obligations.</p>
         </div>
 
         <div class="acl-payment-methods" role="tablist" aria-label="Repayment method">
@@ -448,7 +471,7 @@
         }
 
         <app-prototype-explainer tone="handbook" title="The collections account supports customer-level payment allocation">
-          <p>The Avenews collections account receives repayments and Avenews identifies and allocates the received amount to the applicable Client, Advance, Instalment, Principal, Markup, Late Markup, or other permitted amount. This view therefore avoids presenting one financing reference as the universal payment target.</p>
+          <p>The Avenews collections account receives repayments and Avenews identifies and allocates the received amount to the applicable Client, Advance, Instalment, Principal, Markup, Late Markup, or other permitted amount. This view therefore avoids presenting one financing reference as the universal payment target while still showing the financing periods included in the total.</p>
         </app-prototype-explainer>
 
         <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
