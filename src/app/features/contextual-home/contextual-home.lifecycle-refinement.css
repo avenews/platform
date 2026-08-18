@@ -2,51 +2,78 @@
   line-height: 1.2;
 }
 
+.acl-summary-repayment-action {
+  width: fit-content;
+  justify-self: start;
+  margin-top: 2px;
+  margin-left: -12px;
+}
+
 .acl-record-actions {
   display: flex;
   width: 100%;
   padding-top: 4px;
 }
 
-.acl-modal-heading-with-back {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
+.acl-repayment-modal__heading {
   min-width: 0;
+  display: grid;
+  align-items: start;
+  gap: 6px;
 }
 
-.acl-modal-heading-with-back > div {
+.acl-repayment-modal__title {
   min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.acl-repayment-modal__title p,
+.acl-repayment-modal__title h2 {
+  margin: 0;
 }
 
 .acl-modal-back {
-  flex: 0 0 auto;
-  min-height: 34px;
+  width: fit-content;
+  justify-self: start;
+  margin-left: -10px;
+}
+
+.acl-modal-back av-icon {
   display: inline-flex;
-  align-items: center;
+  flex: 0 0 auto;
+}
+
+.acl-repayment-summary__statuses {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.acl-payment-allocation-note {
+  display: grid;
   gap: 4px;
-  padding: 0 10px;
-  border: 1px solid var(--av-color-surface-border, #dfe4e8);
-  border-radius: 7px;
+  padding: 14px 16px;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
   background: var(--av-color-surface, #fff);
+}
+
+.acl-payment-allocation-note strong,
+.acl-payment-allocation-note p {
+  margin: 0;
+}
+
+.acl-payment-allocation-note strong {
   color: var(--av-color-text-heading, #0d343f);
-  font: inherit;
+  font-size: 13px;
+}
+
+.acl-payment-allocation-note p {
+  color: var(--av-color-text-muted, #66788a);
   font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.acl-modal-back > span {
-  font-size: 20px;
-  line-height: 1;
-}
-
-.acl-modal-back:hover,
-.acl-modal-back:focus-visible {
-  border-color: var(--av-color-action, #16b3c4);
-  outline: 0;
-  color: var(--av-color-action, #16b3c4);
-  box-shadow: 0 0 0 3px rgba(22, 179, 196, .14);
+  line-height: 1.55;
 }
 
 @media (min-width: 1024px) {
@@ -63,12 +90,19 @@
 }
 
 @media (max-width: 767px) {
-  .acl-modal-heading-with-back {
-    gap: 10px;
+  .acl-summary-repayment-action {
+    margin-left: -10px;
   }
 
   .acl-modal-back {
-    min-height: 32px;
-    padding: 0 8px;
+    margin-left: -8px;
+  }
+
+  .acl-repayment-summary {
+    display: grid;
+  }
+
+  .acl-repayment-summary__statuses {
+    justify-content: flex-start;
   }
 }
