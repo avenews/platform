@@ -4,7 +4,7 @@
       <section class="contextual-financing__hero">
         <div>
           <p class="page-eyebrow">Client Buyer</p>
-          <h1>Agri Credit Line - ACL</h1>
+          <h1>Agri Credit Line</h1>
           <p>Use an approved Credit Facility for eligible inventory and business purchases.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('acl')">Start Funds Request</button>
@@ -20,7 +20,7 @@
 
       <section class="contextual-overview-grid">
         <article class="baseline-card contextual-overview-card">
-          <div class="baseline-card__header"><h2>Credit Facility</h2><p>Example ACL approval for this prototype</p></div>
+          <div class="baseline-card__header"><h2>Credit Facility</h2><p>Approved credit facility summary</p></div>
           <div class="baseline-card__body">
             <dl class="baseline-data-list">
               <div><dt>Credit Limit</dt><dd>KES 2,500,000</dd></div>
@@ -45,7 +45,7 @@
       </section>
 
       <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">ACL activity</p><h2>Funds Requests and Advances</h2></div></div>
+        <div class="baseline-section-heading"><div><p class="page-eyebrow">Financing activity</p><h2>Funds Requests and Advances</h2></div></div>
         <div class="baseline-table-wrap">
           <table class="baseline-table contextual-table">
             <thead><tr><th>Reference</th><th>Purpose</th><th>Principal</th><th>Repayment schedule</th><th>Status</th></tr></thead>
@@ -66,7 +66,7 @@
       <section class="contextual-financing__hero">
         <div>
           <p class="page-eyebrow">Client Buyer</p>
-          <h1>Agri Buyer Financing - ABF</h1>
+          <h1>Agri Buyer Financing</h1>
           <p>Finance an eligible Supplier invoice or receive reimbursement for an eligible invoice already paid.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('abf')">Start Funds Request</button>
@@ -100,7 +100,7 @@
       </section>
 
       <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">ABF activity</p><h2>Funds Requests and Advances</h2></div></div>
+        <div class="baseline-section-heading"><div><p class="page-eyebrow">Financing activity</p><h2>Funds Requests and Advances</h2></div></div>
         <div class="baseline-table-wrap">
           <table class="baseline-table contextual-table">
             <thead><tr><th>Supplier</th><th>Invoice type</th><th>Principal</th><th>Disbursement recipient</th><th>Status</th></tr></thead>
@@ -121,7 +121,7 @@
       <section class="contextual-financing__hero">
         <div>
           <p class="page-eyebrow">Client Buyer - Stockist</p>
-          <h1>Stockist Financing - STF</h1>
+          <h1>Stockist Financing</h1>
           <p>Select an approved Partner Supplier before starting the Funds Request.</p>
         </div>
       </section>
@@ -246,7 +246,7 @@
       <section class="contextual-financing__hero">
         <div>
           <p class="page-eyebrow">Client Supplier</p>
-          <h1>Invoice Financing Express - INFX</h1>
+          <h1>Invoice Financing Express</h1>
           <p>Finance one approved invoice per Funds Request and manually repay Avenews.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('infx')">Start Funds Request</button>
@@ -289,10 +289,10 @@
       <header class="baseline-modal__head">
         <h2>
           @switch (selectedFlow) {
-            @case ('acl') { Start Agri Credit Line - ACL Funds Request }
-            @case ('abf') { Start Agri Buyer Financing - ABF Funds Request }
-            @case ('stf') { Start Stockist Financing - STF Funds Request }
-            @case ('infx') { Start Invoice Financing Express - INFX Funds Request }
+            @case ('acl') { Start Agri Credit Line Funds Request }
+            @case ('abf') { Start Agri Buyer Financing Funds Request }
+            @case ('stf') { Start Stockist Financing Funds Request }
+            @case ('infx') { Start Invoice Financing Express Funds Request }
             @case ('invoice-upload') { Upload invoices - {{ uploadRelationship }} }
           }
         </h2>
@@ -323,7 +323,7 @@
                   <p>Approved disbursement: direct payment to the Supplier.</p>
                 }
               </div>
-              <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('ABF Funds Request prototype prepared with the selected invoice path.')">Continue Funds Request</button>
+              <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Agri Buyer Financing Funds Request prepared with the selected invoice path.')">Continue Funds Request</button>
             }
           }
 
@@ -335,7 +335,7 @@
               <h3>Funds Request fields</h3>
               <ul><li>Financing amount</li><li>Available Instalment option</li><li>Approved transaction evidence</li><li>Approved disbursement recipient</li></ul>
             </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('ACL Funds Request prototype opened.')">Continue Funds Request</button>
+            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Agri Credit Line Funds Request opened.')">Continue Funds Request</button>
           }
 
           @case ('stf') {
@@ -344,7 +344,7 @@
               <ul><li>Partner Supplier invoice</li><li>Delivery date</li><li>Online delivery confirmation</li><li>Financing amount</li><li>Available Instalment option</li></ul>
               <p>Avenews disburses the approved amount directly to the Partner Supplier.</p>
             </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('STF Funds Request prototype opened.')">Continue Funds Request</button>
+            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Stockist Financing Funds Request opened.')">Continue Funds Request</button>
           }
 
           @case ('infx') {
@@ -353,7 +353,7 @@
               <ul><li>Approved Buyer</li><li>Invoice</li><li>Invoice value</li><li>Invoice Due Date</li><li>Proof of Delivery</li><li>Requested amount</li></ul>
               <p>The Client Supplier manually repays Avenews at the end of the Financing Period.</p>
             </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('INFX Funds Request prototype opened.')">Continue Funds Request</button>
+            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Invoice Financing Express Funds Request opened.')">Continue Funds Request</button>
           }
 
           @case ('invoice-upload') {
@@ -365,7 +365,7 @@
               <ul><li>Select or upload invoice files</li><li>Enter invoice reference and amount</li><li>Confirm invoice Due Date</li><li>Upload POD where required</li></ul>
               <p>Accepted invoices are grouped into the matching Dynamic Period.</p>
             </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Invoice upload prototype prepared for the Counterparty Buyer relationship.')">Continue upload</button>
+            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Invoice upload prepared for the Counterparty Buyer relationship.')">Continue upload</button>
           }
         }
       </div>
