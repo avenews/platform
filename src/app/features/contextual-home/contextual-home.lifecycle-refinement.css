@@ -1,12 +1,33 @@
+.acl-summary .contextual-metric {
+  align-content: start;
+  grid-auto-rows: max-content;
+  gap: 10px;
+  min-height: 164px;
+}
+
+.acl-summary .contextual-metric > strong {
+  margin-top: 2px;
+  line-height: 1.15;
+}
+
+.acl-summary .contextual-metric > small {
+  line-height: 1.45;
+}
+
 .acl-payments-due strong {
   line-height: 1.2;
+}
+
+.acl-payments-due__periods {
+  color: var(--av-color-text-heading, #0d343f) !important;
+  font-weight: 700;
 }
 
 .acl-summary-repayment-action {
   width: fit-content;
   justify-self: start;
   margin-top: 2px;
-  margin-left: -12px;
+  margin-left: 0;
 }
 
 .acl-record-actions {
@@ -51,6 +72,57 @@
   gap: 8px;
 }
 
+.acl-repayment-periods {
+  overflow: hidden;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
+  background: var(--av-color-surface, #fff);
+}
+
+.acl-repayment-periods__heading,
+.acl-repayment-period {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 16px;
+}
+
+.acl-repayment-periods__heading {
+  background: var(--av-color-surface-subtle, #f6f7f9);
+}
+
+.acl-repayment-periods__heading span {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.acl-repayment-periods__heading small {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 11px;
+}
+
+.acl-repayment-period {
+  border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+
+.acl-repayment-period > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.acl-repayment-period strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 13px;
+}
+
+.acl-repayment-period small {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 11px;
+}
+
 .acl-payment-allocation-note {
   display: grid;
   gap: 4px;
@@ -90,8 +162,12 @@
 }
 
 @media (max-width: 767px) {
+  .acl-summary .contextual-metric {
+    min-height: 0;
+  }
+
   .acl-summary-repayment-action {
-    margin-left: -10px;
+    margin-left: 0;
   }
 
   .acl-modal-back {
@@ -104,5 +180,10 @@
 
   .acl-repayment-summary__statuses {
     justify-content: flex-start;
+  }
+
+  .acl-repayment-periods__heading,
+  .acl-repayment-period {
+    align-items: flex-start;
   }
 }
