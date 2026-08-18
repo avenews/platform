@@ -1,0 +1,74 @@
+.acl-payments-due strong {
+  line-height: 1.2;
+}
+
+.acl-record-actions {
+  display: flex;
+  width: 100%;
+  padding-top: 4px;
+}
+
+.acl-modal-heading-with-back {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  min-width: 0;
+}
+
+.acl-modal-heading-with-back > div {
+  min-width: 0;
+}
+
+.acl-modal-back {
+  flex: 0 0 auto;
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 10px;
+  border: 1px solid var(--av-color-surface-border, #dfe4e8);
+  border-radius: 7px;
+  background: var(--av-color-surface, #fff);
+  color: var(--av-color-text-heading, #0d343f);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.acl-modal-back > span {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.acl-modal-back:hover,
+.acl-modal-back:focus-visible {
+  border-color: var(--av-color-action, #16b3c4);
+  outline: 0;
+  color: var(--av-color-action, #16b3c4);
+  box-shadow: 0 0 0 3px rgba(22, 179, 196, .14);
+}
+
+@media (min-width: 1024px) {
+  .acl-activity-toolbar {
+    grid-template-columns: minmax(220px, .6fr) minmax(0, 1.6fr);
+    align-items: start;
+    column-gap: 24px;
+  }
+
+  .acl-activity-toolbar .baseline-section-heading,
+  .acl-activity-toolbar app-customer-filter-bar {
+    align-self: start;
+  }
+}
+
+@media (max-width: 767px) {
+  .acl-modal-heading-with-back {
+    gap: 10px;
+  }
+
+  .acl-modal-back {
+    min-height: 32px;
+    padding: 0 8px;
+  }
+}
