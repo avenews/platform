@@ -27,6 +27,7 @@ import {
   type ExperienceId,
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
+import { ACL_FUNDS_REQUEST_DEMO_URL } from '../../core/experience/experience-links'
 import { PortalExperienceService } from '../../core/experience/portal-experience.service'
 import {
   CustomerFilterBarComponent,
@@ -49,12 +50,36 @@ const MPESA_DETAILS = [
   { label: 'Account Name', value: 'Avenews KE Limited' },
 ] as const
 
+const ACL_LIFECYCLE_SOURCE_IDS = [
+  'loan_acl_req_001',
+  'loan_acl_001',
+  'loan_abf_001',
+  'loan_abf_can_001',
+  'loan_asfx_dec_001',
+] as const
+
+function aclLifecycleRecord(id: string): FinancingRecord {
+  const source = FINANCING_RECORDS.find(record => record.id === id)
+  if (!source) throw new Error(`Missing ACL lifecycle source record: ${id}`)
+
+  return {
+    ...source,
+    id: `acl_lifecycle_${source.id}`,
+    product: 'ACL',
+    partner: 'Avenews',
+    installments: source.installments.map(installment => ({ ...installment })),
+  }
+}
+
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
   imports: [PrototypeExplainerComponent, CustomerFilterBarComponent],
   templateUrl: './contextual-home.component.html',
-  styleUrl: './contextual-home.component.css',
+  styleUrls: [
+    './contextual-home.component.css',
+    './contextual-home.lifecycle-refinement.css',
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ContextualHomeComponent implements OnDestroy {
@@ -66,7 +91,9 @@ export class ContextualHomeComponent implements OnDestroy {
 
   experience: PortalExperience = this.resolveExperience()
 
-  readonly aclFinancingRecords: readonly FinancingRecord[] = FINANCING_RECORDS.filter(record => record.product === 'ACL')
+  readonly aclFundsRequestDemoUrl = ACL_FUNDS_REQUEST_DEMO_URL
+  readonly aclFinancingRecords: readonly FinancingRecord[] = ACL_LIFECYCLE_SOURCE_IDS
+    .map(id => aclLifecycleRecord(id))
   readonly aclFilterFields: readonly CustomerFilterField[] = [
     {
       key: 'status',
@@ -96,7 +123,6 @@ export class ContextualHomeComponent implements OnDestroy {
   aclSearchQuery = ''
   selectedAclRecord: FinancingRecord | null = null
   repaymentRecord: FinancingRecord | null = null
-  fundsRequestOpen = false
   repaymentDetailsOpen = false
   repaymentMethod: RepaymentMethod = 'bank'
   toast = ''
@@ -142,19 +168,9 @@ export class ContextualHomeComponent implements OnDestroy {
     )
   }
 
-  get nextAclInstallment(): Installment | undefined {
-    return this.nextAclRepaymentRecord?.installments
-      .find(installment => installment.dueDate === BUSINESS.nextRepaymentDate)
-  }
-
-  get nextAclInstallmentStatus(): string {
-    const status = this.nextAclInstallment?.status ?? 'upcoming'
-    return this.installmentStatusLabel(status)
-  }
-
-  get nextAclInstallmentTone(): string {
-    const status = this.nextAclInstallment?.status ?? 'upcoming'
-    return this.installmentStatusTone(status)
+  get paymentsDueLabel(): string {
+    const count = BUSINESS.duePeriodsCount
+    return `${count} ${count === 1 ? 'payment' : 'payments'} due`
   }
 
   get aclFilterValues(): Readonly<Record<string, string>> {
@@ -230,24 +246,29 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   openFundsRequest(): void {
-    this.fundsRequestOpen = true
+    const opened = window.open(this.aclFundsRequestDemoUrl, '_blank', 'noopener,noreferrer')
+    if (opened) {
+      opened.opener = null
+      return
+    }
+
+    this.toast = 'Your browser blocked the Funds Request tab. Allow pop-ups and try again.'
+    this.cdr.markForCheck()
   }
 
-  closeFundsRequest(): void {
-    this.fundsRequestOpen = false
-  }
-
-  completeFundsRequest(): void {
-    this.fundsRequestOpen = false
-    this.toast = 'Funds Request flow opened.'
-  }
-
-  openRepaymentDetails(record: FinancingRecord | undefined = this.nextAclRepaymentRecord, method: RepaymentMethod = 'bank'): void {
-    if (!record) return
+  openRepaymentDetails(record: FinancingRecord, method: RepaymentMethod = 'bank'): void {
+    if (!this.nextRepaymentFor(record)) return
     this.selectedAclRecord = null
     this.repaymentRecord = record
     this.repaymentMethod = method
     this.repaymentDetailsOpen = true
+  }
+
+  backToFinancingDetails(): void {
+    const record = this.repaymentRecord
+    this.repaymentDetailsOpen = false
+    this.repaymentRecord = null
+    this.selectedAclRecord = record
   }
 
   closeRepaymentDetails(): void {
@@ -274,8 +295,44 @@ export class ContextualHomeComponent implements OnDestroy {
     this.aclPage = Math.min(Math.max(1, page), this.aclTotalPages)
   }
 
+  isDisbursedAdvance(record: FinancingRecord): boolean {
+    return Boolean(record.disbursementDate)
+  }
+
+  recordDetailsEyebrow(record: FinancingRecord): string {
+    return this.isDisbursedAdvance(record) ? 'Financing details' : 'Funds Request details'
+  }
+
+  recordAmountLabel(record: FinancingRecord): string {
+    return this.isDisbursedAdvance(record) ? 'Amount Financed' : 'Requested Amount'
+  }
+
+  recordDisbursementDate(record: FinancingRecord): string {
+    if (record.disbursementDate) return formatDate(record.disbursementDate)
+    if (record.status === 'requested') return 'Pending'
+    return 'Not disbursed'
+  }
+
+  tableFinancedAmount(record: FinancingRecord): string {
+    return this.isDisbursedAdvance(record) ? formatKes(record.principal) : 'Not disbursed'
+  }
+
+  recordTotalRepaid(record: FinancingRecord): string {
+    if (!this.isDisbursedAdvance(record)) return 'Not applicable'
+    return record.totalRepaid ? formatKes(record.totalRepaid) : 'Nil'
+  }
+
+  recordOutstandingBalance(record: FinancingRecord): string {
+    if (!this.isDisbursedAdvance(record)) return 'Not applicable'
+    return formatKes(record.balance)
+  }
+
   nextDueDateValue(record: FinancingRecord): string | null {
-    return record.installments.find(item => item.status !== 'paid')?.dueDate ?? null
+    const next = record.installments.find(item => item.status !== 'paid')
+    if (next) return next.dueDate
+    return record.installments.length
+      ? record.installments[record.installments.length - 1].dueDate
+      : null
   }
 
   nextDueDate(record: FinancingRecord): string {
@@ -288,7 +345,7 @@ export class ContextualHomeComponent implements OnDestroy {
 
   knownRepaymentAmount(record: FinancingRecord): number | null {
     return record.id === this.nextAclRepaymentRecord?.id
-      && this.nextDueDateValue(record) === BUSINESS.nextRepaymentDate
+      && this.nextRepaymentFor(record)?.dueDate === BUSINESS.nextRepaymentDate
       ? BUSINESS.nextRepaymentAmount
       : null
   }
@@ -325,7 +382,6 @@ export class ContextualHomeComponent implements OnDestroy {
   closeAclOverlays(): void {
     this.selectedAclRecord = null
     this.repaymentRecord = null
-    this.fundsRequestOpen = false
     this.repaymentDetailsOpen = false
   }
 
