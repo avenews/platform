@@ -42,6 +42,10 @@ export class ContextualFinancingComponent implements OnDestroy {
       .subscribe(params => {
         this.experience = experienceById(params.get('experienceId')) ?? experienceById('acl')!
         this.closeFlow()
+        if (this.experience.id === 'acl') {
+          void this.router.navigate(['/experience', 'acl', 'home'], { replaceUrl: true })
+          return
+        }
         this.cdr.markForCheck()
       })
   }
