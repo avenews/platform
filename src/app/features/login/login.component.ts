@@ -131,17 +131,13 @@ export class LoginComponent implements OnDestroy {
     // Prototype-only OTP flow: any non-empty verification code succeeds.
     this.auth.login('admin')
 
-    const scenario = this.route.snapshot.queryParamMap.get('access')
-    if (isExperienceScenario(scenario)) {
-      // Resolve current access again for every contextual login. The previous
-      // product/access choice is deliberately cleared rather than remembered.
-      this.experiences.resetForLogin(scenario)
-      void this.router.navigate(this.experiences.resolvePostLoginRoute())
-      return
-    }
+    const requestedScenario = this.route.snapshot.queryParamMap.get('access')
+    const scenario = isExperienceScenario(requestedScenario) ? requestedScenario : 'multiple'
 
-    // Keep the accepted staging baseline available for side-by-side review.
-    void this.router.navigate(['/'])
+    // Resolve current access again for every login. Customer financing starts
+    // at the selector; a partner-only identity may go directly to its workspace.
+    this.experiences.resetForLogin(scenario)
+    void this.router.navigate(this.experiences.resolvePostLoginRoute())
   }
 
   resendCode(): void {
