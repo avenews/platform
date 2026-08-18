@@ -14,16 +14,15 @@ const SESSION = {
 }
 
 const DESTINATIONS = [
-  { id: 'acl', heading: 'Agri Credit Line - ACL', role: 'Client Buyer' },
-  { id: 'abf', heading: 'Agri Buyer Financing - ABF', role: 'Client Buyer' },
-  { id: 'stf', heading: 'Stockist Financing - STF', role: 'Client Buyer - Stockist' },
-  { id: 'invoice-financing', heading: 'Invoice Financing', role: 'Client Supplier' },
-  { id: 'infx', heading: 'Invoice Financing Express - INFX', role: 'Client Supplier' },
-  { id: 'invoice-partner', heading: 'Invoice Financing - Partner Buyer', role: 'Partner Buyer' },
+  { id: 'acl', cardLabel: 'Agri Credit Line', homeHeading: 'Agri Credit Line', role: 'Client Buyer' },
+  { id: 'abf', cardLabel: 'Agri Buyer Financing', homeHeading: 'Agri Buyer Financing - ABF', role: 'Client Buyer' },
+  { id: 'stf', cardLabel: 'Stockist Financing', homeHeading: 'Stockist Financing - STF', role: 'Client Buyer - Stockist' },
+  { id: 'invoice-financing', cardLabel: 'Invoice Financing', homeHeading: 'Invoice Financing', role: 'Client Supplier' },
+  { id: 'infx', cardLabel: 'Invoice Financing Express', homeHeading: 'Invoice Financing Express - INFX', role: 'Client Supplier' },
+  { id: 'invoice-partner', cardLabel: 'Invoice Financing - Partner Buyer', homeHeading: 'Invoice Financing - Partner Buyer', role: 'Partner Buyer' },
 ] as const
 
 const FINANCING_EXPLAINERS = [
-  { id: 'acl', title: 'An approved Credit Limit does not create financing by itself' },
   { id: 'abf', title: 'ABF has two materially different invoice paths' },
   { id: 'stf', title: 'The Partner Supplier receives the approved disbursement' },
   { id: 'invoice-financing', title: 'The Dynamic Period is the Client Supplier\'s financing object' },
@@ -110,13 +109,13 @@ test.describe('post-OTP access resolution', () => {
     await expect(page.getByRole('heading', { name: 'Partner workspaces', level: 2 })).toBeVisible()
 
     for (const destination of DESTINATIONS) {
-      await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.heading)
+      await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.cardLabel)
       await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.role)
     }
 
     await assertExplainer(page, 'This screen appears only when the identity has more than one destination', 'purpose')
     await assertExplainer(page, 'The portal asks again on every new login', 'decision')
-    await assertExplainer(page, 'Product labels follow the Product-approved legacy-to-current mapping', 'terminology')
+    await assertExplainer(page, 'Customer-facing product names are written in full', 'terminology')
     await assertExplainer(page, 'Partner access is separated from the business\'s own financing', 'role')
     await assertNoLegacyTerminology(page)
     await assertNoOverflow(page)
@@ -156,13 +155,17 @@ test.describe('contextual product and role shell', () => {
   for (const destination of DESTINATIONS) {
     test(`${destination.id} has a product- or role-specific Home with explainers`, async ({ page }, testInfo) => {
       await page.goto(`/experience/${destination.id}/home`)
-      await expect(page.getByRole('heading', { name: destination.heading, level: 1 })).toBeVisible()
+      await expect(page.getByRole('heading', { name: destination.homeHeading, level: 1 })).toBeVisible()
       await expect(page.locator('.contextual-metric')).toHaveCount(3)
-      await expect(page.locator('.experience-context-copy')).toContainText(destination.heading)
+      await expect(page.locator('.experience-context-copy')).toContainText(destination.cardLabel)
       await expect(page.locator('.experience-context-copy')).toContainText(destination.role)
       await assertExplainer(page, 'You are viewing one product or Partner role at a time', 'decision')
-      await assertExplainer(page, 'This Home answers the first product-specific questions', 'purpose')
-      await assertExplainer(page, 'The figures and actions on this branch are fictional review data', 'limitation')
+      if (destination.id === 'acl') {
+        await assertExplainer(page, 'Agri Credit Line now uses one working Home instead of a separate Financing page', 'decision')
+      } else {
+        await assertExplainer(page, 'This Home answers the first product-specific questions', 'purpose')
+        await assertExplainer(page, 'The figures and actions on this branch are fictional review data', 'limitation')
+      }
       expect(await page.locator(EXPLAINER).count()).toBeGreaterThanOrEqual(4)
       await assertNoLegacyTerminology(page)
       await assertNoOverflow(page)
@@ -172,6 +175,14 @@ test.describe('contextual product and role shell', () => {
 
   test('customer and Partner Buyer navigation expose only the current context', async ({ page }, testInfo) => {
     const mobile = isMobile(testInfo)
+
+    await page.goto('/experience/acl/home')
+    if (mobile) {
+      await expect(page.locator('.experience-bottom-nav a')).toHaveText(['Home', 'Support'])
+      await expect(page.locator('.experience-sidebar')).toBeHidden()
+    } else {
+      await expect(page.locator('.experience-sidebar-nav .experience-nav-link span')).toHaveText(['Home', 'Support', 'Manage Users'])
+    }
 
     await page.goto('/experience/abf/home')
     if (mobile) {
@@ -218,7 +229,7 @@ test.describe('contextual product and role shell', () => {
   test('desktop Developer menu toggles all explainers without changing context', async ({ page }, testInfo) => {
     test.skip(isMobile(testInfo), 'Developer review controls are desktop only')
 
-    await page.goto('/experience/abf/home')
+    await page.goto('/experience/acl/home')
     await expect(page.locator(EXPLAINER).first()).toBeVisible()
     const originalUrl = page.url()
 
@@ -253,15 +264,75 @@ test.describe('product-specific action placement and Handbook boundaries', () =>
     })
   }
 
-  test('ACL collects approved transaction evidence inside its Funds Request', async ({ page }) => {
+  test('Agri Credit Line is a complete single-screen workspace', async ({ page }, testInfo) => {
+    await page.goto('/experience/acl/home')
+
+    await expect(page.getByRole('heading', { name: 'Agri Credit Line', level: 1 })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Submit Funds Request' }).first()).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Available financing', level: 2 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Financing activity', level: 2 })).toBeVisible()
+    await expect(page.locator('.acl-activity-table th')).toHaveText([
+      'Financing',
+      'Disbursement Date',
+      'Repayment Due Date',
+      'Amount Financed',
+      'Status',
+      'Total Repaid',
+      'Outstanding Balance',
+    ])
+    await expect(page.getByText('Purpose', { exact: true })).toHaveCount(0)
+    await expect(page.getByText('Next Instalment', { exact: true })).toBeVisible()
+    await expect(page.getByText('Upcoming', { exact: true }).first()).toBeVisible()
+
+    await assertExplainer(page, 'Financing activity is the full record list, not a second navigation destination', 'purpose')
+    await assertExplainer(page, 'Record details move into a modal on desktop and a sheet on mobile', 'decision')
+    await assertExplainer(page, 'Purpose is intentionally not shown', 'limitation')
+    await assertExplainer(page, 'Submit Funds Request opens the same single Agri Credit Line flow wherever it appears', 'action')
+    await assertExplainer(page, 'Repayment details are instructions only', 'limitation')
+
+    const customerText = await customerFacingText(page)
+    expect(customerText).not.toMatch(/\bACL\b/)
+
+    if (isMobile(testInfo)) {
+      await page.locator('.acl-activity-cards .acl-record-card-button').first().click()
+    } else {
+      await page.locator('.acl-activity-table .acl-activity-row').first().click()
+    }
+    const recordDialog = page.getByRole('dialog', { name: /FR-2026-0318/i })
+    await expect(recordDialog).toBeVisible()
+    await expect(recordDialog).toContainText('Disbursement Date')
+    await expect(recordDialog).toContainText('Repayment Due Date')
+    await expect(recordDialog).toContainText('Amount Financed')
+    await expect(recordDialog).toContainText('Total Repaid')
+    await expect(recordDialog).toContainText('Outstanding Balance')
+    await expect(recordDialog.getByRole('heading', { name: 'Instalments', level: 3 })).toBeVisible()
+    await expect(recordDialog.getByText('Purpose', { exact: true })).toHaveCount(0)
+    await recordDialog.getByRole('button', { name: 'Close' }).click()
+
+    await page.getByRole('button', { name: 'View repayment details' }).first().click()
+    const repaymentDialog = page.getByRole('dialog', { name: 'Repayment details' })
+    await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
+    await expect(repaymentDialog).toContainText('2046346095')
+    await repaymentDialog.getByRole('tab', { name: 'M-Pesa Paybill' }).click()
+    await expect(repaymentDialog).toContainText('4567121')
+    await expect(repaymentDialog).toContainText('+254712345678')
+    await assertExplainer(page, 'Payment processing is not integrated', 'limitation')
+    await repaymentDialog.getByRole('button', { name: 'Close' }).click()
+
+    await page.locator('.acl-help-card').filter({ hasText: 'How to request funds' }).getByRole('button', { name: 'Submit Funds Request' }).click()
+    const fundsRequestDialog = page.getByRole('dialog', { name: 'Submit Funds Request' })
+    await expect(fundsRequestDialog).toContainText('Financing amount')
+    await expect(fundsRequestDialog).toContainText('Instalment option')
+    await expect(fundsRequestDialog).toContainText('Transaction evidence')
+    await expect(fundsRequestDialog).toContainText('Disbursement recipient')
+    await assertExplainer(page, 'This is one product-level Funds Request flow', 'action')
+    await fundsRequestDialog.getByRole('button', { name: 'Close' }).click()
+
     await page.goto('/experience/acl/financing')
-    await expect(page.locator('[data-upload-placement="inside-funds-request"]')).toBeVisible()
-    await expect(page.locator('[data-action="upload-invoices"]')).toHaveCount(0)
-    await page.getByRole('button', { name: 'Start Funds Request' }).first().click()
-    const dialog = page.getByRole('dialog')
-    await expect(dialog).toContainText('Approved transaction evidence')
-    await assertExplainer(page, 'This is not the final ACL application form', 'limitation')
+    await expect(page).toHaveURL(/\/experience\/acl\/home$/)
     await assertNoLegacyTerminology(page)
+    await assertNoOverflow(page)
+    await page.screenshot({ path: testInfo.outputPath('agri-credit-line-single-home.png'), fullPage: true })
   })
 
   test('ABF begins with Fully Paid or Unpaid Invoice', async ({ page }) => {
