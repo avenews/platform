@@ -146,6 +146,16 @@ export class ExperienceShellComponent implements OnDestroy {
     return this.currentExperience.roleLabel
   }
 
+  displayProductName(experience: PortalExperience): string {
+    const labels: Partial<Record<ExperienceId, string>> = {
+      acl: 'Agri Credit Line',
+      abf: 'Agri Buyer Financing',
+      stf: 'Stockist Financing',
+      infx: 'Invoice Financing Express',
+    }
+    return labels[experience.id] ?? experience.switcherLabel
+  }
+
   routeFor(segment: string, experienceId = this.currentExperience.id): string[] {
     return ['/experience', experienceId, segment]
   }
