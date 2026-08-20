@@ -234,7 +234,7 @@
   .customer-filter-bar__desktop .customer-filter-search {
     flex: 1 1 260px;
     width: auto;
-    max-width: 320px;
+    max-width: 300px;
   }
 
   .customer-filter-bar__desktop .customer-filter-select {
