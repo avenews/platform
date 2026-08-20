@@ -283,6 +283,10 @@ export class ContextualHomeComponent implements OnDestroy {
       void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'obligations'))
       return
     }
+    if (kind === 'view-suppliers') {
+      void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'suppliers'))
+      return
+    }
     void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads'))
   }
 
