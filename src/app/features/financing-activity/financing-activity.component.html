@@ -1,13 +1,13 @@
 <div class="portal-page baseline-page customer-list-page">
   <div class="baseline-hero">
-    <h1>Financing</h1>
+    <h1>Financing Activity</h1>
     <p>Track your active, completed, and overdue financing records.</p>
   </div>
 
   <app-customer-filter-bar
     [searchValue]="searchQuery"
     searchPlaceholder="Search product, partner, or funds request"
-    searchAriaLabel="Search financing"
+    searchAriaLabel="Search financing activity"
     [filters]="filterFields"
     [values]="filterValues"
     (searchValueChange)="onSearchValueChange($event)"
