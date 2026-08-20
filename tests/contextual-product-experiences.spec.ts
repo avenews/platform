@@ -95,6 +95,14 @@ async function assertRelationshipListCount(page: Page, testInfo: TestInfo, count
   }
 }
 
+async function partnerAction(page: Page, name: string): Promise<Locator> {
+  const table = page.locator('.baseline-table-wrap').first()
+  if (await table.isVisible()) {
+    return table.getByRole('button', { name, exact: true }).first()
+  }
+  return page.locator('.partner-workspace-cards').getByRole('button', { name, exact: true }).first()
+}
+
 async function assertModalBodyScrollable(dialog: Locator): Promise<void> {
   const body = dialog.locator('.customer-period-modal__body, .relationship-modal__body, .partner-modal__body').first()
   await expect(body).toBeVisible()
@@ -483,7 +491,7 @@ test.describe('Partner Buyer Portal', () => {
     await assertModalBodyScrollable(uploadDialog)
     await uploadDialog.getByRole('button', { name: 'Close' }).click()
 
-    const firstView = page.getByRole('button', { name: 'View', exact: true }).first()
+    const firstView = await partnerAction(page, 'View')
     await firstView.click()
     const resultDialog = page.locator('.partner-modal')
     await expect(resultDialog).toContainText('Upload result')
@@ -494,7 +502,7 @@ test.describe('Partner Buyer Portal', () => {
   test('payment actions open Partner Buyer payment details', async ({ page }) => {
     await page.goto('/experience/invoice-partner/obligations')
     await expect(page.getByRole('heading', { name: 'Payments', level: 1 })).toBeVisible()
-    const action = page.getByRole('button', { name: 'View payment' }).first()
+    const action = await partnerAction(page, 'View payment')
     await expect(action).toHaveClass(/baseline-button--primary/)
     await action.click()
     const dialog = page.locator('.partner-modal')
@@ -510,7 +518,7 @@ test.describe('Partner Buyer Portal', () => {
     await expect(page.locator('.partner-workspace-page')).toContainText('Unavailable')
     await expect(page.locator('.partner-workspace-page')).toContainText('Max financing used')
 
-    const manage = page.getByRole('button', { name: 'Manage limit' }).first()
+    const manage = await partnerAction(page, 'Manage limit')
     await expect(manage).toHaveClass(/baseline-button--primary/)
     await manage.click()
     const manageDialog = page.locator('.partner-modal')
