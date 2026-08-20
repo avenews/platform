@@ -161,14 +161,20 @@ body .baseline-button[data-action="upload-invoices"]:disabled {
 }
 
 /* Detail/navigation actions stay neutral instead of borrowing an action colour. */
-body [data-partner-section="obligations"] .baseline-button--primary {
+body [data-partner-section="obligations"] .baseline-button--primary,
+body .partner-home-hero__actions .baseline-button--primary:not([data-action]),
+body .partner-home-workspace-card .baseline-button--primary:not([data-action]) {
   border-color: #d0d5dd;
   background: #ffffff;
   color: #1d2939;
 }
 
 body [data-partner-section="obligations"] .baseline-button--primary:hover:not(:disabled),
-body [data-partner-section="obligations"] .baseline-button--primary:focus-visible:not(:disabled) {
+body [data-partner-section="obligations"] .baseline-button--primary:focus-visible:not(:disabled),
+body .partner-home-hero__actions .baseline-button--primary:not([data-action]):hover:not(:disabled),
+body .partner-home-hero__actions .baseline-button--primary:not([data-action]):focus-visible:not(:disabled),
+body .partner-home-workspace-card .baseline-button--primary:not([data-action]):hover:not(:disabled),
+body .partner-home-workspace-card .baseline-button--primary:not([data-action]):focus-visible:not(:disabled) {
   border-color: #b8c0cc;
   background: #f9fafb;
   filter: none;
