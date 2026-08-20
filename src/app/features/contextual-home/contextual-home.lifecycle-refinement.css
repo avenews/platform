@@ -48,7 +48,7 @@
 }
 
 [data-product-context="invoice-financing"] .customer-activity-table {
-  min-width: 1380px;
+  min-width: 1040px;
 }
 
 .customer-activity-row {
@@ -98,20 +98,31 @@
   margin-top: 0;
 }
 
+.contextual-home .baseline-button--primary {
+  border-color: var(--av-color-success, #16865b);
+  background: var(--av-color-success, #16865b);
+  color: #fff;
+}
+
+.contextual-home .baseline-button--primary:hover:not(:disabled),
+.contextual-home .baseline-button--primary:focus-visible:not(:disabled) {
+  filter: brightness(.95);
+}
+
 .customer-pagination {
   margin-top: 0;
 }
 
 @media (min-width: 1024px) {
   .customer-activity-toolbar {
-    grid-template-columns: minmax(220px, .55fr) minmax(0, 1.45fr);
-    align-items: start;
+    grid-template-columns: minmax(140px, .35fr) minmax(0, 1.65fr);
+    align-items: center;
     column-gap: 24px;
   }
 
   .customer-activity-toolbar .baseline-section-heading,
   .customer-activity-toolbar app-customer-filter-bar {
-    align-self: start;
+    align-self: center;
   }
 }
 
