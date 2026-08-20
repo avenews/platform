@@ -39,8 +39,16 @@
   min-width: 0;
 }
 
+.customer-activity-toolbar .baseline-section-heading h2 {
+  margin-bottom: 0;
+}
+
 .customer-activity-table {
   min-width: 1160px;
+}
+
+[data-product-context="invoice-financing"] .customer-activity-table {
+  min-width: 1380px;
 }
 
 .customer-activity-row {
@@ -51,6 +59,20 @@
 .customer-activity-row:focus-visible {
   background: var(--av-color-primary-subtle, #eefbfc);
   outline: none;
+}
+
+.customer-period-availability {
+  display: block;
+  margin-top: 2px;
+  color: var(--av-color-action, #16b3c4);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.customer-financing-card {
+  display: grid;
+  gap: 14px;
 }
 
 .customer-record-card-button {
@@ -72,13 +94,17 @@
   font-weight: 700;
 }
 
+.customer-period-request {
+  margin-top: 0;
+}
+
 .customer-pagination {
   margin-top: 0;
 }
 
 @media (min-width: 1024px) {
   .customer-activity-toolbar {
-    grid-template-columns: minmax(240px, .65fr) minmax(0, 1.65fr);
+    grid-template-columns: minmax(220px, .55fr) minmax(0, 1.45fr);
     align-items: start;
     column-gap: 24px;
   }
