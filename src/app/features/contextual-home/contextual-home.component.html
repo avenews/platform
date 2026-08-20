@@ -75,20 +75,20 @@
       </div>
 
       @if (product.id === 'acl') {
-        <app-prototype-explainer tone="handbook" title="ACL demonstrates the customer-facing unsettled status set">
-          <p>The review data includes Live, Overdue, In Default, Delinquent, On Repayment Plan, Transferred to Repayment Plan, and Collections. Pre-disbursement, superseded, settled, Cancelled, and Declined records are intentionally excluded from the active financing-period list.</p>
+        <app-prototype-explainer tone="handbook" title="Only customer-visible financing statuses are shown">
+          <p>The customer-facing status set is Requested, Live, Overdue, Repaid, Cancelled, and Declined. Internal workflow, servicing, collections, and risk statuses are deliberately kept out of the customer portal. This review data includes one example of each customer-visible status.</p>
         </app-prototype-explainer>
       }
 
       @if (product.id === 'abf') {
         <app-prototype-explainer tone="decision" title="ABF Home stays financing-first while Funds Requests stay Supplier-scoped">
-          <p>The Home view shows the active financing periods across approved Suppliers. Starting a new ABF Funds Request happens from the Suppliers page so the Supplier context and its sub-limit are established before entering the request journey.</p>
+          <p>The Home view shows financing periods across approved Suppliers. Request funds takes the customer to the Suppliers page so the Supplier context and its sub-limit are established before entering the request journey.</p>
         </app-prototype-explainer>
       }
 
       @if (product.id === 'stf') {
         <app-prototype-explainer tone="handbook" title="Stockist Financing keeps each period with its Partner Supplier">
-          <p>The Stockist is the Client Buyer and the approved Partner Supplier receives the financing disbursement. The Partner Suppliers page therefore holds the supplier limit and Funds Request entry point while Home concentrates on current financing periods and repayments.</p>
+          <p>The Stockist is the Client Buyer and the approved Partner Supplier receives the financing disbursement. Request funds takes the customer to Partner Suppliers so the supplier context is selected before the request starts.</p>
         </app-prototype-explainer>
       }
 
