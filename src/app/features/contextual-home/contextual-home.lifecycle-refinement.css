@@ -98,17 +98,6 @@
   margin-top: 0;
 }
 
-.contextual-home .baseline-button--primary {
-  border-color: var(--av-color-success, #16865b);
-  background: var(--av-color-success, #16865b);
-  color: #fff;
-}
-
-.contextual-home .baseline-button--primary:hover:not(:disabled),
-.contextual-home .baseline-button--primary:focus-visible:not(:disabled) {
-  filter: brightness(.95);
-}
-
 .customer-pagination {
   margin-top: 0;
 }
