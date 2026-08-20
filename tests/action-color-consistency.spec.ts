@@ -92,9 +92,11 @@ test.describe('action colour consistency', () => {
     await expectActionColor(page.getByRole('button', { name: 'View suppliers', exact: true }).first(), NEUTRAL_ACTION)
 
     await page.goto('/experience/invoice-partner/obligations')
-    await expectActionColor(page.getByRole('button', { name: 'View payment', exact: true }).filter({ visible: true }).first(), NEUTRAL_ACTION)
+    const viewPayment = page.locator('button:visible').filter({ hasText: /^View payment$/ }).first()
+    await expectActionColor(viewPayment, NEUTRAL_ACTION)
 
     await page.goto('/experience/abf/financing')
-    await expectActionColor(page.getByRole('button', { name: 'View', exact: true }).filter({ visible: true }).first(), NEUTRAL_ACTION)
+    const viewRelationship = page.locator('button:visible').filter({ hasText: /^View$/ }).first()
+    await expectActionColor(viewRelationship, NEUTRAL_ACTION)
   })
 })
