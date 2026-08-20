@@ -41,11 +41,11 @@
 }
 
 .relationship-table {
-  min-width: 980px;
+  min-width: 920px;
 }
 
 [data-product-context="invoice-financing"] .relationship-table {
-  min-width: 1120px;
+  min-width: 920px;
 }
 
 .relationship-table th:first-child,
@@ -55,7 +55,7 @@
 
 .relationship-table th:last-child,
 .relationship-table td:last-child {
-  width: 250px;
+  width: 270px;
 }
 
 .relationship-name-button {
@@ -80,11 +80,47 @@
   color: var(--av-color-action, #16b3c4);
 }
 
-.relationship-table__actions {
+.relationship-table__actions,
+.relationship-card__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.relationship-view-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.relationship-view-action svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.contextual-financing .baseline-button--primary {
+  border-color: var(--av-color-success, #16865b);
+  background: var(--av-color-success, #16865b);
+  color: #fff;
+}
+
+.contextual-financing .baseline-button--primary:hover:not(:disabled),
+.contextual-financing .baseline-button--primary:focus-visible:not(:disabled) {
+  filter: brightness(.95);
+}
+
+.contextual-financing .baseline-button--primary:disabled {
+  border-color: var(--av-neutral-300, #d0d5dd);
+  background: var(--av-neutral-300, #d0d5dd);
+  color: #fff;
+  opacity: .78;
 }
 
 .relationship-cards {
@@ -93,11 +129,6 @@
 
 .relationship-card__metrics {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.relationship-card__actions {
-  display: flex;
-  flex-wrap: wrap;
 }
 
 .relationship-modal-backdrop {
