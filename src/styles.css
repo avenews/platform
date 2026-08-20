@@ -95,9 +95,14 @@ h4 {
   display: none;
 }
 
-/* Product switching is product-first; business names are not repeated in the dropdown. */
-.experience-context-menu button span {
-  display: none;
+/* Product switching is product-first; each option is a single balanced row. */
+.experience-context-menu button.experience-context-menu__product {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 .surface-card {
