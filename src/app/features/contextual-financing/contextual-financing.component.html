@@ -10,7 +10,7 @@
 
     @if (product.id === 'abf') {
       <app-prototype-explainer tone="decision" title="ABF Funds Requests are Supplier-scoped">
-        <p>Choose the approved Supplier first. The table uses the same financing fields as the previous portal pattern: maximum financing, financing used, financing available and availability status. Request Funds then opens the supplied ABF journey in that Supplier context.</p>
+        <p>Choose the approved Supplier first. The table uses maximum financing, financing used, financing available and availability status. Request Funds then opens the supplied ABF journey in that Supplier context.</p>
       </app-prototype-explainer>
     }
 
@@ -21,8 +21,8 @@
     }
 
     @if (product.id === 'invoice-financing') {
-      <app-prototype-explainer tone="handbook" title="Invoice Financing is organised by Buyer relationship and Dynamic Period">
-        <p>A Dynamic Period groups the Client Supplier, one Buyer and one invoice Due Date. Choose the Buyer first, then request funds from an eligible Dynamic Period within that Buyer relationship.</p>
+      <app-prototype-explainer tone="handbook" title="Invoice upload responsibility follows the Buyer relationship">
+        <p>For a Counterparty Buyer the Client Supplier normally uploads invoices. For a Partner Buyer the Buyer normally uploads them. Eligible invoices create or update a Dynamic Period, and the Client Supplier submits the Funds Request from an eligible period.</p>
       </app-prototype-explainer>
     }
 
@@ -33,15 +33,14 @@
     }
 
     <section class="baseline-section relationship-section" [attr.aria-label]="product.relationshipHeading">
-      <div class="relationship-section__intro">
-        <p>Open a {{ product.relationshipNoun }} for its financing details, or request funds directly where financing is available.</p>
-      </div>
-
       <div class="baseline-table-wrap relationship-table-wrap">
         <table class="baseline-table relationship-table">
           <thead>
             <tr>
               <th>{{ product.relationshipNoun }}</th>
+              @if (product.id === 'invoice-financing') {
+                <th>Invoices</th>
+              }
               <th class="is-right">Max Financing</th>
               <th class="is-right">Financing Used</th>
               <th class="is-right">Financing Available</th>
@@ -57,6 +56,9 @@
                     <strong>{{ relationship.name }}</strong>
                   </button>
                 </td>
+                @if (product.id === 'invoice-financing') {
+                  <td><strong class="relationship-upload-source">{{ invoiceUploadSourceLabel(relationship) }}</strong></td>
+                }
                 <td class="is-right">{{ formatKes(relationship.limit) }}</td>
                 <td class="is-right">{{ formatKes(relationship.used) }}</td>
                 <td class="is-right"><strong>{{ formatKes(relationship.available) }}</strong></td>
@@ -67,6 +69,9 @@
                 </td>
                 <td class="is-right">
                   <div class="relationship-table__actions">
+                    @if (canUploadInvoices(relationship)) {
+                      <button type="button" class="baseline-button baseline-button--primary" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
+                    }
                     @if (relationship.fundsRequestLabel) {
                       <button
                         type="button"
@@ -81,7 +86,7 @@
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="6"><div class="baseline-empty"><strong>No relationships available</strong><p>No approved Supplier or Buyer relationships are available yet.</p></div></td></tr>
+              <tr><td [attr.colspan]="product.id === 'invoice-financing' ? 7 : 6"><div class="baseline-empty"><strong>No relationships available</strong><p>No approved Supplier or Buyer relationships are available yet.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -101,9 +106,15 @@
               <span class="baseline-metric"><small>Max Financing</small><strong>{{ formatKes(relationship.limit) }}</strong></span>
               <span class="baseline-metric"><small>Financing Available</small><strong>{{ formatKes(relationship.available) }}</strong></span>
               <span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(relationship.used) }}</strong></span>
+              @if (product.id === 'invoice-financing') {
+                <span class="baseline-metric"><small>Invoices</small><strong>{{ invoiceUploadSourceLabel(relationship) }}</strong></span>
+              }
             </div>
 
             <div class="baseline-card-actions relationship-card__actions">
+              @if (canUploadInvoices(relationship)) {
+                <button type="button" class="baseline-button baseline-button--primary" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
+              }
               @if (relationship.fundsRequestLabel) {
                 <button
                   type="button"
@@ -144,7 +155,14 @@
             <div><dt>Financing Used</dt><dd>{{ formatKes(relationship.used) }}</dd></div>
             <div><dt>Financing Available</dt><dd>{{ formatKes(relationship.available) }}</dd></div>
             <div><dt>Status</dt><dd>{{ relationshipAvailabilityLabel(relationship) }}</dd></div>
+            @if (product.id === 'invoice-financing') {
+              <div><dt>Invoices</dt><dd>{{ invoiceUploadSourceLabel(relationship) }}</dd></div>
+            }
           </dl>
+
+          @if (canUploadInvoices(relationship)) {
+            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="startInvoiceUpload(relationship, $event)">Upload invoices for {{ relationship.name }}</button>
+          }
 
           @if (relationship.fundsRequestLabel) {
             <button
@@ -170,18 +188,60 @@
                   <div>
                     <strong>{{ period.reference }}</strong>
                     <span>Due {{ formatDate(period.repaymentDueDate) }} · {{ formatKes(period.outstandingBalance) }} outstanding</span>
+                    @if (product.id === 'invoice-financing' && canRequestFromPeriod(period)) {
+                      <span class="relationship-period-row__available">{{ formatKes(period.availableToWithdraw ?? 0) }} available to request</span>
+                    }
                   </div>
                   <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
                 </button>
 
-                @if (product.id === 'invoice-financing' && (period.availableToWithdraw ?? 0) > 0 && period.statusKey === 'live') {
-                  <button type="button" class="baseline-button baseline-button--secondary relationship-period-row__action" (click)="requestFundsForPeriod(period, $event)">Request Funds</button>
+                @if (canRequestFromPeriod(period)) {
+                  <button type="button" class="baseline-button baseline-button--secondary relationship-period-row__action" (click)="requestFundsForPeriod(period, $event)">{{ periodRequestLabel(period) }}</button>
                 }
               </article>
             } @empty {
-              <div class="baseline-empty"><strong>No financing periods</strong><p>No current financing periods are associated with this relationship.</p></div>
+              <div class="baseline-empty">
+                <strong>No financing periods</strong>
+                @if (canUploadInvoices(relationship)) {
+                  <p>Upload an eligible invoice to create or update a Dynamic Period for this Buyer.</p>
+                } @else if (product.id === 'invoice-financing') {
+                  <p>Dynamic Periods will appear when eligible Buyer-uploaded invoices are available.</p>
+                } @else {
+                  <p>No current financing periods are associated with this relationship.</p>
+                }
+              </div>
             }
           </section>
+        </div>
+      </section>
+    </div>
+  }
+
+  @if (invoiceUploadRelationship; as relationship) {
+    <div class="baseline-modal-backdrop relationship-modal-backdrop" role="presentation" (click)="closeInvoiceUpload()">
+      <section class="baseline-modal relationship-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" (click)="$event.stopPropagation()">
+        <header class="baseline-modal__head relationship-modal__head">
+          <div>
+            <p class="page-eyebrow">Invoice Financing</p>
+            <h2 id="invoice-upload-title">Upload invoices</h2>
+          </div>
+          <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeInvoiceUpload()">&times;</button>
+        </header>
+        <div class="baseline-modal__body relationship-modal__body invoice-upload-modal__body">
+          <p class="invoice-upload-modal__intro">Upload invoices for {{ relationship.name }}. Once an invoice is eligible, it is grouped into the matching Dynamic Period by Buyer and invoice due date.</p>
+          <div class="baseline-field">
+            <label for="client-invoice-file">Invoice</label>
+            <input id="client-invoice-file" class="baseline-control" type="file">
+          </div>
+          <div class="baseline-field">
+            <label for="client-invoice-due-date">Invoice due date</label>
+            <input id="client-invoice-due-date" class="baseline-control" type="date">
+          </div>
+          <div class="baseline-field">
+            <label for="client-invoice-value">Invoice value</label>
+            <input id="client-invoice-value" class="baseline-control" type="number" min="0" placeholder="KES">
+          </div>
+          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeInvoiceUpload()">Submit invoice</button>
         </div>
       </section>
     </div>
