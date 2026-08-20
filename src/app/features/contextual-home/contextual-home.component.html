@@ -126,7 +126,7 @@
                     @if (canRequestFromPeriod(period)) {
                       <button
                         type="button"
-                        class="baseline-button customer-period-request"
+                        class="baseline-button baseline-button--primary customer-period-request"
                         data-action="request-financing"
                         title="Request funds from this Dynamic Period"
                         (click)="requestFundsForPeriod(period, $event)"
@@ -179,7 +179,7 @@
             @if (canRequestFromPeriod(period)) {
               <button
                 type="button"
-                class="baseline-button baseline-button--block customer-period-request"
+                class="baseline-button baseline-button--primary baseline-button--block customer-period-request"
                 data-action="request-financing"
                 title="Request funds from this Dynamic Period"
                 (click)="requestFundsForPeriod(period, $event)"
@@ -213,7 +213,7 @@
       <div class="partner-home-hero__actions">
         <button
           type="button"
-          class="baseline-button baseline-button--secondary contextual-home__primary"
+          class="baseline-button baseline-button--primary contextual-home__primary"
           (click)="takePartnerAction('view-suppliers')"
         >View suppliers</button>
         <button
@@ -250,7 +250,7 @@
             <h3>Supplier periods</h3>
             <p>Find a Supplier, review its periods, and see what needs to be paid.</p>
           </div>
-          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
+          <button type="button" class="baseline-button baseline-button--primary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
         </article>
 
         <article class="baseline-card partner-home-workspace-card">
