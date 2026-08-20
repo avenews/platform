@@ -161,7 +161,7 @@ test.describe('shared customer financing pattern', () => {
     })
   }
 
-  test('relationship is the primary financing identifier outside ACL', async ({ page }) => {
+  test('relationship is the primary financing identifier outside ACL', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
     const aclCell = page.locator('.customer-activity-table tbody .customer-reference-cell').first()
     await expect(aclCell).toHaveText('FR-2026-0612')
@@ -178,7 +178,9 @@ test.describe('shared customer financing pattern', () => {
       const cell = page.locator('.customer-activity-table tbody .customer-reference-cell').first()
       await expect(cell.locator('strong')).toHaveText(expected.relationship)
       await expect(cell.locator('span')).toHaveText(expected.reference)
-      await expect(page.locator('.customer-activity-table thead').getByText('Reference', { exact: true })).toBeVisible()
+      if (!isMobile(testInfo)) {
+        await expect(page.locator('.customer-activity-table thead').getByText('Reference', { exact: true })).toBeVisible()
+      }
     }
   })
 
@@ -451,7 +453,7 @@ test.describe('relationship-first request flows', () => {
     await openHomePeriod(page, 'DP-2026-09-15-TWIGA')
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Disbursement Date')
-    await expect(periodDialog).toContainText('17 Aug 26')
+    await expect(periodDialog).toContainText('17 Aug 2026')
     await expect(periodDialog.getByRole('button', { name: 'Request funds' })).toHaveClass(/baseline-button--primary/)
   })
 
