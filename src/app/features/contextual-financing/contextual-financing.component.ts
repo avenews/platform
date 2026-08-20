@@ -67,16 +67,40 @@ export class ContextualFinancingComponent implements OnDestroy {
     return experienceById(id) ?? experienceById('acl')!
   }
 
+  relationshipAvailable(relationship: CustomerRelationship): number {
+    if (this.workspace?.id === 'abf' && relationship.id === 'abf-quickmart') return 0
+    if (this.workspace?.id === 'stf' && relationship.id === 'stf-greenharvest') return 0
+    if (this.workspace?.id === 'invoice-financing' && relationship.id === 'inf-fresh') return 0
+    return relationship.available
+  }
+
+  relationshipUsed(relationship: CustomerRelationship): number {
+    const available = this.relationshipAvailable(relationship)
+    return Math.max(0, relationship.limit - available)
+  }
+
   relationshipAvailabilityLabel(relationship: CustomerRelationship): string {
-    return relationship.available > 0 ? 'Available' : 'Unavailable'
+    return this.relationshipAvailable(relationship) > 0 ? 'Available' : 'Unavailable'
   }
 
   relationshipAvailabilityTone(relationship: CustomerRelationship): string {
-    return relationship.available > 0 ? 'status-success' : 'status-neutral'
+    return this.relationshipAvailable(relationship) > 0 ? 'status-success' : 'status-neutral'
+  }
+
+  relationshipAvailabilityTooltip(relationship: CustomerRelationship): string {
+    return this.relationshipAvailable(relationship) > 0
+      ? 'Financing is currently available for this relationship, subject to request eligibility.'
+      : 'The available financing for this relationship is currently fully used, so a new Funds Request cannot be started.'
+  }
+
+  relationshipCustomerType(relationship: CustomerRelationship): string {
+    if (relationship.relationshipType.includes('Supplier')) return 'Supplier'
+    if (relationship.relationshipType.includes('Buyer')) return 'Buyer'
+    return relationship.relationshipType
   }
 
   invoiceUploadSourceLabel(relationship: CustomerRelationship): string {
-    return relationship.invoiceUploadOwner === 'client' ? 'You upload' : 'Buyer uploads'
+    return relationship.invoiceUploadOwner === 'client' ? 'You upload invoices' : 'Buyer uploads invoices'
   }
 
   canUploadInvoices(relationship: CustomerRelationship): boolean {
@@ -110,18 +134,19 @@ export class ContextualFinancingComponent implements OnDestroy {
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
-    return this.workspace?.id === 'invoice-financing'
-      && (period.availableToWithdraw ?? 0) > 0
-      && (period.statusKey === 'live' || period.statusKey === 'requested')
+    if (this.workspace?.id !== 'invoice-financing') return false
+    if ((period.availableToWithdraw ?? 0) <= 0) return false
+    if (period.statusKey !== 'live' && period.statusKey !== 'requested') return false
+    return this.isWithinInvoiceFundingWindow(period)
   }
 
-  periodRequestLabel(period: CustomerFinancingPeriod): string {
-    return period.amountFinanced > 0 || period.statusKey === 'requested' ? 'Request more' : 'Request funds'
+  periodRequestLabel(_period: CustomerFinancingPeriod): string {
+    return 'Request funds'
   }
 
   startFundsRequest(relationship: CustomerRelationship, event?: Event): void {
     event?.stopPropagation()
-    if (!relationship.fundsRequestEnabled || relationship.available <= 0) return
+    if (!relationship.fundsRequestEnabled || this.relationshipAvailable(relationship) <= 0) return
 
     if (relationship.fundsRequestUrl) {
       const opened = window.open(relationship.fundsRequestUrl, '_blank', 'noopener,noreferrer')
@@ -141,7 +166,7 @@ export class ContextualFinancingComponent implements OnDestroy {
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
     if (!this.canRequestFromPeriod(period)) return
-    this.toast = `${this.periodRequestLabel(period)} from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
+    this.toast = `Request funds from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
     this.cdr.markForCheck()
   }
 
@@ -172,6 +197,14 @@ export class ContextualFinancingComponent implements OnDestroy {
     this.selectedPeriod = null
     this.invoiceUploadRelationship = null
     this.returnRelationship = null
+  }
+
+  private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean {
+    const dueDate = new Date(`${period.repaymentDueDate}T00:00:00`)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const daysToDue = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
+    return daysToDue >= 7 && daysToDue <= 60
   }
 
   private restoreRelationship(): void {
