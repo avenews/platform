@@ -67,9 +67,9 @@ const INFX_NAV: readonly ExperienceNavItem[] = [
 
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'invoice-uploads', label: 'Invoice Uploads', icon: 'receipt', exact: false },
-  { segment: 'obligations', label: 'Payments', icon: 'wallet', exact: false },
   { segment: 'suppliers', label: 'Suppliers', icon: 'building', exact: false },
+  { segment: 'obligations', label: 'Payments', icon: 'wallet', exact: false },
+  { segment: 'invoice-uploads', label: 'Invoice Uploads', icon: 'receipt', exact: false },
 ]
 
 const MANAGE_USERS_NAV: ExperienceNavItem = {
