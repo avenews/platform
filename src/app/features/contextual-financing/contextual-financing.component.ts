@@ -8,18 +8,24 @@ import {
 import { ActivatedRoute, Router } from '@angular/router'
 import { Subject, takeUntil } from 'rxjs'
 import {
+  customerWorkspaceById,
+  periodsForRelationship,
+  type CustomerFinancingPeriod,
+  type CustomerRelationship,
+  type CustomerWorkspace,
+} from '../../core/experience/customer-product-workspace.data'
+import {
   experienceById,
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
+import { CustomerFinancingPeriodModalComponent } from '../../shared/customer-financing-period-modal.component'
+import { formatDate, formatKes } from '../../shared/customer-portal.data'
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
-
-type PrototypeFlow = 'acl' | 'abf' | 'stf' | 'infx' | 'invoice-upload' | ''
-type AbfInvoiceType = 'fully-paid' | 'unpaid' | ''
 
 @Component({
   selector: 'app-contextual-financing',
   standalone: true,
-  imports: [PrototypeExplainerComponent],
+  imports: [PrototypeExplainerComponent, CustomerFinancingPeriodModalComponent],
   templateUrl: './contextual-financing.component.html',
   styleUrl: './contextual-financing.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,17 +37,22 @@ export class ContextualFinancingComponent implements OnDestroy {
   private readonly destroyed$ = new Subject<void>()
 
   experience: PortalExperience = this.resolveExperience()
-  selectedFlow: PrototypeFlow = ''
-  abfInvoiceType: AbfInvoiceType = ''
-  uploadRelationship = ''
+  workspace: CustomerWorkspace | undefined = customerWorkspaceById(this.experience.id)
+  selectedRelationship: CustomerRelationship | null = null
+  selectedPeriod: CustomerFinancingPeriod | null = null
+  returnRelationship: CustomerRelationship | null = null
   toast = ''
+
+  readonly formatDate = formatDate
+  readonly formatKes = formatKes
 
   constructor() {
     this.route.parent?.paramMap
       .pipe(takeUntil(this.destroyed$))
       .subscribe(params => {
         this.experience = experienceById(params.get('experienceId')) ?? experienceById('acl')!
-        this.closeFlow()
+        this.workspace = customerWorkspaceById(this.experience.id)
+        this.closeOverlays()
         if (this.experience.id === 'acl') {
           void this.router.navigate(['/experience', 'acl', 'home'], { replaceUrl: true })
           return
@@ -55,33 +66,63 @@ export class ContextualFinancingComponent implements OnDestroy {
     return experienceById(id) ?? experienceById('acl')!
   }
 
-  openFundsRequest(flow: Exclude<PrototypeFlow, 'invoice-upload' | ''>): void {
-    this.selectedFlow = flow
-    this.abfInvoiceType = ''
+  openRelationship(relationship: CustomerRelationship): void {
+    this.selectedRelationship = relationship
+    this.selectedPeriod = null
+    this.returnRelationship = null
   }
 
-  openInvoiceUpload(relationship: string): void {
-    this.uploadRelationship = relationship
-    this.selectedFlow = 'invoice-upload'
+  closeRelationship(): void {
+    this.selectedRelationship = null
   }
 
-  selectAbfInvoiceType(type: Exclude<AbfInvoiceType, ''>): void {
-    this.abfInvoiceType = type
+  relationshipPeriods(relationship: CustomerRelationship): readonly CustomerFinancingPeriod[] {
+    return this.workspace ? periodsForRelationship(this.workspace, relationship) : []
   }
 
-  closeFlow(): void {
-    this.selectedFlow = ''
-    this.abfInvoiceType = ''
-    this.uploadRelationship = ''
+  openPeriod(period: CustomerFinancingPeriod): void {
+    this.returnRelationship = this.selectedRelationship
+    this.selectedRelationship = null
+    this.selectedPeriod = period
   }
 
-  completePrototype(message: string): void {
-    this.toast = message
-    this.closeFlow()
+  closePeriod(): void {
+    this.selectedPeriod = null
+    if (this.returnRelationship) {
+      this.selectedRelationship = this.returnRelationship
+      this.returnRelationship = null
+    }
   }
 
-  openPeriod(periodId: string): void {
-    void this.router.navigate(['/experience', 'invoice-financing', 'financing', 'period', periodId])
+  startFundsRequest(relationship: CustomerRelationship, event?: Event): void {
+    event?.stopPropagation()
+    if (!relationship.fundsRequestEnabled) return
+
+    if (relationship.fundsRequestUrl) {
+      const opened = window.open(relationship.fundsRequestUrl, '_blank', 'noopener,noreferrer')
+      if (opened) {
+        opened.opener = null
+        return
+      }
+      this.toast = 'Your browser blocked the Funds Request tab. Allow pop-ups and try again.'
+      this.cdr.markForCheck()
+      return
+    }
+
+    this.toast = `Funds Request started for ${relationship.name}. This review prototype keeps the request scoped to the selected ${relationship.relationshipType}.`
+    this.cdr.markForCheck()
+  }
+
+  requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
+    event?.stopPropagation()
+    this.toast = `Funds Request starts from ${period.reference} and remains limited by that Dynamic Period's Available to Withdraw.`
+    this.cdr.markForCheck()
+  }
+
+  closeOverlays(): void {
+    this.selectedRelationship = null
+    this.selectedPeriod = null
+    this.returnRelationship = null
   }
 
   ngOnDestroy(): void {
