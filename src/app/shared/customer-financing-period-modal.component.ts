@@ -42,9 +42,22 @@ const MPESA_DETAILS = [
           (click)="$event.stopPropagation()"
         >
           <header class="baseline-modal__head customer-period-modal__head">
-            <div>
-              <p class="page-eyebrow">{{ detailEyebrow }}</p>
-              <h2 [id]="period.id + '-title'">{{ period.reference }}</h2>
+            <div class="customer-period-modal__heading">
+              @if (backLabel) {
+                <button
+                  type="button"
+                  class="baseline-button baseline-button--secondary customer-modal-back"
+                  aria-label="Back to relationship details"
+                  (click)="back.emit()"
+                >
+                  <span aria-hidden="true">←</span>
+                  <span>{{ backLabel }}</span>
+                </button>
+              }
+              <div>
+                <p class="page-eyebrow">{{ detailEyebrow }}</p>
+                <h2 [id]="period.id + '-title'">{{ period.reference }}</h2>
+              </div>
             </div>
             <button type="button" class="baseline-modal__close" aria-label="Close" (click)="close.emit()">&times;</button>
           </header>
@@ -146,7 +159,15 @@ const MPESA_DETAILS = [
         >
           <header class="baseline-modal__head customer-period-modal__head customer-repayment-modal__head">
             <div class="customer-repayment-modal__heading">
-              <button type="button" class="customer-modal-back" aria-label="Back to financing period" (click)="closeRepayment()">‹ <span>Back</span></button>
+              <button
+                type="button"
+                class="baseline-button baseline-button--secondary customer-modal-back"
+                aria-label="Back to financing period"
+                (click)="closeRepayment()"
+              >
+                <span aria-hidden="true">←</span>
+                <span>Back</span>
+              </button>
               <div>
                 <p class="page-eyebrow">{{ repaymentEyebrow }}</p>
                 <h2 [id]="period.id + '-repayment-title'">{{ period.reference }}</h2>
@@ -165,12 +186,12 @@ const MPESA_DETAILS = [
             @if (period.settlementMode === 'buyer-payment') {
               <section class="customer-settlement-card">
                 <div><span>Buyer</span><strong>{{ period.relationshipName }}</strong></div>
-                <div><span>Payment destination</span><strong>Client Clearing Account managed by Avenews</strong></div>
-                <div><span>Dynamic Period</span><strong>{{ period.reference }}</strong></div>
+                <div><span>Payment destination</span><strong>Your Avenews Clearing Account</strong></div>
+                <div><span>Period</span><strong>{{ period.reference }}</strong></div>
               </section>
 
               <div class="customer-period-note">
-                The Buyer payment is applied to this Dynamic Period. Avenews settles the financing and transfers any remaining proceeds according to your financing arrangement.
+                The Buyer payment is applied to this Period. Avenews settles the financing and transfers any remaining proceeds according to your financing arrangement.
               </div>
             } @else {
               <div class="customer-payment-methods" role="tablist" aria-label="Repayment method">
@@ -213,7 +234,7 @@ const MPESA_DETAILS = [
     }
 
     .customer-period-modal {
-      width: min(100%, 680px);
+      width: min(100%, 720px);
       max-height: min(88dvh, 860px);
       display: flex;
       flex-direction: column;
@@ -223,10 +244,19 @@ const MPESA_DETAILS = [
     }
 
     .customer-period-modal__head { flex: 0 0 auto; }
-    .customer-period-modal__head > div,
+    .customer-period-modal__heading,
+    .customer-repayment-modal__heading { min-width: 0; display: grid; gap: 8px; }
+    .customer-period-modal__heading > div,
     .customer-repayment-modal__heading > div { display: grid; gap: 4px; min-width: 0; }
     .customer-period-modal__head p,
     .customer-period-modal__head h2 { margin: 0; }
+
+    .customer-modal-back {
+      width: fit-content;
+      min-height: 36px;
+      justify-self: start;
+      padding-inline: 12px;
+    }
 
     .customer-period-modal__body {
       min-height: 0;
@@ -268,9 +298,9 @@ const MPESA_DETAILS = [
     .customer-period-details dd { color: var(--av-color-text-heading, #0d343f); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
 
     .customer-period-request {
-      border-color: var(--av-color-success, #16865b) !important;
-      background: var(--av-color-success, #16865b) !important;
-      color: #fff !important;
+      border-color: var(--av-color-action, #16b3c4) !important;
+      background: var(--av-color-action, #16b3c4) !important;
+      color: var(--av-color-on-action, #fff) !important;
     }
 
     .customer-instalments,
@@ -311,22 +341,6 @@ const MPESA_DETAILS = [
     .customer-single-repayment span,
     .customer-single-repayment small { color: var(--av-color-text-muted, #66788a); font-size: 11px; }
     .customer-single-repayment strong { color: var(--av-color-text-heading, #0d343f); font-size: 20px; }
-
-    .customer-repayment-modal__heading { min-width: 0; display: grid; gap: 7px; }
-    .customer-modal-back {
-      width: fit-content;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 0;
-      border: 0;
-      background: transparent;
-      color: var(--av-color-action, #16b3c4);
-      font: inherit;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-    }
 
     .customer-repayment-summary {
       display: grid;
@@ -438,7 +452,9 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   @Input() dueDateLabel = 'Repayment Due Date'
   @Input() totalRepaidLabel = 'Total Repaid'
   @Input() outstandingLabel = 'Outstanding Balance'
+  @Input() backLabel: string | null = null
   @Output() readonly requestFunds = new EventEmitter<CustomerFinancingPeriod>()
+  @Output() readonly back = new EventEmitter<void>()
   @Output() readonly close = new EventEmitter<void>()
 
   repaymentOpen = false
