@@ -125,16 +125,17 @@
 .access-card__business { color: var(--av-color-text, #344054); font-size: 13px; font-weight: 600; }
 .access-card p { margin: 4px 0 0; color: var(--av-color-text-muted, #66788a); font-size: 13px; line-height: 1.55; }
 .access-card__action {
-  min-height: 34px;
+  min-height: 36px;
   width: fit-content;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0 12px;
-  border: 1px solid var(--av-color-action, #16b3c4);
+  justify-self: end;
+  padding: 0 16px;
+  border: 1px solid var(--av-color-success, #16865b);
   border-radius: 6px;
-  background: #fff;
-  color: var(--av-color-action, #16b3c4);
+  background: var(--av-color-success, #16865b);
+  color: #fff;
   font-size: 13px;
   font-weight: 700;
 }
@@ -179,4 +180,5 @@
   .access-grid { grid-template-columns: 1fr; }
   .access-card,
   .access-card--partner { min-height: 0; }
+  .access-card__action { justify-self: stretch; width: 100%; }
 }
