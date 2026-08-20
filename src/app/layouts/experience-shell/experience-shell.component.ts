@@ -47,29 +47,29 @@ const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
 
 const ABF_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'financing', label: 'Suppliers', icon: 'person', exact: false },
+  { segment: 'financing', label: 'Suppliers', icon: 'building', exact: false },
 ]
 
 const STF_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'financing', label: 'Partner Suppliers', icon: 'person', exact: false },
+  { segment: 'financing', label: 'Partner Suppliers', icon: 'building', exact: false },
 ]
 
 const INVOICE_FINANCING_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'financing', label: 'Buyers', icon: 'person', exact: false },
+  { segment: 'financing', label: 'Buyers', icon: 'building', exact: false },
 ]
 
 const INFX_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'financing', label: 'Buyers', icon: 'person', exact: false },
+  { segment: 'financing', label: 'Buyers', icon: 'building', exact: false },
 ]
 
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'invoice-uploads', label: 'Invoice Uploads', icon: 'receipt', exact: false },
   { segment: 'obligations', label: 'Obligations', icon: 'wallet', exact: false },
-  { segment: 'suppliers', label: 'Suppliers', icon: 'person', exact: false },
+  { segment: 'suppliers', label: 'Suppliers', icon: 'building', exact: false },
 ]
 
 const MANAGE_USERS_NAV: ExperienceNavItem = {
@@ -251,6 +251,12 @@ export class ExperienceShellComponent implements OnDestroy {
     this.profileOpen = false
     this.contextOpen = false
     this.developerOpen = false
+  }
+
+  openExternal(url: string, event: Event): void {
+    event.preventDefault()
+    const opened = window.open(url, '_blank', 'noopener,noreferrer')
+    if (opened) opened.opener = null
   }
 
   logout(): void {
