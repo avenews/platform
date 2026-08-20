@@ -1,137 +1,144 @@
 <div class="portal-page contextual-home">
-  @if (experience.id === 'acl') {
+  @if (workspace; as product) {
     <section class="contextual-home__hero">
       <div>
-        <h1>Agri Credit Line</h1>
-        <p>Manage your available credit, Funds Requests, Advances, Instalments, and repayment details in one place.</p>
+        <h1>{{ product.heading }}</h1>
+        <p>{{ product.intro }}</p>
       </div>
       <button
         type="button"
         class="baseline-button baseline-button--primary contextual-home__primary"
-        data-action-kind="funds-request"
-        [attr.data-external-url]="aclFundsRequestDemoUrl"
-        aria-label="Submit Funds Request (opens in a new tab)"
-        (click)="openFundsRequest()"
-      >
-        Submit Funds Request
-      </button>
+        [attr.data-action-kind]="product.primaryActionKind"
+        [attr.data-external-url]="product.id === 'acl' ? aclFundsRequestDemoUrl : null"
+        (click)="primaryAction()"
+      >{{ product.primaryActionLabel }}</button>
     </section>
 
-    <app-prototype-explainer tone="decision" title="Agri Credit Line uses one customer workspace">
-      <p>The credit facility belongs to the financing customer, so Home shows one product-level credit summary, Financing activity, record details, and the Funds Request entry point. Supplier relationships remain inside the relevant commercial transaction rather than appearing as separate facilities.</p>
+    <app-prototype-explainer tone="purpose" title="Every customer product uses the same simple Home pattern">
+      <p>Home answers three questions first: what financing is available, what remains outstanding, and what needs payment or settlement attention. The detailed financing periods sit immediately below those cards instead of being hidden behind a separate recent-activity experience.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="action" title="Request Funds opens the current Agri Credit Line journey">
-      <p>The Home action and the primary navigation item open the current Agri Credit Line demo in a new tab. That journey collects the financing amount, Instalment option, trade documents, approved disbursement recipient, summary, disclosures, and signature.</p>
-    </app-prototype-explainer>
+    @if (product.id === 'invoice-financing') {
+      <app-prototype-explainer tone="handbook" title="Invoice Financing settlement stays Buyer-funded">
+        <p>The Client Supplier sees its Buyer and Dynamic Period context, but settlement is driven by the Buyer payment into the Client Clearing Account managed by Avenews. This product therefore shows settlement details rather than asking the Client Supplier to make a manual bank or M-Pesa repayment.</p>
+      </app-prototype-explainer>
+    }
 
-    <section class="contextual-metrics acl-summary" aria-label="Agri Credit Line summary">
+    <section class="contextual-metrics customer-product-summary" [attr.aria-label]="product.heading + ' summary'">
       <article class="contextual-metric baseline-card">
-        <span>Available Credit</span>
-        <strong>{{ formatKes(primaryAclCreditLine?.available ?? 0) }}</strong>
-        <small>{{ formatKes(primaryAclCreditLine?.used ?? 0) }} currently used</small>
+        <span>{{ product.availableMetricLabel }}</span>
+        <strong>{{ formatKes(product.availableMetricValue) }}</strong>
+        <small>{{ product.availableMetricHelper }}</small>
       </article>
+
       <article class="contextual-metric baseline-card">
-        <span>Outstanding Amount</span>
-        <strong>{{ formatKes(primaryAclCreditLine?.used ?? 0) }}</strong>
-        <small>Across active Agri Credit Line financing</small>
+        <span>{{ product.outstandingMetricLabel }}</span>
+        <strong>{{ formatKes(product.outstandingMetricValue) }}</strong>
+        <small>{{ product.outstandingMetricHelper }}</small>
       </article>
-      <article class="contextual-metric baseline-card acl-next-installment acl-payments-due">
-        <span>Payments Due</span>
-        <strong>{{ paymentsDueLabel }}</strong>
-        <small>{{ overduePaymentsCount }} overdue · {{ upcomingPaymentsCount }} upcoming</small>
+
+      <article class="contextual-metric baseline-card customer-payments-due">
+        <span>{{ product.dueMetricLabel }}</span>
+        <strong>{{ dueCountLabel }}</strong>
+        <small>{{ dueSplitLabel }}</small>
         <button
           type="button"
-          avButton
-          variant="ghost"
-          size="sm"
-          class="acl-summary-repayment-action"
-          aria-label="View payments due in Financing activity"
+          class="baseline-button baseline-button--secondary customer-payments-due__action"
+          [attr.aria-label]="product.dueActionLabel + ' in Financing activity'"
           (click)="filterPaymentsDue()"
-        >
-          View payments due
-        </button>
+        >{{ product.dueActionLabel }}</button>
       </article>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="Payments Due is a shortcut to the affected financing periods">
-      <p>The Home card stays deliberately universal: it shows only how many payments need attention and the overdue/upcoming split. Selecting View payments due filters Financing activity to the affected financing periods, where the customer can open the relevant record and its repayment details.</p>
+    <app-prototype-explainer tone="decision" title="The payment card is a filter, not another repayment screen">
+      <p>The summary stays universal. Its outlined action filters Financing activity to the affected periods. Repayment or settlement instructions stay attached to the specific financing period so the customer always knows which obligation they are viewing.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
-      <p>An Agri Credit Line financing customer may purchase eligible goods from a Counterparty Supplier, including a farmer, trader, processor, wholesaler, input supplier, or other approved Supplier. The Supplier may receive the approved disbursement, but it does not become another customer credit facility.</p>
-    </app-prototype-explainer>
-
-    <section id="acl-financing-activity" class="baseline-section acl-financing-activity">
-      <div class="acl-activity-toolbar">
+    <section id="customer-financing-activity" class="baseline-section customer-financing-activity">
+      <div class="customer-activity-toolbar">
         <div class="baseline-section-heading">
           <div>
-            <h2>Financing activity</h2>
-            <p>Open a financing period for its full financing and repayment details.</p>
+            <h2>Financing Activity</h2>
+            <p>Open a {{ product.id === 'invoice-financing' ? 'Dynamic Period' : 'financing period' }} for its full financing and {{ product.id === 'invoice-financing' ? 'settlement' : 'repayment' }} details.</p>
           </div>
         </div>
 
         <app-customer-filter-bar
-          [searchValue]="aclSearchQuery"
-          searchPlaceholder="Search financing or Funds Request"
-          searchAriaLabel="Search Agri Credit Line financing activity"
-          [filters]="aclFilterFields"
-          [values]="aclFilterValues"
-          (searchValueChange)="onAclSearchValueChange($event)"
-          (valuesChange)="onAclFilterValuesChange($event)"
+          [searchValue]="searchQuery"
+          [searchPlaceholder]="product.id === 'invoice-financing' ? 'Search Buyer or Dynamic Period' : 'Search financing or relationship'"
+          [searchAriaLabel]="'Search ' + product.heading + ' financing activity'"
+          [filters]="filterFields"
+          [values]="filterValues"
+          (searchValueChange)="onSearchValueChange($event)"
+          (valuesChange)="onFilterValuesChange($event)"
         />
       </div>
 
-      <app-prototype-explainer tone="purpose" title="Financing activity shows customer-facing financing periods">
-        <p>The list is now the place to resolve a payment alert into a specific financing period. View payments due applies a combined due/overdue filter here; selecting a row opens that period, its repayment schedule, and its repayment details.</p>
-      </app-prototype-explainer>
+      @if (product.id === 'acl') {
+        <app-prototype-explainer tone="handbook" title="ACL demonstrates the customer-facing unsettled status set">
+          <p>The review data includes Live, Overdue, In Default, Delinquent, On Repayment Plan, Transferred to Repayment Plan, and Collections. Pre-disbursement, superseded, settled, Cancelled, and Declined records are intentionally excluded from the active financing-period list.</p>
+        </app-prototype-explainer>
+      }
 
-      <app-prototype-explainer tone="handbook" title="Only unsettled customer-facing financing-period statuses are surfaced">
-        <p>The Financings.Status superset is broader than what a customer needs on an active financing-period list. Requested, Offered, Validating, Unavailable, pre-signature states, Rolled Over, Refinanced, Repaid, Cancelled, and Declined are excluded here. Customer-facing unsettled states are Live, Overdue, In Default, Delinquent, On Repayment Plan, Transferred to Repayment Plan, and Collections. Overdue can also be derived from the repayment schedule where the source record is otherwise Live.</p>
-      </app-prototype-explainer>
+      @if (product.id === 'abf') {
+        <app-prototype-explainer tone="decision" title="ABF Home stays financing-first while Funds Requests stay Supplier-scoped">
+          <p>The Home view shows the active financing periods across approved Suppliers. Starting a new ABF Funds Request happens from the Suppliers page so the Supplier context and its sub-limit are established before entering the request journey.</p>
+        </app-prototype-explainer>
+      }
 
-      <app-prototype-explainer tone="decision" title="Search and filters share the Financing activity header on desktop">
-        <p>The product is already fixed to Agri Credit Line, so the controls only need Status, Due Date, and search by financing or Funds Request reference. Desktop uses the space beside the heading; tablet and mobile stack the controls and retain the compact Filters drawer.</p>
-      </app-prototype-explainer>
+      @if (product.id === 'stf') {
+        <app-prototype-explainer tone="handbook" title="Stockist Financing keeps each period with its Partner Supplier">
+          <p>The Stockist is the Client Buyer and the approved Partner Supplier receives the financing disbursement. The Partner Suppliers page therefore holds the supplier limit and Funds Request entry point while Home concentrates on current financing periods and repayments.</p>
+        </app-prototype-explainer>
+      }
 
-      <app-prototype-explainer tone="decision" title="Repayment details stay attached to the financing period">
-        <p>The Home payment card does not decide which obligation the customer is paying. It filters the list. Each financing period then carries its own repayment schedule and repayment-details action, so overdue and upcoming obligations cannot be confused with one another.</p>
-      </app-prototype-explainer>
+      @if (product.id === 'invoice-financing') {
+        <app-prototype-explainer tone="handbook" title="Invoice Financing keeps Dynamic Periods with the relevant Buyer">
+          <p>A Dynamic Period groups one Client Supplier, one Buyer and one invoice Due Date. Multiple periods may therefore sit under the same Buyer relationship, and the Buyer relationship page keeps those periods together.</p>
+        </app-prototype-explainer>
+      }
 
-      <app-prototype-explainer tone="limitation" title="Purpose is intentionally not shown">
-        <p>The old design demonstrated a Purpose column, but the current CRM and LMS dataset does not provide that field. It remains excluded rather than being replaced with invented customer data.</p>
-      </app-prototype-explainer>
+      @if (product.id === 'infx') {
+        <app-prototype-explainer tone="handbook" title="Invoice Financing Express keeps one invoice in each Funds Request">
+          <p>Each approved Buyer can have a Buyer sub-limit, but each Funds Request finances one invoice and creates its own Financing Period. The Client Supplier manually repays Avenews at the end of that period.</p>
+        </app-prototype-explainer>
+      }
 
       <div class="baseline-table-wrap">
-        <table class="baseline-table acl-activity-table">
+        <table class="baseline-table customer-activity-table">
           <thead>
             <tr>
               <th>Financing</th>
               <th>Disbursement Date</th>
-              <th>Repayment Due Date</th>
+              <th>{{ product.dueDateColumnLabel }}</th>
               <th>Amount Financed</th>
               <th>Status</th>
-              <th>Total Repaid</th>
-              <th>Outstanding Balance</th>
+              <th>{{ product.totalRepaidColumnLabel }}</th>
+              <th>{{ product.outstandingColumnLabel }}</th>
             </tr>
           </thead>
           <tbody>
-            @for (record of aclPageItems; track record.id) {
+            @for (period of pageItems; track period.id) {
               <tr
-                class="acl-activity-row"
+                class="customer-activity-row"
                 tabindex="0"
-                [attr.aria-label]="'View details for ' + fundsRequestReference(record)"
-                (click)="openAclRecord(record)"
-                (keydown.enter)="openAclRecord(record)"
-                (keydown.space)="openAclRecord(record); $event.preventDefault()"
+                [attr.aria-label]="'View details for ' + period.reference"
+                (click)="openPeriod(period)"
+                (keydown.enter)="openPeriod(period)"
+                (keydown.space)="openPeriod(period); $event.preventDefault()"
               >
-                <td><span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>{{ fundsRequestReference(record) }}</span></span></td>
-                <td>{{ recordDisbursementDate(record) }}</td>
-                <td>{{ nextDueDate(record) }}</td>
-                <td>{{ tableFinancedAmount(record) }}</td>
-                <td><span class="baseline-status" [class]="'baseline-status ' + customerFinancingPeriodStatusTone(record)">{{ customerFinancingPeriodStatusLabel(record) }}</span></td>
-                <td>{{ recordTotalRepaid(record) }}</td>
-                <td><strong>{{ recordOutstandingBalance(record) }}</strong></td>
+                <td>
+                  <span class="baseline-financing-cell">
+                    <strong>{{ period.relationshipName }}</strong>
+                    <span>{{ period.reference }}</span>
+                  </span>
+                </td>
+                <td>{{ formatDate(period.disbursementDate, true) }}</td>
+                <td>{{ formatDate(period.repaymentDueDate, true) }}</td>
+                <td>{{ formatKes(period.amountFinanced) }}</td>
+                <td><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></td>
+                <td>{{ formatKes(period.totalRepaid) }}</td>
+                <td><strong>{{ formatKes(period.outstandingBalance) }}</strong></td>
               </tr>
             } @empty {
               <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div></td></tr>
@@ -140,21 +147,21 @@
         </table>
       </div>
 
-      <div class="baseline-cards acl-activity-cards">
-        @for (record of aclPageItems; track record.id) {
+      <div class="baseline-cards customer-activity-cards">
+        @for (period of pageItems; track period.id) {
           <article class="baseline-record-card">
-            <button type="button" class="acl-record-card-button" (click)="openAclRecord(record)">
+            <button type="button" class="customer-record-card-button" (click)="openPeriod(period)">
               <div class="baseline-record-card__head">
-                <span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>{{ fundsRequestReference(record) }}</span></span>
-                <span class="baseline-status" [class]="'baseline-status ' + customerFinancingPeriodStatusTone(record)">{{ customerFinancingPeriodStatusLabel(record) }}</span>
+                <span class="baseline-financing-cell"><strong>{{ period.relationshipName }}</strong><span>{{ period.reference }}</span></span>
+                <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric"><small>{{ recordAmountLabel(record) }}</small><strong>{{ formatKes(record.principal) }}</strong></span>
-                <span class="baseline-metric"><small>Repayment Due</small><strong>{{ nextDueDate(record) }}</strong></span>
-                <span class="baseline-metric"><small>Total Repaid</small><strong>{{ recordTotalRepaid(record) }}</strong></span>
-                <span class="baseline-metric"><small>Outstanding Balance</small><strong>{{ recordOutstandingBalance(record) }}</strong></span>
+                <span class="baseline-metric"><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
+                <span class="baseline-metric"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                <span class="baseline-metric"><small>{{ product.totalRepaidColumnLabel }}</small><strong>{{ formatKes(period.totalRepaid) }}</strong></span>
+                <span class="baseline-metric"><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
               </div>
-              <span class="acl-record-card-button__action">View details</span>
+              <span class="customer-record-card-button__action">View details</span>
             </button>
           </article>
         } @empty {
@@ -162,58 +169,38 @@
         }
       </div>
 
-      @if (filteredAclFinancingRecords.length) {
-        <div class="baseline-pagination acl-pagination" aria-label="Financing activity pagination">
-          <p>Showing <strong>{{ aclRangeStart }}-{{ aclRangeEnd }}</strong> of {{ filteredAclFinancingRecords.length }} financing periods</p>
+      @if (filteredPeriods.length) {
+        <div class="baseline-pagination customer-pagination" aria-label="Financing activity pagination">
+          <p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredPeriods.length }} {{ activityItemLabel }}</p>
           <div class="baseline-pagination__controls">
-            <button type="button" [disabled]="aclPage === 1" (click)="changeAclPage(aclPage - 1)" aria-label="Previous page">‹</button>
-            @for (page of aclPageNumbers; track page) {
-              <button type="button" [class.is-active]="page === aclPage" [attr.aria-current]="page === aclPage ? 'page' : null" (click)="changeAclPage(page)">{{ page }}</button>
+            <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">‹</button>
+            @for (pageNumber of pageNumbers; track pageNumber) {
+              <button type="button" [class.is-active]="pageNumber === page" [attr.aria-current]="pageNumber === page ? 'page' : null" (click)="changePage(pageNumber)">{{ pageNumber }}</button>
             }
-            <button type="button" [disabled]="aclPage === aclTotalPages" (click)="changeAclPage(aclPage + 1)" aria-label="Next page">›</button>
+            <button type="button" [disabled]="page === totalPages" (click)="changePage(page + 1)" aria-label="Next page">›</button>
           </div>
         </div>
       }
     </section>
-
-    <app-prototype-explainer tone="action" title="Request Funds remains product-level; repayment stays period-level">
-      <p>Request Funds creates a new Funds Request and remains available from Home and primary navigation. Payments Due is only a shortcut into Financing activity. Repayment instructions are opened from the selected financing period so the customer can see the relevant schedule before paying.</p>
-    </app-prototype-explainer>
-
-    <app-prototype-explainer tone="handbook" title="Multiple Agri Credit Line Funds Requests may run in parallel">
-      <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the financing periods together and paginates older records instead of splitting them into another product page.</p>
-    </app-prototype-explainer>
-
-    <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
-      <p>The approved ABSA and M-Pesa account details are displayed as repayment instructions only. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
-    </app-prototype-explainer>
   } @else {
     <section class="contextual-home__hero">
       <div>
-        <h1>{{ displayProductName(experience) }}</h1>
+        <h1>{{ experience.homeHeading }}</h1>
         <p>{{ experience.homeIntro }}</p>
       </div>
       <button
         type="button"
         class="baseline-button baseline-button--primary contextual-home__primary"
         [attr.data-action-kind]="experience.primaryActionKind"
-        (click)="takeAction(experience.primaryActionKind)"
-      >
-        {{ experience.primaryActionLabel }}
-      </button>
+        (click)="takePartnerAction(experience.primaryActionKind)"
+      >{{ experience.primaryActionLabel }}</button>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="This Home answers the first product-specific questions">
-      @switch (experience.id) {
-        @case ('abf') { <p>How much Agri Buyer Financing credit remains, which Supplier invoice path is relevant, and what is currently financed?</p> }
-        @case ('stf') { <p>Which Partner Suppliers are available, how much can be financed, and which request needs attention?</p> }
-        @case ('invoice-financing') { <p>How much is available across Dynamic Periods, which Buyer relationships exist, and which periods need action?</p> }
-        @case ('infx') { <p>How much Invoice Financing Express credit remains, which one-invoice requests are active, and when must the financing customer repay Avenews?</p> }
-        @case ('invoice-partner') { <p>Which invoice uploads need attention, how many participating Suppliers need attention, and what full invoice value is due next?</p> }
-      }
+    <app-prototype-explainer tone="role" title="The Partner Buyer workspace remains operationally distinct">
+      <p>The Partner Buyer is not the financing Client in this workspace. Its Home continues to focus on invoice uploads, obligations and participating Suppliers rather than reusing the customer repayment experience.</p>
     </app-prototype-explainer>
 
-    <section class="contextual-metrics" aria-label="Product summary">
+    <section class="contextual-metrics" aria-label="Partner summary">
       @for (metric of experience.metrics; track metric.label) {
         <article class="contextual-metric baseline-card">
           <span>{{ metric.label }}</span>
@@ -223,238 +210,39 @@
       }
     </section>
 
-    @switch (experience.id) {
-      @case ('abf') {
-        <app-prototype-explainer tone="action" title="Agri Buyer Financing must branch before documents are requested">
-          <p>A <strong>Fully Paid Invoice</strong> reimburses the financing customer and requires Proof of Payment. An <strong>Unpaid Invoice</strong> directs the approved disbursement to the Supplier. The Financing page demonstrates both paths.</p>
-        </app-prototype-explainer>
-      }
-      @case ('stf') {
-        <app-prototype-explainer tone="action" title="Stockist Financing starts from an approved Partner Supplier relationship">
-          <p>The Partner Supplier invoice, delivery date, delivery confirmation, amount, and Instalment choice belong inside the Funds Request. Avenews disburses the approved amount to the Partner Supplier.</p>
-        </app-prototype-explainer>
-      }
-      @case ('invoice-financing') {
-        <app-prototype-explainer tone="handbook" title="Invoice Financing is organised around Financing Relationships and Dynamic Periods">
-          <p>A Dynamic Period groups one financing customer, one Buyer, and one invoice Due Date. Funds Requests are submitted from the applicable period, subject to Available to Withdraw and the request window.</p>
-        </app-prototype-explainer>
-      }
-      @case ('infx') {
-        <app-prototype-explainer tone="action" title="Invoice Financing Express finances one approved invoice per Funds Request">
-          <p>The approved Buyer, invoice, Due Date, POD, and requested amount stay inside one request. The financing customer manually repays Avenews at the end of the Financing Period.</p>
-        </app-prototype-explainer>
-      }
-      @case ('invoice-partner') {
-        <app-prototype-explainer tone="role" title="The Partner Buyer uploads invoices but does not borrow for the participating Supplier">
-          <p>The Partner Buyer supplies invoice information and manages the full payment obligation. The financing customer submits any Funds Request from its applicable Dynamic Period.</p>
-        </app-prototype-explainer>
-      }
-    }
-
-    <app-prototype-explainer tone="limitation" title="The figures and actions on this branch are fictional review data">
-      <p>No metric on this prototype is connected to CRM, a bank, a live uploader, settlement allocation, payment processing, or disbursement. The screens test information hierarchy and action placement only.</p>
-    </app-prototype-explainer>
-
     <section class="baseline-section">
       <div class="baseline-section-heading">
-        <div>
-          <p class="page-eyebrow">Current activity</p>
-          <h2>{{ experience.kind === 'partner' ? 'Items requiring attention' : 'Recent financing' }}</h2>
-        </div>
-        <button type="button" class="baseline-button baseline-button--secondary" (click)="takeAction('view-financing')">View all</button>
+        <div><p class="page-eyebrow">Current activity</p><h2>Items requiring attention</h2></div>
       </div>
-
       <div class="baseline-table-wrap">
         <table class="baseline-table contextual-home__table">
-          <thead>
-            <tr>
-              <th>Financing</th>
-              <th>{{ experience.kind === 'partner' ? 'Result' : 'Amount' }}</th>
-              <th>Status</th>
-              <th>Action</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Activity</th><th>Result</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
             @for (record of experience.records; track record.title + record.subtitle) {
               <tr>
                 <td><span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span></td>
                 <td><span class="baseline-financing-cell"><span>{{ record.amountLabel }}</span><strong>{{ record.amount }}</strong></span></td>
                 <td><span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span></td>
-                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="takeAction(record.actionKind)">{{ record.actionLabel }}</button></td>
+                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction(record.actionKind)">{{ record.actionLabel }}</button></td>
               </tr>
             }
           </tbody>
         </table>
       </div>
-
-      <div class="baseline-cards">
-        @for (record of experience.records; track record.title + record.subtitle) {
-          <article class="baseline-record-card">
-            <div class="baseline-record-card__head">
-              <span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span>
-              <span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span>
-            </div>
-            <div class="baseline-metrics">
-              <span class="baseline-metric"><small>{{ record.amountLabel }}</small><strong>{{ record.amount }}</strong></span>
-            </div>
-            <div class="baseline-card-actions">
-              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="takeAction(record.actionKind)">{{ record.actionLabel }}</button>
-            </div>
-          </article>
-        }
-      </div>
     </section>
   }
 </div>
 
-@if (experience.id === 'acl' && selectedAclRecord; as record) {
-  <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeAclRecord()">
-    <section class="baseline-modal acl-sheet-modal acl-record-modal" role="dialog" aria-modal="true" aria-labelledby="acl-record-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head">
-        <div>
-          <p class="page-eyebrow">{{ recordDetailsEyebrow(record) }}</p>
-          <h2 id="acl-record-title">{{ fundsRequestReference(record) }}</h2>
-        </div>
-        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeAclRecord()">&times;</button>
-      </header>
-      <div class="baseline-modal__body acl-record-modal__body">
-        <div class="acl-record-modal__summary">
-          <span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>Agri Credit Line</span></span>
-          <span class="baseline-status" [class]="'baseline-status ' + customerFinancingPeriodStatusTone(record)">{{ customerFinancingPeriodStatusLabel(record) }}</span>
-        </div>
-
-        <dl class="acl-record-details">
-          <div><dt>Disbursement Date</dt><dd>{{ recordDisbursementDate(record) }}</dd></div>
-          <div><dt>Repayment Due Date</dt><dd>{{ nextDueDate(record) }}</dd></div>
-          <div><dt>{{ recordAmountLabel(record) }}</dt><dd>{{ formatKes(record.principal) }}</dd></div>
-          <div><dt>Total Repaid</dt><dd>{{ recordTotalRepaid(record) }}</dd></div>
-          <div><dt>Outstanding Balance</dt><dd>{{ recordOutstandingBalance(record) }}</dd></div>
-        </dl>
-
-        <app-prototype-explainer tone="decision" title="This modal belongs to one financing period">
-          <p>The status, dates, balance, Instalments, and repayment-details action all stay attached to this financing period. The customer reaches this record either directly from Financing activity or through the Payments Due shortcut.</p>
-        </app-prototype-explainer>
-
-        <section class="acl-installments">
-          <div class="baseline-section-heading">
-            <div><p class="page-eyebrow">Repayment schedule</p><h3>Instalments</h3></div>
-          </div>
-          @if (record.installments.length) {
-            <div class="acl-installment-list">
-              @for (installment of record.installments; track installment.dueDate) {
-                <div class="acl-installment-row">
-                  <div><span>Due {{ formatDate(installment.dueDate) }}</span><strong>{{ installmentStatusLabel(installment.status) }}</strong></div>
-                  <span class="baseline-status" [class]="'baseline-status ' + installmentStatusTone(installment.status)">{{ installmentStatusLabel(installment.status) }}</span>
-                </div>
-              }
-            </div>
-            @if (nextRepaymentFor(record)) {
-              <div class="acl-record-actions">
-                <button
-                  type="button"
-                  class="baseline-button baseline-button--secondary baseline-button--block"
-                  [attr.aria-label]="'View repayment details for ' + fundsRequestReference(record)"
-                  (click)="openRepaymentDetails(record)"
-                >
-                  View repayment details
-                </button>
-              </div>
-            }
-          } @else {
-            <div class="baseline-empty"><strong>No Instalment schedule</strong><p>This financing period does not include Instalments in the current dataset.</p></div>
-          }
-        </section>
-      </div>
-    </section>
-  </div>
+@if (workspace; as product) {
+  <app-customer-financing-period-modal
+    [period]="selectedPeriod"
+    [dueDateLabel]="product.dueDateColumnLabel"
+    [totalRepaidLabel]="product.totalRepaidColumnLabel"
+    [outstandingLabel]="product.outstandingColumnLabel"
+    (close)="closePeriod()"
+  />
 }
 
-@if (experience.id === 'acl' && repaymentDetailsOpen) {
-  @if (repaymentReturnRecord; as record) {
-    <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeRepaymentDetails()">
-      <section class="baseline-modal acl-sheet-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
-        <header class="baseline-modal__head acl-repayment-modal__head">
-          <div class="acl-repayment-modal__heading">
-            <button
-              type="button"
-              avButton
-              variant="ghost"
-              size="sm"
-              class="acl-modal-back"
-              aria-label="Back to financing details"
-              (click)="backToFinancingDetails()"
-            >
-              <av-icon name="chevron-left" [size]="18" />
-              <span>Back</span>
-            </button>
-            <div class="acl-repayment-modal__title">
-              <p class="page-eyebrow">Repayment details</p>
-              <h2 id="acl-repayment-title">{{ fundsRequestReference(record) }}</h2>
-            </div>
-          </div>
-          <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRepaymentDetails()">&times;</button>
-        </header>
-        <div class="baseline-modal__body">
-          <div class="acl-repayment-summary">
-            <div>
-              <span>Outstanding balance</span>
-              <strong>{{ formatKes(record.balance) }}</strong>
-              <small>{{ recordPaymentsDueLabel(record) }} · Next due {{ nextDueDate(record) }}</small>
-            </div>
-          </div>
-
-          <section class="acl-repayment-periods" aria-label="Repayment schedule for this financing period">
-            <div class="acl-repayment-periods__heading">
-              <span>Repayment schedule</span>
-              <small>Instalments</small>
-            </div>
-            @for (installment of record.installments; track installment.dueDate) {
-              <div class="acl-repayment-period">
-                <div>
-                  <strong>Due {{ formatDate(installment.dueDate) }}</strong>
-                  <small>{{ installmentStatusLabel(installment.status) }}</small>
-                </div>
-                <span class="baseline-status" [class]="'baseline-status ' + installmentStatusTone(installment.status)">{{ installmentStatusLabel(installment.status) }}</span>
-              </div>
-            }
-          </section>
-
-          <div class="acl-payment-allocation-note">
-            <strong>Payment details for this financing period</strong>
-            <p>Use either payment method below for this financing period. The same Avenews collections destination may be used across financing periods; this screen keeps the repayment context attached to the record you opened.</p>
-          </div>
-
-          <div class="acl-payment-methods" role="tablist" aria-label="Repayment method">
-            <button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'bank'" [class.is-active]="repaymentMethod === 'bank'" (click)="selectRepaymentMethod('bank')">Bank Transfer</button>
-            <button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'mpesa'" [class.is-active]="repaymentMethod === 'mpesa'" (click)="selectRepaymentMethod('mpesa')">M-Pesa Paybill</button>
-          </div>
-
-          @if (repaymentMethod === 'bank') {
-            <div class="acl-payment-details" role="tabpanel">
-              @for (item of bankDetails; track item.label) {
-                <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
-              }
-            </div>
-          } @else {
-            <div class="acl-payment-details" role="tabpanel">
-              @for (item of mpesaDetails; track item.label) {
-                <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
-              }
-              <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" (click)="copyPaymentValue(clientPhone, 'Account Number')">Copy</button></div>
-            </div>
-          }
-
-          <app-prototype-explainer tone="handbook" title="Repayment context is resolved at financing-period level">
-            <p>Multiple Advances can coexist and can have different Due Dates or Instalment schedules. Keeping repayment details on the financing period makes it clear which schedule the customer is reviewing before they use the shared Avenews collections destination.</p>
-          </app-prototype-explainer>
-
-          <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
-            <p>These are repayment instructions for the financing period currently open. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
-          </app-prototype-explainer>
-        </div>
-      </section>
-    </div>
-  }
+@if (toast) {
+  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
 }
-
-@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
