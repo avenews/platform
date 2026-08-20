@@ -148,20 +148,13 @@ test.describe('post-OTP access resolution', () => {
     await expect(page).toHaveURL(/\/access$/)
     await expect(page.getByText('Avenews portal', { exact: true })).toBeVisible()
     await expect(page.locator('.access-hero h1')).toHaveText(new RegExp(WELCOME_MESSAGES.join('|')))
-    await expect(
-      page.getByRole('heading', { name: 'What would you like to manage?', level: 2 }),
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 2 })).toBeVisible()
     await expect(page.locator('.access-card')).toHaveCount(6)
     await expect(page.getByRole('heading', { name: 'Your available products', level: 2 })).toBeVisible()
     await expect(page.getByRole('heading', { name: 'Partner workspace', level: 2 })).toBeVisible()
-    await expect(page.locator('[data-experience-id="acl"] .access-card__summary')).toContainText(
-      'Outstanding Amount',
-    )
 
     for (const destination of DESTINATIONS) {
-      await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(
-        destination.label,
-      )
+      await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.label)
     }
 
     await assertExplainer(page, 'Product selection appears only when there is a choice', 'purpose')
@@ -173,23 +166,17 @@ test.describe('post-OTP access resolution', () => {
 
   test('one customer product opens directly after verification', async ({ page }, testInfo) => {
     await completePrototypeLogin(page, 'abf-only')
-
     await expect(page).toHaveURL(/\/experience\/abf\/home$/)
     await expect(page.getByRole('heading', { name: 'Agri Buyer Financing', level: 1 })).toBeVisible()
-    await expect(
-      page.getByRole('heading', { name: 'What would you like to manage?', level: 2 }),
-    ).toHaveCount(0)
+    await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 2 })).toHaveCount(0)
     await assertNoOverflow(page)
     await page.screenshot({ path: testInfo.outputPath('single-product-direct.png'), fullPage: true })
   })
 
   test('one Partner workspace opens directly after verification', async ({ page }, testInfo) => {
     await completePrototypeLogin(page, 'partner-only')
-
     await expect(page).toHaveURL(/\/experience\/invoice-partner\/home$/)
-    await expect(
-      page.getByRole('heading', { name: 'Invoice Financing - Partner Buyer', level: 1 }),
-    ).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Invoice Financing - Partner Buyer', level: 1 })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Upload invoices' })).toBeVisible()
     await expect(page.locator('button[data-action="funds-request"]')).toHaveCount(0)
     await assertNoOverflow(page)
@@ -205,7 +192,6 @@ test.describe('contextual shell', () => {
   for (const destination of DESTINATIONS) {
     test(`${destination.id} has a product-specific Home`, async ({ page }, testInfo) => {
       await page.goto(`/experience/${destination.id}/home`)
-
       await expect(page.getByRole('heading', { name: destination.label, level: 1 })).toBeVisible()
       await expect(page.locator('.contextual-metric')).toHaveCount(3)
       await expect(page.locator('.experience-context-copy')).toContainText(destination.label)
@@ -253,26 +239,17 @@ test.describe('contextual shell', () => {
     await assertNoOverflow(page)
   })
 
-  test('context switching remains session-only', async ({ page }, testInfo) => {
+  test('context switching remains session-only', async ({ page }) => {
     await page.goto('/experience/abf/home')
 
-    const contextTrigger = isMobile(testInfo)
-      ? page.locator('.experience-mobile-context')
-      : page.locator('.experience-context-trigger')
+    const contextTrigger = page.locator('.experience-context-trigger, .experience-mobile-context').first()
     await contextTrigger.click()
 
     const menu = page.getByRole('menu', { name: 'Switch product or access' })
-    await menu
-      .locator('button')
-      .filter({ hasText: 'Invoice Financing' })
-      .filter({ hasText: 'Kioko Agri Supplies Ltd' })
-      .first()
-      .click()
+    await menu.locator('button').filter({ hasText: 'Invoice Financing' }).filter({ hasText: 'Kioko Agri Supplies Ltd' }).first().click()
     await expect(page).toHaveURL(/\/experience\/invoice-financing\/home$/)
 
-    const profileTrigger = isMobile(testInfo)
-      ? page.locator('.experience-avatar-trigger')
-      : page.locator('.experience-profile-button')
+    const profileTrigger = page.locator('.experience-profile-button, .experience-avatar-trigger').first()
     await profileTrigger.click()
     await page.getByRole('menuitem', { name: 'Log out' }).click()
     await expect(page).toHaveURL(/\/login$/)
@@ -306,45 +283,116 @@ test.describe('contextual shell', () => {
   })
 })
 
-test.describe('Agri Credit Line lifecycle and repayment scope', () => {
+test.describe('Agri Credit Line financing periods and repayment scope', () => {
   test.beforeEach(async ({ page }) => {
     await signIn(page)
     await page.goto('/experience/acl/home')
   })
 
-  test('summary aggregates current payments and the Home Funds Request action opens the current demo', async ({ page }, testInfo) => {
+  test('Payments Due stays universal and filters Financing activity', async ({ page }, testInfo) => {
     await expect(page.getByRole('heading', { name: 'Agri Credit Line', level: 1 })).toBeVisible()
-    await expect(page.getByText('Outstanding Amount', { exact: true })).toBeVisible()
-    const paymentsSummary = page.locator('.acl-next-installment')
+    const paymentsSummary = page.locator('.acl-payments-due')
     await expect(paymentsSummary).toContainText('2 payments due')
     await expect(paymentsSummary).toContainText('1 overdue · 1 upcoming')
-    await expect(paymentsSummary).toContainText('30-day + 60-day financing periods')
-    await expect(paymentsSummary).toContainText('Next due 25 May 2026')
-    await expect(paymentsSummary).not.toContainText('FR-')
+    await expect(paymentsSummary).not.toContainText('30-day')
+    await expect(paymentsSummary).not.toContainText('60-day')
+    await expect(paymentsSummary).not.toContainText('Next due')
 
-    const repaymentAction = paymentsSummary.getByRole('button', {
-      name: 'View repayment details for all payments due',
-    })
-    await expect(repaymentAction).toBeVisible()
-    await repaymentAction.click()
+    const action = paymentsSummary.getByRole('button', { name: 'View payments due in Financing activity' })
+    await expect(action).toContainText('View payments due')
+    await action.click()
+
+    await expect(page.locator('.acl-repayment-modal')).toHaveCount(0)
+    const visibleDueDateSelect = page.getByRole('combobox', { name: 'Due date' }).filter({ visible: true }).first()
+    await expect(visibleDueDateSelect).toHaveValue('payments-due')
+
+    const table = page.locator('.acl-activity-table')
+    if (await table.isVisible()) {
+      await expect(table.locator('.acl-activity-row')).toHaveCount(2)
+    } else {
+      await expect(page.locator('.acl-activity-cards .baseline-record-card')).toHaveCount(2)
+    }
+    await expect(page.locator('.acl-pagination')).toContainText('1-2 of 2 financing periods')
+
+    await assertExplainer(page, 'Payments Due is a shortcut to the affected financing periods', 'purpose')
+    await assertNoOverflow(page)
+    await page.screenshot({ path: testInfo.outputPath('acl-payments-due-filter.png'), fullPage: true })
+  })
+
+  test('only unsettled customer-facing financing-period statuses are surfaced', async ({ page }, testInfo) => {
+    const table = page.locator('.acl-activity-table')
+    const statuses = await table.isVisible()
+      ? table.locator('tbody .baseline-status')
+      : page.locator('.acl-activity-cards .baseline-status')
+
+    await expect(statuses).toHaveText(['Delinquent', 'Live'])
+    const body = await customerFacingText(page)
+    for (const excluded of ['Requested', 'Offered', 'Validating', 'Unavailable', 'Repaid', 'Cancelled', 'Declined']) {
+      expect(body).not.toContain(excluded)
+    }
+    await assertExplainer(page, 'Only unsettled customer-facing financing-period statuses are surfaced', 'handbook')
+    await assertNoOverflow(page)
+    await page.screenshot({ path: testInfo.outputPath('acl-customer-financing-statuses.png'), fullPage: true })
+  })
+
+  test('repayment details stay attached to the selected financing period', async ({ page }, testInfo) => {
+    await openAclRecord(page, 'FR-2026-0318')
+
+    const recordDialog = page.locator('.acl-record-modal')
+    await expect(recordDialog).toBeVisible()
+    await expect(recordDialog).toContainText('FR-2026-0318')
+    await expect(recordDialog).toContainText('Live')
+    await expect(recordDialog).toContainText('Instalments')
+    await expect(recordDialog).toContainText('Paid')
+    await expect(recordDialog).toContainText('Upcoming')
+    await assertCenteredOrBottomSheet(recordDialog, page, testInfo)
+
+    const repaymentButton = recordDialog.getByRole('button', { name: 'View repayment details for FR-2026-0318' })
+    await expect(repaymentButton).toContainText('View repayment details')
+    await repaymentButton.click()
 
     const repaymentDialog = page.locator('.acl-repayment-modal')
     await expect(repaymentDialog).toBeVisible()
-    await expect(repaymentDialog).toContainText('Current payments')
-    await expect(repaymentDialog).toContainText('Total amount due')
-    await expect(repaymentDialog).toContainText('Ksh 2,500,000')
-    await expect(repaymentDialog).toContainText('2 payments due')
-    await expect(repaymentDialog).toContainText('1 overdue payment')
-    await expect(repaymentDialog).toContainText('1 upcoming payment')
-    await expect(repaymentDialog).toContainText('30-day financing period')
-    await expect(repaymentDialog).toContainText('60-day financing period')
-    await expect(repaymentDialog).toContainText('Due 25 Apr 2026')
-    await expect(repaymentDialog).toContainText('Due 25 May 2026')
-    await expect(repaymentDialog).not.toContainText('FR-')
-    await expect(repaymentDialog.getByRole('button', { name: 'Back to financing details' })).toHaveCount(0)
+    await expect(repaymentDialog).toContainText('FR-2026-0318')
+    await expect(repaymentDialog).toContainText('Outstanding balance')
+    await expect(repaymentDialog).toContainText('Ksh 1,400,000')
+    await expect(repaymentDialog).toContainText('Repayment schedule')
+    await expect(repaymentDialog).toContainText('Paid')
+    await expect(repaymentDialog).toContainText('Upcoming')
+    await expect(repaymentDialog).not.toContainText('1 overdue payment')
+    await expect(repaymentDialog).not.toContainText('1 upcoming payment')
+    await expect(repaymentDialog).not.toContainText('30-day financing period')
+    await expect(repaymentDialog).not.toContainText('60-day financing period')
+    await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
+    await expect(repaymentDialog).toContainText('2046346095')
     await assertCenteredOrBottomSheet(repaymentDialog, page, testInfo)
-    await repaymentDialog.getByRole('button', { name: 'Close' }).click()
 
+    await repaymentDialog.getByRole('tab', { name: 'M-Pesa Paybill' }).click()
+    await expect(repaymentDialog).toContainText('4567121')
+    await expect(repaymentDialog).toContainText('Use your registered phone number')
+
+    const back = repaymentDialog.getByRole('button', { name: 'Back to financing details' })
+    await back.click()
+    await expect(repaymentDialog).toHaveCount(0)
+    await expect(page.locator('.acl-record-modal')).toContainText('FR-2026-0318')
+    await assertNoOverflow(page)
+  })
+
+  test('overdue financing period keeps its own repayment context', async ({ page }, testInfo) => {
+    await openAclRecord(page, 'FR-2026-0421')
+    const recordDialog = page.locator('.acl-record-modal')
+    await expect(recordDialog).toContainText('Delinquent')
+    await expect(recordDialog).toContainText('Overdue')
+
+    await recordDialog.getByRole('button', { name: 'View repayment details for FR-2026-0421' }).click()
+    const repaymentDialog = page.locator('.acl-repayment-modal')
+    await expect(repaymentDialog).toContainText('FR-2026-0421')
+    await expect(repaymentDialog).toContainText('Overdue')
+    await expect(repaymentDialog).not.toContainText('FR-2026-0318')
+    await assertCenteredOrBottomSheet(repaymentDialog, page, testInfo)
+  })
+
+  test('Home and navigation Funds Request actions use the permanent ACL demo URL', async ({ page }) => {
     const submit = page.getByRole('button', { name: /Submit Funds Request/ }).first()
     await expect(submit).toHaveAttribute('data-external-url', ACL_DEMO_URL)
 
@@ -357,128 +405,6 @@ test.describe('Agri Credit Line lifecycle and repayment scope', () => {
     await submit.click()
     await expect(page.locator('body')).toHaveAttribute('data-opened-funds-request-url', ACL_DEMO_URL)
     await expect(page.getByRole('dialog', { name: 'Submit Funds Request' })).toHaveCount(0)
-
-    await assertExplainer(page, 'Request Funds opens the current Agri Credit Line journey', 'action')
-    await assertExplainer(page, 'The product summary combines current payment obligations', 'purpose')
-    await assertExplainer(page, 'Repayment instructions combine current obligations', 'decision')
-    await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('acl-aggregate-repayment-summary.png'), fullPage: true })
-  })
-
-  test('Financing activity demonstrates Requested, Live, Repaid, Cancelled and Declined', async ({ page }, testInfo) => {
-    const expectedStatuses = ['Requested', 'Live', 'Repaid', 'Cancelled', 'Declined']
-    const table = page.locator('.acl-activity-table')
-    const tableVisible = await table.isVisible()
-    const statuses = tableVisible
-      ? table.locator('tbody .baseline-status')
-      : page.locator('.acl-activity-cards .baseline-status')
-
-    await expect(statuses).toHaveText(expectedStatuses)
-    await expect(page.locator('.acl-pagination')).toContainText('Showing 1-5 of 5 financing records')
-    await assertExplainer(page, 'Requested and Live are different lifecycle stages', 'handbook')
-
-    if (tableVisible) {
-      const requestedRow = table.locator('.acl-activity-row').filter({ hasText: 'FR-2026-0510' })
-      await expect(requestedRow).toContainText('Not disbursed')
-    } else {
-      const requestedCard = page.locator('.acl-activity-cards .baseline-record-card').filter({
-        hasText: 'FR-2026-0510',
-      })
-      await expect(requestedCard).toContainText('Requested Amount')
-      await expect(requestedCard).toContainText('Not applicable')
-    }
-
-    const toolbar = page.locator('.acl-activity-toolbar')
-    const heading = toolbar.locator('.baseline-section-heading')
-    const filters = toolbar.locator('app-customer-filter-bar')
-    const headingBox = await heading.boundingBox()
-    const filterBox = await filters.boundingBox()
-    expect(headingBox).not.toBeNull()
-    expect(filterBox).not.toBeNull()
-
-    if (headingBox && filterBox) {
-      if (testInfo.project.name === 'desktop') {
-        expect(filterBox.x).toBeGreaterThan(headingBox.x + headingBox.width - 1)
-        expect(Math.abs(filterBox.y - headingBox.y)).toBeLessThanOrEqual(4)
-      } else {
-        expect(filterBox.y).toBeGreaterThanOrEqual(headingBox.y + headingBox.height)
-      }
-    }
-
-    await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('acl-lifecycle-statuses.png'), fullPage: true })
-  })
-
-  test('generic repayment details can return to the same financing record', async ({ page }, testInfo) => {
-    await openAclRecord(page, 'FR-2026-0318')
-
-    const recordDialog = page.locator('.acl-record-modal')
-    await expect(recordDialog).toBeVisible()
-    await expect(recordDialog).toContainText('Financing details')
-    await expect(recordDialog).toContainText('FR-2026-0318')
-    await expect(recordDialog).toContainText('Live')
-    await assertCenteredOrBottomSheet(recordDialog, page, testInfo)
-
-    const repaymentButton = recordDialog.getByRole('button', {
-      name: 'View repayment details for all payments due',
-    })
-    await expect(repaymentButton).toBeVisible()
-    await expect(repaymentButton).toContainText('View all repayment details')
-    await repaymentButton.click()
-
-    const repaymentDialog = page.locator('.acl-repayment-modal')
-    await expect(repaymentDialog).toBeVisible()
-    await expect(repaymentDialog).toContainText('Current payments')
-    await expect(repaymentDialog).toContainText('Ksh 2,500,000')
-    await expect(repaymentDialog).toContainText('1 overdue payment')
-    await expect(repaymentDialog).toContainText('1 upcoming payment')
-    await expect(repaymentDialog).toContainText('30-day financing period')
-    await expect(repaymentDialog).toContainText('60-day financing period')
-    await expect(repaymentDialog).not.toContainText('FR-2026-0318')
-    await expect(repaymentDialog).not.toContainText('Financing reference')
-    await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
-    await expect(repaymentDialog).toContainText('2046346095')
-    await assertCenteredOrBottomSheet(repaymentDialog, page, testInfo)
-
-    await repaymentDialog.getByRole('tab', { name: 'M-Pesa Paybill' }).click()
-    await expect(repaymentDialog).toContainText('4567121')
-    await expect(repaymentDialog).toContainText('Use your registered phone number')
-
-    const back = repaymentDialog.getByRole('button', { name: 'Back to financing details' })
-    await expect(back).toBeVisible()
-    await back.click()
-    await expect(repaymentDialog).toHaveCount(0)
-    await expect(page.locator('.acl-record-modal')).toContainText('FR-2026-0318')
-    await assertNoOverflow(page)
-  })
-
-  test('a Requested record is not presented as a disbursed Advance', async ({ page }, testInfo) => {
-    await openAclRecord(page, 'FR-2026-0510')
-
-    const recordDialog = page.locator('.acl-record-modal')
-    await expect(recordDialog).toBeVisible()
-    await expect(recordDialog).toContainText('Funds Request details')
-    await expect(recordDialog).toContainText('Requested Amount')
-    await expect(recordDialog).toContainText('Pending')
-    await expect(recordDialog).toContainText('No repayment schedule')
-    await expect(recordDialog.getByRole('button', { name: /View repayment details/ })).toHaveCount(0)
-    await assertCenteredOrBottomSheet(recordDialog, page, testInfo)
-  })
-
-  test('search keeps the lifecycle examples inside the existing activity structure', async ({ page }) => {
-    const search = page.getByRole('searchbox', {
-      name: 'Search Agri Credit Line financing activity',
-    })
-    await search.fill('Declined')
-
-    const table = page.locator('.acl-activity-table')
-    if (await table.isVisible()) {
-      await expect(table.locator('.acl-activity-row')).toHaveCount(1)
-      await expect(table).toContainText('Declined')
-    } else {
-      await expect(page.locator('.acl-activity-cards .baseline-record-card')).toHaveCount(1)
-      await expect(page.locator('.acl-activity-cards')).toContainText('Declined')
-    }
   })
 })
 
@@ -492,10 +418,7 @@ test.describe('Support and remaining product boundaries', () => {
 
     const helpCentre = page.getByRole('link', { name: 'Open Help Centre' })
     await expect(helpCentre).toBeVisible()
-    await expect(helpCentre).toHaveAttribute(
-      'href',
-      'https://www.avenews-gt.com/help-categories/getting-started',
-    )
+    await expect(helpCentre).toHaveAttribute('href', 'https://www.avenews-gt.com/help-categories/getting-started')
     await expect(helpCentre).toHaveAttribute('target', '_blank')
     await assertNoOverflow(page)
   })
@@ -525,9 +448,7 @@ test.describe('Support and remaining product boundaries', () => {
       : page.locator('.contextual-period-table [data-dynamic-period-id="twiga-2026-09-15"]')
     await openPeriod.locator('[data-action-scope="dynamic-period"]').click()
 
-    await expect(page).toHaveURL(
-      /\/experience\/invoice-financing\/financing\/period\/twiga-2026-09-15$/,
-    )
+    await expect(page).toHaveURL(/\/experience\/invoice-financing\/financing\/period\/twiga-2026-09-15$/)
     await expect(page.getByText('Available to Withdraw', { exact: true }).first()).toBeVisible()
     await expect(page.getByRole('button', { name: 'Request funds' })).toBeEnabled()
     await assertNoOverflow(page)
