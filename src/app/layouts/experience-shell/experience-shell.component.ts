@@ -34,11 +34,6 @@ interface ExperienceNavItem {
   externalUrl?: string
 }
 
-const CUSTOMER_NAV: readonly ExperienceNavItem[] = [
-  { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'financing', label: 'Financing', icon: 'wallet', exact: false },
-]
-
 const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   {
@@ -48,6 +43,26 @@ const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
     exact: false,
     externalUrl: ACL_FUNDS_REQUEST_DEMO_URL,
   },
+]
+
+const ABF_NAV: readonly ExperienceNavItem[] = [
+  { segment: 'home', label: 'Home', icon: 'home', exact: true },
+  { segment: 'financing', label: 'Suppliers', icon: 'person', exact: false },
+]
+
+const STF_NAV: readonly ExperienceNavItem[] = [
+  { segment: 'home', label: 'Home', icon: 'home', exact: true },
+  { segment: 'financing', label: 'Partner Suppliers', icon: 'person', exact: false },
+]
+
+const INVOICE_FINANCING_NAV: readonly ExperienceNavItem[] = [
+  { segment: 'home', label: 'Home', icon: 'home', exact: true },
+  { segment: 'financing', label: 'Buyers', icon: 'person', exact: false },
+]
+
+const INFX_NAV: readonly ExperienceNavItem[] = [
+  { segment: 'home', label: 'Home', icon: 'home', exact: true },
+  { segment: 'financing', label: 'Buyers', icon: 'person', exact: false },
 ]
 
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
@@ -134,11 +149,30 @@ export class ExperienceShellComponent implements OnDestroy {
   }
 
   get primaryNavItems(): readonly ExperienceNavItem[] {
-    const base = this.currentExperience.kind === 'partner'
-      ? PARTNER_NAV
-      : this.currentExperience.id === 'acl'
-        ? AGRI_CREDIT_LINE_NAV
-        : CUSTOMER_NAV
+    let base: readonly ExperienceNavItem[]
+    if (this.currentExperience.kind === 'partner') {
+      base = PARTNER_NAV
+    } else {
+      switch (this.currentExperience.id) {
+        case 'acl':
+          base = AGRI_CREDIT_LINE_NAV
+          break
+        case 'abf':
+          base = ABF_NAV
+          break
+        case 'stf':
+          base = STF_NAV
+          break
+        case 'invoice-financing':
+          base = INVOICE_FINANCING_NAV
+          break
+        case 'infx':
+          base = INFX_NAV
+          break
+        default:
+          base = [{ segment: 'home', label: 'Home', icon: 'home', exact: true }]
+      }
+    }
 
     return this.session?.role === 'admin' ? [...base, MANAGE_USERS_NAV] : base
   }
