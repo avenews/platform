@@ -128,7 +128,10 @@ body .baseline-button[data-action="request-financing"]:focus-visible:not(:disabl
   filter: none;
 }
 
-body .baseline-button[data-action="invoice-upload"] {
+body .baseline-button[data-action="invoice-upload"],
+body .baseline-button[data-action="upload-invoices"],
+body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button,
+body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary {
   border-color: var(--av-color-success, #39c173);
   background: var(--av-color-success, #39c173);
   color: var(--av-color-on-success, #ffffff);
@@ -136,18 +139,39 @@ body .baseline-button[data-action="invoice-upload"] {
 }
 
 body .baseline-button[data-action="invoice-upload"]:hover:not(:disabled),
-body .baseline-button[data-action="invoice-upload"]:focus-visible:not(:disabled) {
+body .baseline-button[data-action="invoice-upload"]:focus-visible:not(:disabled),
+body .baseline-button[data-action="upload-invoices"]:hover:not(:disabled),
+body .baseline-button[data-action="upload-invoices"]:focus-visible:not(:disabled),
+body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button:hover:not(:disabled),
+body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button:focus-visible:not(:disabled),
+body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary:hover:not(:disabled),
+body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary:focus-visible:not(:disabled) {
   border-color: var(--av-color-success-hover, #269354);
   background: var(--av-color-success-hover, #269354);
   filter: none;
 }
 
 body .baseline-button[data-action="request-financing"]:disabled,
-body .baseline-button[data-action="invoice-upload"]:disabled {
+body .baseline-button[data-action="invoice-upload"]:disabled,
+body .baseline-button[data-action="upload-invoices"]:disabled {
   border-color: var(--av-color-surface-border, #d0d5dd);
   background: var(--av-color-surface-disabled, #e4e7ec);
   color: var(--av-color-text-disabled, #98a2b3);
   opacity: 1;
+}
+
+/* Detail/navigation actions stay neutral instead of borrowing an action colour. */
+body [data-partner-section="obligations"] .baseline-button--primary {
+  border-color: #d0d5dd;
+  background: #ffffff;
+  color: #1d2939;
+}
+
+body [data-partner-section="obligations"] .baseline-button--primary:hover:not(:disabled),
+body [data-partner-section="obligations"] .baseline-button--primary:focus-visible:not(:disabled) {
+  border-color: #b8c0cc;
+  background: #f9fafb;
+  filter: none;
 }
 
 /* Repayment details use one consistent reading edge; Copy remains the trailing action. */
