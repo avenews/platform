@@ -31,6 +31,13 @@
         </select>
       </label>
     }
+
+    <button
+      type="button"
+      class="customer-filter-clear"
+      [disabled]="!hasActiveFilters"
+      (click)="clearAllFilters()"
+    >Clear filters</button>
   </div>
 
   <div class="customer-filter-bar__mobile" data-filter-layout="mobile">
@@ -79,7 +86,7 @@
         }
 
         <div class="customer-filter-panel__actions">
-          <button type="button" class="customer-filter-panel__clear" (click)="clearDraftValues()">Clear all</button>
+          <button type="button" class="customer-filter-panel__clear" (click)="clearAllFilters()">Clear filters</button>
           <button type="button" class="customer-filter-panel__apply" (click)="applyDraftValues()">Apply</button>
         </div>
       </section>
