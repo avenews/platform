@@ -67,6 +67,11 @@ export class ContextualFinancingComponent implements OnDestroy {
     return experienceById(id) ?? experienceById('acl')!
   }
 
+  get periodBackLabel(): string | null {
+    if (!this.returnRelationship) return null
+    return `Back to ${this.relationshipCustomerType(this.returnRelationship)}`
+  }
+
   relationshipAvailable(relationship: CustomerRelationship): number {
     if (this.workspace?.id === 'abf' && relationship.id === 'abf-quickmart') return 0
     if (this.workspace?.id === 'stf' && relationship.id === 'stf-greenharvest') return 0
@@ -128,9 +133,14 @@ export class ContextualFinancingComponent implements OnDestroy {
     this.selectedPeriod = period
   }
 
-  closePeriod(): void {
+  backToRelationship(): void {
     this.selectedPeriod = null
     this.restoreRelationship()
+  }
+
+  closePeriod(): void {
+    this.selectedPeriod = null
+    this.returnRelationship = null
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
