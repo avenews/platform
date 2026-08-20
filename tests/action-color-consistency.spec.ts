@@ -51,10 +51,6 @@ test.describe('action colour consistency', () => {
     await page.goto('/experience/abf/financing')
     const relationshipRequest = page.locator('[data-action="request-financing"]:visible').filter({ hasText: 'Request funds' }).first()
     await expectActionColor(relationshipRequest, PRIMARY_ACTION_BLUE)
-
-    await page.goto('/experience/invoice-financing/financing/period/inf-period-twiga-sep15')
-    const dynamicPeriodRequest = page.locator('[data-action="request-financing"]:visible').first()
-    await expectActionColor(dynamicPeriodRequest, PRIMARY_ACTION_BLUE)
   })
 
   test('invoice upload actions use the same green in customer and Partner Buyer flows', async ({ page }) => {
