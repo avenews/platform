@@ -119,8 +119,82 @@ app-customer-financing-period-modal .customer-payment-details strong {
   text-align: left !important;
 }
 
+.partner-home-hero__actions {
+  flex: 0 0 auto;
+  display: flex !important;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.partner-home-workspaces {
+  gap: 14px;
+}
+
+.partner-home-workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.partner-home-workspace-card {
+  min-width: 0;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.partner-home-workspace-card > div {
+  display: grid;
+  gap: 7px;
+}
+
+.partner-home-workspace-card h3,
+.partner-home-workspace-card p {
+  margin: 0;
+}
+
+.partner-home-workspace-card h3 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 17px;
+}
+
+.partner-home-workspace-card > div > p:not(.page-eyebrow) {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.partner-home-workspace-card .baseline-button {
+  width: fit-content;
+  margin-top: auto;
+}
+
+@media (max-width: 900px) {
+  .partner-home-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .partner-home-workspace-card {
+    min-height: 0;
+  }
+}
+
 @media (max-width: 767px) {
   .page-hero {
     margin-bottom: var(--av-space-5, 20px);
+  }
+
+  .partner-home-hero__actions {
+    width: 100%;
+    display: grid !important;
+    grid-auto-flow: row;
+  }
+
+  .partner-home-hero__actions .baseline-button,
+  .partner-home-workspace-card .baseline-button {
+    width: 100%;
   }
 }
