@@ -16,6 +16,7 @@ export type ExperienceActionKind =
   | 'view-periods'
   | 'view-invoice-uploads'
   | 'view-obligations'
+  | 'view-suppliers'
 
 export interface ExperienceMetric {
   label: string
@@ -181,6 +182,7 @@ export const EXPERIENCES: readonly PortalExperience[] = [
     records: [
       { title: 'August Supplier invoice batch', subtitle: 'Uploaded 12 Aug 2026', amountLabel: 'Imported', amount: '37 of 40 invoices', status: 'Needs attention', statusTone: 'status-warning', actionLabel: 'View invoice uploads', actionKind: 'view-invoice-uploads' },
       { title: 'Payment due 15 Sep 2026', subtitle: '18 participating Suppliers', amountLabel: 'Amount to pay', amount: 'KES 8,420,000', status: 'Upcoming', statusTone: 'status-info', actionLabel: 'View payments', actionKind: 'view-obligations' },
+      { title: 'Supplier financing limits', subtitle: '4 participating Suppliers', amountLabel: 'Available', amount: 'KES 1,250,000', status: 'Review limits', statusTone: 'status-info', actionLabel: 'Manage suppliers', actionKind: 'view-suppliers' },
     ],
   },
 ]
