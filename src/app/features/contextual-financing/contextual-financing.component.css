@@ -45,23 +45,21 @@
 }
 
 .relationship-table {
-  min-width: 1120px;
+  min-width: 980px;
 }
 
 .relationship-table th:first-child,
 .relationship-table td:first-child {
-  width: 28%;
+  width: 24%;
 }
 
 .relationship-table th:last-child,
 .relationship-table td:last-child {
-  width: 260px;
+  width: 250px;
 }
 
 .relationship-name-button {
   width: 100%;
-  display: grid;
-  gap: 3px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -74,12 +72,6 @@
 .relationship-name-button strong {
   color: var(--av-color-text-heading, #0d343f);
   font-size: 13px;
-}
-
-.relationship-name-button span {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 11px;
-  line-height: 1.4;
 }
 
 .relationship-name-button:hover strong,
@@ -98,25 +90,8 @@
   display: none;
 }
 
-.relationship-card__count {
-  flex: 0 0 auto;
-  padding: 4px 9px;
-  border-radius: 999px;
-  background: var(--av-color-surface-subtle, #f6f7f9);
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 11px;
-  white-space: nowrap;
-}
-
 .relationship-card__metrics {
   grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.relationship-card__helper {
-  margin: 0;
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
-  line-height: 1.5;
 }
 
 .relationship-card__actions {
@@ -200,22 +175,6 @@
   color: var(--av-color-text-heading, #0d343f);
   font-size: 13px;
   font-weight: 700;
-}
-
-.relationship-detail-note {
-  display: grid;
-  gap: 4px;
-  padding: 13px 15px;
-  border: 1px solid var(--av-color-surface-border, #e1e7eb);
-  border-radius: 10px;
-  background: var(--av-color-surface-subtle, #f6f7f9);
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
-  line-height: 1.55;
-}
-
-.relationship-detail-note strong {
-  color: var(--av-color-text-heading, #0d343f);
 }
 
 .relationship-periods,
