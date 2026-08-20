@@ -40,6 +40,7 @@ export class ContextualFinancingComponent implements OnDestroy {
   workspace: CustomerWorkspace | undefined = customerWorkspaceById(this.experience.id)
   selectedRelationship: CustomerRelationship | null = null
   selectedPeriod: CustomerFinancingPeriod | null = null
+  invoiceUploadRelationship: CustomerRelationship | null = null
   returnRelationship: CustomerRelationship | null = null
   toast = ''
 
@@ -74,9 +75,18 @@ export class ContextualFinancingComponent implements OnDestroy {
     return relationship.available > 0 ? 'status-success' : 'status-neutral'
   }
 
+  invoiceUploadSourceLabel(relationship: CustomerRelationship): string {
+    return relationship.invoiceUploadOwner === 'client' ? 'You upload' : 'Buyer uploads'
+  }
+
+  canUploadInvoices(relationship: CustomerRelationship): boolean {
+    return this.workspace?.id === 'invoice-financing' && relationship.invoiceUploadOwner === 'client'
+  }
+
   openRelationship(relationship: CustomerRelationship): void {
     this.selectedRelationship = relationship
     this.selectedPeriod = null
+    this.invoiceUploadRelationship = null
     this.returnRelationship = null
   }
 
@@ -96,10 +106,17 @@ export class ContextualFinancingComponent implements OnDestroy {
 
   closePeriod(): void {
     this.selectedPeriod = null
-    if (this.returnRelationship) {
-      this.selectedRelationship = this.returnRelationship
-      this.returnRelationship = null
-    }
+    this.restoreRelationship()
+  }
+
+  canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
+    return this.workspace?.id === 'invoice-financing'
+      && (period.availableToWithdraw ?? 0) > 0
+      && (period.statusKey === 'live' || period.statusKey === 'requested')
+  }
+
+  periodRequestLabel(period: CustomerFinancingPeriod): string {
+    return period.amountFinanced > 0 || period.statusKey === 'requested' ? 'Request more' : 'Request funds'
   }
 
   startFundsRequest(relationship: CustomerRelationship, event?: Event): void {
@@ -117,19 +134,49 @@ export class ContextualFinancingComponent implements OnDestroy {
       return
     }
 
-    this.toast = `Funds Request started for ${relationship.name}. This review prototype keeps the request scoped to the selected ${relationship.relationshipType}.`
+    this.toast = `Funds Request started for ${relationship.name}.`
     this.cdr.markForCheck()
   }
 
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
-    this.toast = `Funds Request starts from ${period.reference} and remains limited by that Dynamic Period's Available to Withdraw.`
+    if (!this.canRequestFromPeriod(period)) return
+    this.toast = `${this.periodRequestLabel(period)} from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
+    this.cdr.markForCheck()
+  }
+
+  startInvoiceUpload(relationship: CustomerRelationship, event?: Event): void {
+    event?.stopPropagation()
+    if (!this.canUploadInvoices(relationship)) return
+    this.returnRelationship = this.selectedRelationship
+    this.selectedRelationship = null
+    this.invoiceUploadRelationship = relationship
+  }
+
+  closeInvoiceUpload(): void {
+    this.invoiceUploadRelationship = null
+    this.restoreRelationship()
+  }
+
+  completeInvoiceUpload(): void {
+    const relationship = this.invoiceUploadRelationship
+    if (!relationship) return
+    this.invoiceUploadRelationship = null
+    this.toast = `Invoice received for ${relationship.name}. Once eligible, it will appear in the matching Dynamic Period.`
+    this.restoreRelationship()
     this.cdr.markForCheck()
   }
 
   closeOverlays(): void {
     this.selectedRelationship = null
     this.selectedPeriod = null
+    this.invoiceUploadRelationship = null
+    this.returnRelationship = null
+  }
+
+  private restoreRelationship(): void {
+    if (!this.returnRelationship) return
+    this.selectedRelationship = this.returnRelationship
     this.returnRelationship = null
   }
 
