@@ -186,13 +186,13 @@ test.describe('Agri Credit Line financing periods', () => {
     await expect(statuses).toHaveText(expected)
   })
 
-  test('Instalment and repayment modals are scrollable and period-specific', async ({ page }, testInfo) => {
+  test('Repayment-plan and repayment modals are scrollable and period-specific', async ({ page }, testInfo) => {
     await openHomePeriod(page, 'FR-2026-0125')
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toBeVisible()
-    await expect(periodDialog).toContainText('Instalment 1 of 3')
-    await expect(periodDialog).toContainText('Instalment 2 of 3')
-    await expect(periodDialog).toContainText('Instalment 3 of 3')
+    await expect(periodDialog).toContainText('Plan payment 1 of 3')
+    await expect(periodDialog).toContainText('Plan payment 2 of 3')
+    await expect(periodDialog).toContainText('Plan payment 3 of 3')
     await assertModalBodyScrollable(periodDialog)
 
     await periodDialog.getByRole('button', { name: 'View repayment details' }).click()
