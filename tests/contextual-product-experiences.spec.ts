@@ -181,7 +181,8 @@ test.describe('shared customer financing pattern', () => {
       await page.getByRole('combobox', { name: 'Status' }).selectOption('live')
       await page.getByRole('button', { name: 'Apply' }).click()
       await page.getByRole('button', { name: 'Filters' }).click()
-      await page.getByRole('button', { name: 'Clear filters' }).click()
+      await page.getByRole('button', { name: 'Clear all' }).click()
+      await page.getByRole('button', { name: 'Apply' }).click()
     } else {
       await page.getByRole('combobox', { name: 'Status' }).selectOption('live')
       const desktopSearch = page.locator('.customer-filter-bar__desktop .customer-filter-search')
