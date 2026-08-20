@@ -125,6 +125,7 @@ test.describe('post-OTP access resolution', () => {
       await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.label)
     }
     await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Partner Buyer Portal')
+    await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Supplier periods')
     await expect(page.locator('.access-card__action')).toHaveText(['View', 'View', 'View', 'View', 'View', 'View'])
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
   })
@@ -160,9 +161,9 @@ test.describe('shared customer financing pattern', () => {
     })
   }
 
-  test('Reference is the primary financing identifier', async ({ page }) => {
+  test('relationship is the primary financing identifier outside ACL', async ({ page }) => {
     await page.goto('/experience/acl/home')
-    const aclCell = page.locator('.customer-activity-table tbody .baseline-financing-cell').first()
+    const aclCell = page.locator('.customer-activity-table tbody .customer-reference-cell').first()
     await expect(aclCell).toHaveText('FR-2026-0612')
 
     const expectations = [
@@ -174,9 +175,9 @@ test.describe('shared customer financing pattern', () => {
 
     for (const expected of expectations) {
       await page.goto(`/experience/${expected.id}/home`)
-      const cell = page.locator('.customer-activity-table tbody .baseline-financing-cell').first()
-      await expect(cell.locator('strong')).toHaveText(expected.reference)
-      await expect(cell).toContainText(expected.relationship)
+      const cell = page.locator('.customer-activity-table tbody .customer-reference-cell').first()
+      await expect(cell.locator('strong')).toHaveText(expected.relationship)
+      await expect(cell.locator('span')).toHaveText(expected.reference)
       await expect(page.locator('.customer-activity-table thead').getByText('Reference', { exact: true })).toBeVisible()
     }
   })
@@ -287,6 +288,8 @@ test.describe('repayment details', () => {
     await periodDialog.getByRole('button', { name: 'View repayment details' }).click()
     const repaymentDialog = page.locator('.customer-repayment-modal')
     await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
+    const back = repaymentDialog.getByRole('button', { name: 'Back to financing period' })
+    await expect(back).toHaveClass(/baseline-button--secondary/)
     await assertModalBodyScrollable(repaymentDialog)
   })
 
@@ -355,6 +358,28 @@ test.describe('relationship-first request flows', () => {
     await expect(periodDialog).not.toContainText('Supplier-scoped Funds Request submitted and awaiting approval.')
   })
 
+  test('relationship and period dialogs keep one size and provide explicit Back navigation', async ({ page }) => {
+    await page.goto('/experience/stf/financing')
+    await openRelationship(page, 'GreenHarvest Distributors')
+    const relationshipDialog = page.locator('.relationship-modal')
+    const relationshipWidth = await relationshipDialog.evaluate(element => Math.round(element.getBoundingClientRect().width))
+
+    await relationshipDialog.locator('.relationship-period-row')
+      .filter({ hasText: 'FR-2026-0501' })
+      .locator('.relationship-period-row__main')
+      .click()
+
+    const periodDialog = page.locator('.customer-period-modal').first()
+    const periodWidth = await periodDialog.evaluate(element => Math.round(element.getBoundingClientRect().width))
+    expect(periodWidth).toBe(relationshipWidth)
+
+    const back = periodDialog.getByRole('button', { name: 'Back to relationship details' })
+    await expect(back).toHaveClass(/baseline-button--secondary/)
+    await back.click()
+    await expect(page.locator('.relationship-modal')).toBeVisible()
+    await expect(page.locator('.relationship-modal')).toContainText('GreenHarvest Distributors')
+  })
+
   test('Stockist retains Partner Supplier Instalments and repayment flow', async ({ page }) => {
     await page.goto('/experience/stf/financing')
     await openRelationship(page, 'GreenHarvest Distributors')
@@ -404,6 +429,8 @@ test.describe('relationship-first request flows', () => {
     await expect(tableHead).toContainText('Available to Withdraw')
     await expect(tableHead).not.toContainText('Disbursement Date')
     await expect(tableHead).not.toContainText('Buyer Payments Allocated')
+    await expect(page.locator('.customer-product-summary')).toContainText('Across eligible periods')
+    await expect(page.locator('.customer-product-summary')).not.toContainText('Across eligible Dynamic Periods')
 
     const requested = page.locator('.customer-activity-row').filter({ hasText: 'DP-2026-10-15-TWIGA' })
     if (await requested.isVisible()) {
@@ -428,14 +455,16 @@ test.describe('relationship-first request flows', () => {
     await expect(periodDialog.getByRole('button', { name: 'Request funds' })).toHaveClass(/baseline-button--primary/)
   })
 
-  test('Invoice Financing settlement remains Buyer-funded', async ({ page }) => {
+  test('Invoice Financing settlement remains Buyer-funded with customer-facing clearing account copy', async ({ page }) => {
     await page.goto('/experience/invoice-financing/home')
     await openHomePeriod(page, 'DP-2026-09-15-TWIGA')
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Buyer payment')
     await periodDialog.getByRole('button', { name: 'View settlement details' }).click()
     const settlementDialog = page.locator('.customer-repayment-modal')
-    await expect(settlementDialog).toContainText('Client Clearing Account')
+    await expect(settlementDialog).toContainText('Your Avenews Clearing Account')
+    await expect(settlementDialog).toContainText('The Buyer payment is applied to this Period.')
+    await expect(settlementDialog).not.toContainText('Client Clearing Account')
     await expect(settlementDialog).not.toContainText('ABSA Bank Kenya PLC')
     await expect(settlementDialog).not.toContainText('M-Pesa Paybill')
   })
@@ -461,14 +490,17 @@ test.describe('relationship-first request flows', () => {
 test.describe('Partner Buyer Portal', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
-  test('uses the same concise framework around Partner Buyer priorities', async ({ page }, testInfo) => {
+  test('uses a supplier-first home instead of generic Partner activity', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/home')
     await expect(page.getByRole('heading', { name: 'Partner Buyer Portal', level: 1 })).toBeVisible()
-    await expect(page.getByRole('button', { name: /upload invoices/i })).toBeVisible()
+    await expect(page.getByRole('button', { name: 'View suppliers', exact: true }).first()).toHaveClass(/baseline-button--primary/)
+    await expect(page.getByRole('button', { name: /upload invoices/i }).first()).toBeVisible()
     await expect(page.locator('.contextual-metrics .contextual-metric')).toHaveCount(3)
     await expect(page.locator('.contextual-metrics')).toContainText('Invoices Uploaded')
     await expect(page.locator('.contextual-metrics')).toContainText('Payments Due')
     await expect(page.locator('.contextual-metrics')).toContainText('Supplier Financing Available')
+    await expect(page.getByRole('heading', { name: 'Manage Supplier financing', level: 2 })).toBeVisible()
+    await expect(page.locator('.partner-home-workspaces')).not.toContainText('Partner activity')
     await expect(page.locator('.customer-product-summary')).toHaveCount(0)
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
 
@@ -479,7 +511,7 @@ test.describe('Partner Buyer Portal', () => {
     await assertNoOverflow(page)
   })
 
-  test('invoice upload actions use modals and remove Funds Request boundary copy', async ({ page }) => {
+  test('invoice upload actions use modals and connect uploads to Suppliers and periods', async ({ page }) => {
     await page.goto('/experience/invoice-partner/invoice-uploads')
     await expect(page.locator('.partner-workspace-page')).not.toContainText('No Funds Request action exists in this workspace.')
     await expect(page.locator('.partner-workspace-page')).not.toContainText('After eligible invoices form a Dynamic Period')
@@ -488,6 +520,7 @@ test.describe('Partner Buyer Portal', () => {
     const uploadDialog = page.locator('.partner-modal')
     await expect(uploadDialog).toBeVisible()
     await expect(uploadDialog.getByRole('heading', { name: 'Upload invoices' })).toBeVisible()
+    await expect(uploadDialog).toContainText('multiple Suppliers and due dates')
     await assertModalBodyScrollable(uploadDialog)
     await uploadDialog.getByRole('button', { name: 'Close' }).click()
 
@@ -495,40 +528,70 @@ test.describe('Partner Buyer Portal', () => {
     await firstView.click()
     const resultDialog = page.locator('.partner-modal')
     await expect(resultDialog).toContainText('Upload result')
-    await expect(resultDialog).toContainText('Imported')
+    await expect(resultDialog).toContainText('Suppliers')
+    await expect(resultDialog).toContainText('Periods Updated')
     await expect(resultDialog).toContainText('Failed')
   })
 
-  test('payment actions open Partner Buyer payment details', async ({ page }) => {
+  test('payments are searchable and always tied to a Supplier and Period', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/obligations')
     await expect(page.getByRole('heading', { name: 'Payments', level: 1 })).toBeVisible()
+    const search = page.getByRole('searchbox', { name: 'Search Partner Buyer payments by Supplier and Period' })
+    await search.fill('Kioko')
+
+    if (isMobile(testInfo)) {
+      await expect(page.locator('.partner-workspace-cards')).toContainText('Kioko Agri Supplies Ltd')
+      await expect(page.locator('.partner-workspace-cards')).toContainText('PER-2026-09-15-KIOKO')
+    } else {
+      await expect(page.locator('.partner-payments-table tbody')).toContainText('Kioko Agri Supplies Ltd')
+      await expect(page.locator('.partner-payments-table tbody')).toContainText('PER-2026-09-15-KIOKO')
+    }
+
     const action = await partnerAction(page, 'View payment')
     await expect(action).toHaveClass(/baseline-button--primary/)
     await action.click()
-    const dialog = page.locator('.partner-modal')
+    const dialog = page.locator('.partner-period-modal')
     await expect(dialog).toContainText('Amount to pay')
-    await expect(dialog).toContainText('Client Clearing Account (Managed by Avenews)')
+    await expect(dialog).toContainText('Kioko Agri Supplies Ltd')
+    await expect(dialog).toContainText('Your Avenews Clearing Account')
+    await expect(dialog).toContainText('Payment Reference')
     await assertModalBodyScrollable(dialog)
   })
 
-  test('Supplier limits show available, unavailable and max-used states with modal actions', async ({ page }) => {
+  test('Suppliers scale through search and filters and drill into periods without limit-management actions', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/suppliers')
     await expect(page.getByRole('heading', { name: 'Suppliers', level: 1 })).toBeVisible()
     await expect(page.locator('.partner-workspace-page')).toContainText('Available')
     await expect(page.locator('.partner-workspace-page')).toContainText('Unavailable')
     await expect(page.locator('.partner-workspace-page')).toContainText('Max financing used')
+    await expect(page.getByRole('button', { name: 'Manage limit' })).toHaveCount(0)
+    await expect(page.getByRole('button', { name: 'Invite Supplier' })).toHaveCount(0)
 
-    const manage = await partnerAction(page, 'Manage limit')
-    await expect(manage).toHaveClass(/baseline-button--primary/)
-    await manage.click()
-    const manageDialog = page.locator('.partner-modal')
-    await expect(manageDialog).toContainText('Max Financing')
-    await expect(manageDialog.getByRole('button', { name: 'Save limit' })).toHaveClass(/baseline-button--primary/)
-    await manageDialog.getByRole('button', { name: 'Close' }).click()
+    const search = page.getByRole('searchbox', { name: 'Search Partner Buyer Suppliers and periods' })
+    await search.fill('Kioko')
 
-    await page.getByRole('button', { name: 'Invite Supplier' }).click()
-    const inviteDialog = page.locator('.partner-modal')
-    await expect(inviteDialog.getByRole('heading', { name: 'Invite Supplier' })).toBeVisible()
-    await expect(inviteDialog.getByRole('button', { name: 'Send invitation' })).toHaveClass(/baseline-button--primary/)
+    if (isMobile(testInfo)) {
+      await expect(page.locator('.partner-supplier-card')).toHaveCount(1)
+    } else {
+      await expect(page.locator('.partner-suppliers-table tbody tr')).toHaveCount(1)
+      await expect(page.getByRole('combobox', { name: 'Supplier status' })).toBeVisible()
+      await expect(page.getByRole('combobox', { name: 'Period status' })).toBeVisible()
+    }
+
+    const view = await partnerAction(page, 'View')
+    await expect(view).toHaveClass(/baseline-button--secondary/)
+    await view.click()
+    const supplierDialog = page.locator('.partner-modal').filter({ hasText: 'Kioko Agri Supplies Ltd' }).first()
+    await expect(supplierDialog).toContainText('Supplier periods')
+    await expect(supplierDialog).toContainText('PER-2026-09-15-KIOKO')
+    await supplierDialog.locator('.partner-period-row').first().click()
+
+    const periodDialog = page.locator('.partner-period-modal')
+    await expect(periodDialog).toContainText('Payment details')
+    const back = periodDialog.getByRole('button', { name: 'Back to Supplier' })
+    await expect(back).toHaveClass(/baseline-button--secondary/)
+    await back.click()
+    await expect(page.locator('.partner-modal')).toContainText('Supplier periods')
+    await assertNoOverflow(page)
   })
 })
