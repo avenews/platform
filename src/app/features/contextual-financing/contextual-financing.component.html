@@ -10,7 +10,7 @@
 
     @if (product.id === 'abf') {
       <app-prototype-explainer tone="decision" title="ABF Funds Requests are Supplier-scoped">
-        <p>Choose the approved Supplier first. Its sub-limit, availability and financing periods stay visible in the same row, and Request funds opens the supplied ABF journey with that Supplier context already established.</p>
+        <p>Choose the approved Supplier first. The table uses the same financing fields as the previous portal pattern: maximum financing, financing used, financing available and availability status. Request Funds then opens the supplied ABF journey in that Supplier context.</p>
       </app-prototype-explainer>
     }
 
@@ -34,7 +34,7 @@
 
     <section class="baseline-section relationship-section" [attr.aria-label]="product.relationshipHeading">
       <div class="relationship-section__intro">
-        <p>Open a {{ product.relationshipNoun }} for its financing details, or request funds directly where that relationship is eligible.</p>
+        <p>Open a {{ product.relationshipNoun }} for its financing details, or request funds directly where financing is available.</p>
       </div>
 
       <div class="baseline-table-wrap relationship-table-wrap">
@@ -42,11 +42,10 @@
           <thead>
             <tr>
               <th>{{ product.relationshipNoun }}</th>
-              <th>Type</th>
-              <th class="is-right">Limit</th>
-              <th class="is-right">Used</th>
-              <th class="is-right">Available</th>
-              <th class="is-right">{{ product.id === 'invoice-financing' ? 'Dynamic Periods' : 'Financing Periods' }}</th>
+              <th class="is-right">Max Financing</th>
+              <th class="is-right">Financing Used</th>
+              <th class="is-right">Financing Available</th>
+              <th>Status</th>
               <th class="is-right">Action</th>
             </tr>
           </thead>
@@ -56,31 +55,33 @@
                 <td>
                   <button type="button" class="relationship-name-button" (click)="openRelationship(relationship)">
                     <strong>{{ relationship.name }}</strong>
-                    <span>{{ relationship.helper }}</span>
                   </button>
                 </td>
-                <td>{{ relationship.relationshipType }}</td>
                 <td class="is-right">{{ formatKes(relationship.limit) }}</td>
                 <td class="is-right">{{ formatKes(relationship.used) }}</td>
                 <td class="is-right"><strong>{{ formatKes(relationship.available) }}</strong></td>
-                <td class="is-right">{{ relationship.periodIds.length }}</td>
+                <td>
+                  <span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)">
+                    {{ relationshipAvailabilityLabel(relationship) }}
+                  </span>
+                </td>
                 <td class="is-right">
                   <div class="relationship-table__actions">
                     @if (relationship.fundsRequestLabel) {
                       <button
                         type="button"
                         class="baseline-button baseline-button--primary"
-                        [disabled]="!relationship.fundsRequestEnabled"
+                        [disabled]="!relationship.fundsRequestEnabled || relationship.available <= 0"
                         [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
                         (click)="startFundsRequest(relationship, $event)"
-                      >{{ relationship.fundsRequestLabel }}</button>
+                      >Request Funds</button>
                     }
                     <button type="button" class="baseline-button baseline-button--secondary" (click)="openRelationship(relationship)">View details</button>
                   </div>
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="7"><div class="baseline-empty"><strong>No relationships available</strong><p>No approved Supplier or Buyer relationships are available yet.</p></div></td></tr>
+              <tr><td colspan="6"><div class="baseline-empty"><strong>No relationships available</strong><p>No approved Supplier or Buyer relationships are available yet.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -90,30 +91,27 @@
         @for (relationship of product.relationships; track relationship.id) {
           <article class="baseline-record-card relationship-card">
             <div class="baseline-record-card__head">
-              <span class="baseline-financing-cell">
-                <strong>{{ relationship.name }}</strong>
-                <span>{{ relationship.relationshipType }}</span>
+              <strong>{{ relationship.name }}</strong>
+              <span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)">
+                {{ relationshipAvailabilityLabel(relationship) }}
               </span>
-              <span class="relationship-card__count">{{ relationship.periodIds.length }} {{ relationship.periodIds.length === 1 ? 'period' : 'periods' }}</span>
             </div>
 
             <div class="baseline-metrics relationship-card__metrics">
-              <span class="baseline-metric"><small>Limit</small><strong>{{ formatKes(relationship.limit) }}</strong></span>
-              <span class="baseline-metric"><small>Used</small><strong>{{ formatKes(relationship.used) }}</strong></span>
-              <span class="baseline-metric"><small>Available</small><strong>{{ formatKes(relationship.available) }}</strong></span>
+              <span class="baseline-metric"><small>Max Financing</small><strong>{{ formatKes(relationship.limit) }}</strong></span>
+              <span class="baseline-metric"><small>Financing Available</small><strong>{{ formatKes(relationship.available) }}</strong></span>
+              <span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(relationship.used) }}</strong></span>
             </div>
-
-            <p class="relationship-card__helper">{{ relationship.helper }}</p>
 
             <div class="baseline-card-actions relationship-card__actions">
               @if (relationship.fundsRequestLabel) {
                 <button
                   type="button"
                   class="baseline-button baseline-button--primary"
-                  [disabled]="!relationship.fundsRequestEnabled"
+                  [disabled]="!relationship.fundsRequestEnabled || relationship.available <= 0"
                   [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
                   (click)="startFundsRequest(relationship, $event)"
-                >{{ relationship.fundsRequestLabel }}</button>
+                >Request Funds</button>
               }
               <button type="button" class="baseline-button baseline-button--secondary" (click)="openRelationship(relationship)">View details</button>
             </div>
@@ -142,26 +140,20 @@
 
         <div class="baseline-modal__body relationship-modal__body">
           <dl class="relationship-detail-grid">
-            <div><dt>{{ relationship.limitLabel }}</dt><dd>{{ formatKes(relationship.limit) }}</dd></div>
-            <div><dt>Financing used</dt><dd>{{ formatKes(relationship.used) }}</dd></div>
-            <div><dt>Financing available</dt><dd>{{ formatKes(relationship.available) }}</dd></div>
-            <div><dt>{{ product.id === 'invoice-financing' ? 'Dynamic Periods' : 'Financing periods' }}</dt><dd>{{ relationship.periodIds.length }}</dd></div>
+            <div><dt>Max Financing</dt><dd>{{ formatKes(relationship.limit) }}</dd></div>
+            <div><dt>Financing Used</dt><dd>{{ formatKes(relationship.used) }}</dd></div>
+            <div><dt>Financing Available</dt><dd>{{ formatKes(relationship.available) }}</dd></div>
+            <div><dt>Status</dt><dd>{{ relationshipAvailabilityLabel(relationship) }}</dd></div>
           </dl>
-
-          <div class="relationship-detail-note">{{ relationship.helper }}</div>
-
-          @if (relationship.invoiceUploadResponsibility) {
-            <div class="relationship-detail-note"><strong>Invoice responsibility</strong><span>{{ relationship.invoiceUploadResponsibility }}</span></div>
-          }
 
           @if (relationship.fundsRequestLabel) {
             <button
               type="button"
               class="baseline-button baseline-button--primary baseline-button--block"
-              [disabled]="!relationship.fundsRequestEnabled"
+              [disabled]="!relationship.fundsRequestEnabled || relationship.available <= 0"
               [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
               (click)="startFundsRequest(relationship, $event)"
-            >{{ relationship.fundsRequestLabel }} for {{ relationship.name }}</button>
+            >Request Funds for {{ relationship.name }}</button>
           }
 
           <section class="relationship-periods" aria-label="Financing periods">
@@ -183,7 +175,7 @@
                 </button>
 
                 @if (product.id === 'invoice-financing' && (period.availableToWithdraw ?? 0) > 0 && period.statusKey === 'live') {
-                  <button type="button" class="baseline-button baseline-button--secondary relationship-period-row__action" (click)="requestFundsForPeriod(period, $event)">Request funds</button>
+                  <button type="button" class="baseline-button baseline-button--secondary relationship-period-row__action" (click)="requestFundsForPeriod(period, $event)">Request Funds</button>
                 }
               </article>
             } @empty {
