@@ -178,7 +178,8 @@ test.describe('shared customer financing pattern', () => {
     const search = page.getByRole('searchbox', { name: 'Search all values in Agri Credit Line financing' })
     await expect(search).toHaveAttribute('placeholder', 'Search')
     await search.fill('Ksh 1,400,000')
-    await expect(page.locator('.customer-activity-row')).toHaveCount(isMobile(testInfo) ? 0 : 1)
+    await expect(page.locator('.customer-activity-row')).toHaveCount(1)
+    await expect(page.locator('.customer-activity-cards .baseline-record-card')).toHaveCount(1)
     await search.fill('FR-2026-0318')
 
     if (isMobile(testInfo)) {
