@@ -40,36 +40,34 @@
         <span>Payments Due</span>
         <strong>{{ paymentsDueLabel }}</strong>
         <small>{{ overduePaymentsCount }} overdue · {{ upcomingPaymentsCount }} upcoming</small>
-        <small class="acl-payments-due__periods">30-day + 60-day financing periods</small>
-        <small>Next due {{ formatDate(business.nextRepaymentDate) }}</small>
         <button
           type="button"
           avButton
           variant="ghost"
           size="sm"
           class="acl-summary-repayment-action"
-          aria-label="View repayment details for all payments due"
-          (click)="openRepaymentDetails()"
+          aria-label="View payments due in Financing activity"
+          (click)="filterPaymentsDue()"
         >
-          View repayment details
+          View payments due
         </button>
       </article>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="The product summary combines current payment obligations">
-      <p>The summary shows the number of payments due, their financing periods, overdue and upcoming counts, the next due date, and a customer-level repayment action. The repayment view uses the existing aggregate amount due so a customer can pay multiple due or overdue obligations without selecting one Funds Request as the payment reference.</p>
+    <app-prototype-explainer tone="purpose" title="Payments Due is a shortcut to the affected financing periods">
+      <p>The Home card stays deliberately universal: it shows only how many payments need attention and the overdue/upcoming split. Selecting View payments due filters Financing activity to the affected financing periods, where the customer can open the relevant record and its repayment details.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Suppliers are transaction counterparties, not separate Agri Credit Line facilities">
       <p>An Agri Credit Line financing customer may purchase eligible goods from a Counterparty Supplier, including a farmer, trader, processor, wholesaler, input supplier, or other approved Supplier. The Supplier may receive the approved disbursement, but it does not become another customer credit facility.</p>
     </app-prototype-explainer>
 
-    <section class="baseline-section acl-financing-activity">
+    <section id="acl-financing-activity" class="baseline-section acl-financing-activity">
       <div class="acl-activity-toolbar">
         <div class="baseline-section-heading">
           <div>
             <h2>Financing activity</h2>
-            <p>Open a record for its full financing and repayment details.</p>
+            <p>Open a financing period for its full financing and repayment details.</p>
           </div>
         </div>
 
@@ -84,26 +82,20 @@
         />
       </div>
 
-      <app-prototype-explainer tone="purpose" title="Financing activity combines requests and disbursed Advances">
-        <p>The list keeps the production-representative fields from the existing portal. It includes Funds Requests before disbursement and Advances after disbursement, while older records remain on Home and paginate here.</p>
+      <app-prototype-explainer tone="purpose" title="Financing activity shows customer-facing financing periods">
+        <p>The list is now the place to resolve a payment alert into a specific financing period. View payments due applies a combined due/overdue filter here; selecting a row opens that period, its repayment schedule, and its repayment details.</p>
       </app-prototype-explainer>
 
-      <app-prototype-explainer tone="handbook" title="Requested and Live are different lifecycle stages">
-        <ul>
-          <li><strong>Requested:</strong> the Funds Request has been submitted; approval and disbursement have not yet created an Advance.</li>
-          <li><strong>Live:</strong> the approved amount has been disbursed and the Advance remains active.</li>
-          <li><strong>Repaid:</strong> the repayment obligation has been completed.</li>
-          <li><strong>Cancelled:</strong> the Funds Request was closed before disbursement.</li>
-          <li><strong>Declined:</strong> the Funds Request was not approved and no Advance was created.</li>
-        </ul>
+      <app-prototype-explainer tone="handbook" title="Only unsettled customer-facing financing-period statuses are surfaced">
+        <p>The Financings.Status superset is broader than what a customer needs on an active financing-period list. Requested, Offered, Validating, Unavailable, pre-signature states, Rolled Over, Refinanced, Repaid, Cancelled, and Declined are excluded here. Customer-facing unsettled states are Live, Overdue, In Default, Delinquent, On Repayment Plan, Transferred to Repayment Plan, and Collections. Overdue can also be derived from the repayment schedule where the source record is otherwise Live.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="decision" title="Search and filters share the Financing activity header on desktop">
         <p>The product is already fixed to Agri Credit Line, so the controls only need Status, Due Date, and search by financing or Funds Request reference. Desktop uses the space beside the heading; tablet and mobile stack the controls and retain the compact Filters drawer.</p>
       </app-prototype-explainer>
 
-      <app-prototype-explainer tone="decision" title="Financing details stay record-specific while payment instructions are shared">
-        <p>Selecting a record reveals that Funds Request or Advance, its dates, payment progress, and Instalment schedule. The payment destination is customer-level, so the repayment view combines all currently due and overdue obligations rather than treating one financing reference as the only payment target.</p>
+      <app-prototype-explainer tone="decision" title="Repayment details stay attached to the financing period">
+        <p>The Home payment card does not decide which obligation the customer is paying. It filters the list. Each financing period then carries its own repayment schedule and repayment-details action, so overdue and upcoming obligations cannot be confused with one another.</p>
       </app-prototype-explainer>
 
       <app-prototype-explainer tone="limitation" title="Purpose is intentionally not shown">
@@ -137,12 +129,12 @@
                 <td>{{ recordDisbursementDate(record) }}</td>
                 <td>{{ nextDueDate(record) }}</td>
                 <td>{{ tableFinancedAmount(record) }}</td>
-                <td><span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span></td>
+                <td><span class="baseline-status" [class]="'baseline-status ' + customerFinancingPeriodStatusTone(record)">{{ customerFinancingPeriodStatusLabel(record) }}</span></td>
                 <td>{{ recordTotalRepaid(record) }}</td>
                 <td><strong>{{ recordOutstandingBalance(record) }}</strong></td>
               </tr>
             } @empty {
-              <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing records</strong><p>Try changing your search or filters.</p></div></td></tr>
+              <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -154,10 +146,10 @@
             <button type="button" class="acl-record-card-button" (click)="openAclRecord(record)">
               <div class="baseline-record-card__head">
                 <span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>{{ fundsRequestReference(record) }}</span></span>
-                <span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span>
+                <span class="baseline-status" [class]="'baseline-status ' + customerFinancingPeriodStatusTone(record)">{{ customerFinancingPeriodStatusLabel(record) }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric"><small>{{ recordAmountLabel(record) }}</small><strong>{{ isDisbursedAdvance(record) ? formatKes(record.principal) : formatKes(record.principal) }}</strong></span>
+                <span class="baseline-metric"><small>{{ recordAmountLabel(record) }}</small><strong>{{ formatKes(record.principal) }}</strong></span>
                 <span class="baseline-metric"><small>Repayment Due</small><strong>{{ nextDueDate(record) }}</strong></span>
                 <span class="baseline-metric"><small>Total Repaid</small><strong>{{ recordTotalRepaid(record) }}</strong></span>
                 <span class="baseline-metric"><small>Outstanding Balance</small><strong>{{ recordOutstandingBalance(record) }}</strong></span>
@@ -166,13 +158,13 @@
             </button>
           </article>
         } @empty {
-          <div class="baseline-empty"><strong>No matching financing records</strong><p>Try changing your search or filters.</p></div>
+          <div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div>
         }
       </div>
 
       @if (filteredAclFinancingRecords.length) {
         <div class="baseline-pagination acl-pagination" aria-label="Financing activity pagination">
-          <p>Showing <strong>{{ aclRangeStart }}-{{ aclRangeEnd }}</strong> of {{ filteredAclFinancingRecords.length }} financing records</p>
+          <p>Showing <strong>{{ aclRangeStart }}-{{ aclRangeEnd }}</strong> of {{ filteredAclFinancingRecords.length }} financing periods</p>
           <div class="baseline-pagination__controls">
             <button type="button" [disabled]="aclPage === 1" (click)="changeAclPage(aclPage - 1)" aria-label="Previous page">‹</button>
             @for (page of aclPageNumbers; track page) {
@@ -184,16 +176,12 @@
       }
     </section>
 
-    <app-prototype-explainer tone="action" title="Request Funds is product-level; repayment instructions are customer-level">
-      <p>Request Funds creates a new Funds Request and is therefore available from Home and primary navigation. Repayment instructions use the customer collections destination and the existing aggregate amount due, while Financing activity continues to explain each individual request or Advance.</p>
+    <app-prototype-explainer tone="action" title="Request Funds remains product-level; repayment stays period-level">
+      <p>Request Funds creates a new Funds Request and remains available from Home and primary navigation. Payments Due is only a shortcut into Financing activity. Repayment instructions are opened from the selected financing period so the customer can see the relevant schedule before paying.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="handbook" title="Multiple Agri Credit Line Funds Requests may run in parallel">
-      <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the records together and paginates older records instead of splitting them into another product page.</p>
-    </app-prototype-explainer>
-
-    <app-prototype-explainer tone="decision" title="Repayment instructions combine current obligations">
-      <p>The repayment view sums the existing amount due across current due and overdue payments and shows the financing periods included in that total. It does not ask the customer to identify one financing reference as the only payment target; Avenews allocates received funds to the applicable obligations.</p>
+      <p>The customer can have multiple Funds Requests running at the same time while sufficient Available Credit remains. Financing activity therefore keeps the financing periods together and paginates older records instead of splitting them into another product page.</p>
     </app-prototype-explainer>
 
     <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
@@ -332,7 +320,7 @@
       <div class="baseline-modal__body acl-record-modal__body">
         <div class="acl-record-modal__summary">
           <span class="baseline-financing-cell"><strong>{{ record.partner }}</strong><span>Agri Credit Line</span></span>
-          <span class="baseline-status" [class]="'baseline-status ' + statusTone(record.status)">{{ statusLabel(record.status) }}</span>
+          <span class="baseline-status" [class]="'baseline-status ' + customerFinancingPeriodStatusTone(record)">{{ customerFinancingPeriodStatusLabel(record) }}</span>
         </div>
 
         <dl class="acl-record-details">
@@ -343,8 +331,8 @@
           <div><dt>Outstanding Balance</dt><dd>{{ recordOutstandingBalance(record) }}</dd></div>
         </dl>
 
-        <app-prototype-explainer tone="decision" title="The modal reflects the record's actual lifecycle stage">
-          <p>A submitted Funds Request is not presented as a disbursed Advance. Disbursement, repayment schedule, and repayment actions appear only where the record supports them.</p>
+        <app-prototype-explainer tone="decision" title="This modal belongs to one financing period">
+          <p>The status, dates, balance, Instalments, and repayment-details action all stay attached to this financing period. The customer reaches this record either directly from Financing activity or through the Payments Due shortcut.</p>
         </app-prototype-explainer>
 
         <section class="acl-installments">
@@ -365,15 +353,15 @@
                 <button
                   type="button"
                   class="baseline-button baseline-button--secondary baseline-button--block"
-                  aria-label="View repayment details for all payments due"
+                  [attr.aria-label]="'View repayment details for ' + fundsRequestReference(record)"
                   (click)="openRepaymentDetails(record)"
                 >
-                  View all repayment details
+                  View repayment details
                 </button>
               </div>
             }
           } @else {
-            <div class="baseline-empty"><strong>No repayment schedule</strong><p>This request did not create a repayment schedule in the current dataset.</p></div>
+            <div class="baseline-empty"><strong>No Instalment schedule</strong><p>This financing period does not include Instalments in the current dataset.</p></div>
           }
         </section>
       </div>
@@ -382,11 +370,11 @@
 }
 
 @if (experience.id === 'acl' && repaymentDetailsOpen) {
-  <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeRepaymentDetails()">
-    <section class="baseline-modal acl-sheet-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head acl-repayment-modal__head">
-        <div class="acl-repayment-modal__heading">
-          @if (repaymentReturnRecord) {
+  @if (repaymentReturnRecord; as record) {
+    <div class="baseline-modal-backdrop acl-sheet-backdrop" role="presentation" (click)="closeRepaymentDetails()">
+      <section class="baseline-modal acl-sheet-modal acl-repayment-modal" role="dialog" aria-modal="true" aria-labelledby="acl-repayment-title" (click)="$event.stopPropagation()">
+        <header class="baseline-modal__head acl-repayment-modal__head">
+          <div class="acl-repayment-modal__heading">
             <button
               type="button"
               avButton
@@ -399,87 +387,74 @@
               <av-icon name="chevron-left" [size]="18" />
               <span>Back</span>
             </button>
+            <div class="acl-repayment-modal__title">
+              <p class="page-eyebrow">Repayment details</p>
+              <h2 id="acl-repayment-title">{{ fundsRequestReference(record) }}</h2>
+            </div>
+          </div>
+          <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRepaymentDetails()">&times;</button>
+        </header>
+        <div class="baseline-modal__body">
+          <div class="acl-repayment-summary">
+            <div>
+              <span>Outstanding balance</span>
+              <strong>{{ formatKes(record.balance) }}</strong>
+              <small>{{ recordPaymentsDueLabel(record) }} · Next due {{ nextDueDate(record) }}</small>
+            </div>
+          </div>
+
+          <section class="acl-repayment-periods" aria-label="Repayment schedule for this financing period">
+            <div class="acl-repayment-periods__heading">
+              <span>Repayment schedule</span>
+              <small>Instalments</small>
+            </div>
+            @for (installment of record.installments; track installment.dueDate) {
+              <div class="acl-repayment-period">
+                <div>
+                  <strong>Due {{ formatDate(installment.dueDate) }}</strong>
+                  <small>{{ installmentStatusLabel(installment.status) }}</small>
+                </div>
+                <span class="baseline-status" [class]="'baseline-status ' + installmentStatusTone(installment.status)">{{ installmentStatusLabel(installment.status) }}</span>
+              </div>
+            }
+          </section>
+
+          <div class="acl-payment-allocation-note">
+            <strong>Payment details for this financing period</strong>
+            <p>Use either payment method below for this financing period. The same Avenews collections destination may be used across financing periods; this screen keeps the repayment context attached to the record you opened.</p>
+          </div>
+
+          <div class="acl-payment-methods" role="tablist" aria-label="Repayment method">
+            <button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'bank'" [class.is-active]="repaymentMethod === 'bank'" (click)="selectRepaymentMethod('bank')">Bank Transfer</button>
+            <button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'mpesa'" [class.is-active]="repaymentMethod === 'mpesa'" (click)="selectRepaymentMethod('mpesa')">M-Pesa Paybill</button>
+          </div>
+
+          @if (repaymentMethod === 'bank') {
+            <div class="acl-payment-details" role="tabpanel">
+              @for (item of bankDetails; track item.label) {
+                <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
+              }
+            </div>
+          } @else {
+            <div class="acl-payment-details" role="tabpanel">
+              @for (item of mpesaDetails; track item.label) {
+                <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
+              }
+              <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" (click)="copyPaymentValue(clientPhone, 'Account Number')">Copy</button></div>
+            </div>
           }
-          <div class="acl-repayment-modal__title">
-            <p class="page-eyebrow">Repayment details</p>
-            <h2 id="acl-repayment-title">Current payments</h2>
-          </div>
+
+          <app-prototype-explainer tone="handbook" title="Repayment context is resolved at financing-period level">
+            <p>Multiple Advances can coexist and can have different Due Dates or Instalment schedules. Keeping repayment details on the financing period makes it clear which schedule the customer is reviewing before they use the shared Avenews collections destination.</p>
+          </app-prototype-explainer>
+
+          <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
+            <p>These are repayment instructions for the financing period currently open. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
+          </app-prototype-explainer>
         </div>
-        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRepaymentDetails()">&times;</button>
-      </header>
-      <div class="baseline-modal__body">
-        <div class="acl-repayment-summary">
-          <div>
-            <span>Total amount due</span>
-            <strong>{{ formatKes(business.totalAmountDue) }}</strong>
-            <small>{{ paymentsDueLabel }} · Next due {{ formatDate(business.nextRepaymentDate) }}</small>
-          </div>
-          <div class="acl-repayment-summary__statuses" aria-label="Payment status summary">
-            @if (overduePaymentsCount) {
-              <span class="baseline-status status-danger">{{ overduePaymentsLabel }}</span>
-            }
-            @if (upcomingPaymentsCount) {
-              <span class="baseline-status status-info">{{ upcomingPaymentsLabel }}</span>
-            }
-          </div>
-        </div>
-
-        <section class="acl-repayment-periods" aria-label="Financing periods included in current payments">
-          <div class="acl-repayment-periods__heading">
-            <span>Payments included</span>
-            <small>Financing period</small>
-          </div>
-          <div class="acl-repayment-period">
-            <div>
-              <strong>30-day financing period</strong>
-              <small>Due 25 Apr 2026</small>
-            </div>
-            <span class="baseline-status status-danger">Overdue</span>
-          </div>
-          <div class="acl-repayment-period">
-            <div>
-              <strong>60-day financing period</strong>
-              <small>Due 25 May 2026</small>
-            </div>
-            <span class="baseline-status status-info">Upcoming</span>
-          </div>
-        </section>
-
-        <div class="acl-payment-allocation-note">
-          <strong>One payment destination for current obligations</strong>
-          <p>The total above combines the financing periods listed here. Use either payment method below; Avenews allocates received funds to the applicable obligations.</p>
-        </div>
-
-        <div class="acl-payment-methods" role="tablist" aria-label="Repayment method">
-          <button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'bank'" [class.is-active]="repaymentMethod === 'bank'" (click)="selectRepaymentMethod('bank')">Bank Transfer</button>
-          <button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'mpesa'" [class.is-active]="repaymentMethod === 'mpesa'" (click)="selectRepaymentMethod('mpesa')">M-Pesa Paybill</button>
-        </div>
-
-        @if (repaymentMethod === 'bank') {
-          <div class="acl-payment-details" role="tabpanel">
-            @for (item of bankDetails; track item.label) {
-              <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
-            }
-          </div>
-        } @else {
-          <div class="acl-payment-details" role="tabpanel">
-            @for (item of mpesaDetails; track item.label) {
-              <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copyPaymentValue(item.value, item.label)">Copy</button></div>
-            }
-            <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" (click)="copyPaymentValue(clientPhone, 'Account Number')">Copy</button></div>
-          </div>
-        }
-
-        <app-prototype-explainer tone="handbook" title="The collections account supports customer-level payment allocation">
-          <p>The Avenews collections account receives repayments and Avenews identifies and allocates the received amount to the applicable Client, Advance, Instalment, Principal, Markup, Late Markup, or other permitted amount. This view therefore avoids presenting one financing reference as the universal payment target while still showing the financing periods included in the total.</p>
-        </app-prototype-explainer>
-
-        <app-prototype-explainer tone="limitation" title="Payment processing is not integrated">
-          <p>These are customer-level repayment instructions for the current due and overdue obligations. The portal does not initiate or confirm a bank transfer or M-Pesa payment, upload Proof of Payment, or submit an M-Pesa reference.</p>
-        </app-prototype-explainer>
-      </div>
-    </section>
-  </div>
+      </section>
+    </div>
+  }
 }
 
 @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
