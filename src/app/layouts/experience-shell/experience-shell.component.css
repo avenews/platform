@@ -159,6 +159,14 @@
   cursor: pointer;
 }
 
+.experience-context-menu button.experience-context-menu__product {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 14px;
+}
+
 .experience-context-menu button:hover,
 .experience-context-menu button:focus-visible,
 .experience-context-menu button.is-current {
