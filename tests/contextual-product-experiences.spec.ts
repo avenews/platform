@@ -172,6 +172,15 @@ test.describe('Agri Credit Line customer-visible statuses', () => {
     await expect(page.locator('.customer-financing-activity')).not.toContainText('Collections')
   })
 
+  test('financing rows use the Funds Request reference rather than invented purchase names', async ({ page }) => {
+    const firstRow = page.locator('.customer-activity-table .customer-activity-row').first()
+    await expect(firstRow).toContainText('FR-2026-0612')
+    await expect(firstRow).toContainText('Agri Credit Line')
+    await expect(firstRow).toContainText('Pending')
+    await expect(page.locator('.customer-financing-activity')).not.toContainText('Inventory purchase')
+    await expect(page.locator('.customer-financing-activity')).not.toContainText('Seasonal stock purchase')
+  })
+
   test('Payments Due remains concise, outlined, and filters the affected periods', async ({ page }, testInfo) => {
     const card = page.locator('.customer-payments-due')
     await expect(card).toContainText('2 payments due')
@@ -198,6 +207,8 @@ test.describe('Agri Credit Line customer-visible statuses', () => {
   test('Live financing keeps Instalments and period-specific repayment scrollable', async ({ page }, testInfo) => {
     await openHomePeriod(page, 'FR-2026-0318')
     const periodDialog = page.locator('.customer-period-modal').first()
+    await expect(periodDialog).toContainText('Avenews')
+    await expect(periodDialog).not.toContainText('Approved purchases')
     await expect(periodDialog).toContainText('Instalment 1 of 2')
     await expect(periodDialog).toContainText('Instalment 2 of 2')
     await assertModalBodyScrollable(periodDialog)
@@ -220,12 +231,20 @@ test.describe('Agri Credit Line customer-visible statuses', () => {
 test.describe('relationship-first request flows', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
-  test('ABF Request funds leads to one Approved Suppliers heading and a relationship table', async ({ page }, testInfo) => {
+  test('ABF Request funds leads to a financing-availability Supplier table', async ({ page }, testInfo) => {
     await page.goto('/experience/abf/home')
     await page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' }).click()
     await expect(page).toHaveURL(/\/experience\/abf\/financing$/)
     await expect(page.getByRole('heading', { name: 'Approved Suppliers' })).toHaveCount(1)
     await assertRelationshipListCount(page, testInfo, 3)
+
+    const table = page.locator('.relationship-table')
+    await expect(table.locator('thead')).toContainText('Max Financing')
+    await expect(table.locator('thead')).toContainText('Financing Used')
+    await expect(table.locator('thead')).toContainText('Financing Available')
+    await expect(table.locator('thead')).toContainText('Status')
+    await expect(page.locator('.relationship-section')).not.toContainText('One live Supplier-scoped financing period')
+    await expect(page.locator('.relationship-section')).not.toContainText('Fully Paid Invoice reimbursement')
     await assertNoOverflow(page)
   })
 
@@ -233,9 +252,10 @@ test.describe('relationship-first request flows', () => {
     await page.goto('/experience/abf/financing')
     await openRelationship(page, 'Quick Mart Stores')
     const dialog = page.locator('.relationship-modal')
-    await expect(dialog).toContainText('Supplier sub-limit')
+    await expect(dialog).toContainText('Max Financing')
+    await expect(dialog).toContainText('Financing Available')
     await expect(dialog).toContainText('FR-2026-0422')
-    const request = dialog.getByRole('button', { name: 'Request funds for Quick Mart Stores' })
+    const request = dialog.getByRole('button', { name: 'Request Funds for Quick Mart Stores' })
     await expect(request).toHaveAttribute('data-external-url', ABF_DEMO_URL)
     await assertModalBodyScrollable(dialog)
 
@@ -255,10 +275,11 @@ test.describe('relationship-first request flows', () => {
     await expect(page).toHaveURL(/\/experience\/stf\/financing$/)
     await expect(page.getByRole('heading', { name: 'Partner Suppliers' })).toHaveCount(1)
     await assertRelationshipListCount(page, testInfo, 3)
+    await expect(page.locator('.relationship-section')).not.toContainText('Approved Partner Supplier; financing is disbursed directly to the Supplier')
 
     await openRelationship(page, 'GreenHarvest Distributors')
     const relationshipDialog = page.locator('.relationship-modal')
-    await expect(relationshipDialog).toContainText('Partner Supplier sub-limit')
+    await expect(relationshipDialog).toContainText('Max Financing')
     await relationshipDialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0501' }).getByRole('button').first().click()
 
     const periodDialog = page.locator('.customer-period-modal').first()
@@ -268,18 +289,21 @@ test.describe('relationship-first request flows', () => {
     await expect(page.locator('.customer-repayment-modal')).toContainText('ABSA Bank Kenya PLC')
   })
 
-  test('Invoice Financing Request funds leads to Buyers and Buyer-funded settlement', async ({ page }, testInfo) => {
+  test('Invoice Financing Request funds leads to source-backed Buyers and Buyer-funded settlement', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-financing/home')
     await page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' }).click()
     await expect(page).toHaveURL(/\/experience\/invoice-financing\/financing$/)
     await expect(page.getByRole('heading', { name: 'Buyer Relationships' })).toHaveCount(1)
     await assertRelationshipListCount(page, testInfo, 2)
+    await expect(page.locator('.relationship-section')).not.toContainText('normally supplies the invoice')
+    await expect(page.locator('.relationship-section')).not.toContainText('normally uploads invoices')
 
     await openRelationship(page, 'Twiga Foods Ltd')
     const relationshipDialog = page.locator('.relationship-modal')
-    await expect(relationshipDialog).toContainText('Twiga Foods Ltd normally uploads the invoices')
+    await expect(relationshipDialog).toContainText('Max Financing')
+    await expect(relationshipDialog).not.toContainText('normally uploads the invoices')
     await expect(relationshipDialog.locator('.relationship-period-row')).toHaveCount(2)
-    await expect(relationshipDialog.getByRole('button', { name: 'Request funds' })).toBeVisible()
+    await expect(relationshipDialog.getByRole('button', { name: 'Request Funds' })).toBeVisible()
 
     await relationshipDialog.locator('.relationship-period-row').filter({ hasText: 'DP-2026-09-15-TWIGA' }).getByRole('button').first().click()
     const periodDialog = page.locator('.customer-period-modal').first()
@@ -297,6 +321,7 @@ test.describe('relationship-first request flows', () => {
     await expect(page).toHaveURL(/\/experience\/infx\/financing$/)
     await expect(page.getByRole('heading', { name: 'Approved Buyers' })).toHaveCount(1)
     await assertRelationshipListCount(page, testInfo, 3)
+    await expect(page.locator('.relationship-section')).not.toContainText('One financed invoice is currently live')
 
     await openRelationship(page, 'Kisumu Buyers Co-op')
     await page.locator('.relationship-modal .relationship-period-row').filter({ hasText: 'FR-2026-0028' }).getByRole('button').first().click()
