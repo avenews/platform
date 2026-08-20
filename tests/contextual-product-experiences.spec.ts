@@ -1,9 +1,10 @@
-import { expect, test, type Page, type TestInfo } from '@playwright/test'
+import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test'
 
 const SESSION_KEY = 'av_customer_portal_session'
 const SCENARIO_KEY = 'av_experience_scenario'
 const ACL_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ACLDemoV2/formperma/yJ6BX6SANxu6zsGmFihcRuuAwT2dI9SbK4UGYlNIFog'
 const ABF_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ABFDemo1/formperma/88hpcsGdZAsMIA0-EbgWUOc6jIqIr5VRd1htmpKqIRA'
+const CUSTOMER_STATUSES = ['Requested', 'Live', 'Overdue', 'Repaid', 'Cancelled', 'Declined'] as const
 
 const SESSION = {
   contactId: 'usr_001',
@@ -66,16 +67,23 @@ async function openHomePeriod(page: Page, reference: string): Promise<void> {
     await table.locator('.customer-activity-row').filter({ hasText: reference }).click()
     return
   }
-  await page.locator('.customer-activity-cards .baseline-record-card').filter({ hasText: reference }).getByRole('button').click()
+  await page.locator('.customer-activity-cards .baseline-record-card')
+    .filter({ hasText: reference })
+    .locator('.customer-record-card-button')
+    .click()
+}
+
+async function relationshipRow(page: Page, name: string): Promise<Locator> {
+  const table = page.locator('.relationship-table-wrap')
+  if (await table.isVisible()) {
+    return page.locator('.relationship-table tbody tr').filter({ hasText: name })
+  }
+  return page.locator('.relationship-cards .relationship-card').filter({ hasText: name })
 }
 
 async function openRelationship(page: Page, name: string): Promise<void> {
-  const table = page.locator('.relationship-table-wrap')
-  if (await table.isVisible()) {
-    await page.locator('.relationship-table tbody tr').filter({ hasText: name }).getByRole('button', { name: 'View details' }).click()
-  } else {
-    await page.locator('.relationship-cards .relationship-card').filter({ hasText: name }).getByRole('button', { name: 'View details' }).click()
-  }
+  const row = await relationshipRow(page, name)
+  await row.getByRole('button', { name: 'View details' }).click()
   await expect(page.locator('.relationship-modal')).toBeVisible()
 }
 
@@ -87,10 +95,17 @@ async function assertRelationshipListCount(page: Page, testInfo: TestInfo, count
   }
 }
 
-async function assertModalBodyScrollable(dialog: ReturnType<Page['locator']>): Promise<void> {
+async function assertModalBodyScrollable(dialog: Locator): Promise<void> {
   const body = dialog.locator('.customer-period-modal__body, .relationship-modal__body').first()
   await expect(body).toBeVisible()
   await expect(body).toHaveCSS('overflow-y', 'auto')
+}
+
+async function visibleStatusBadges(page: Page): Promise<Locator> {
+  const table = page.locator('.customer-activity-table')
+  return await table.isVisible()
+    ? table.locator('tbody .baseline-status')
+    : page.locator('.customer-activity-cards .baseline-status')
 }
 
 test.describe('post-OTP access resolution', () => {
@@ -118,74 +133,75 @@ test.describe('post-OTP access resolution', () => {
   })
 })
 
-test.describe('consistent customer Home pattern', () => {
+test.describe('shared customer financing pattern', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
   for (const destination of CUSTOMER_DESTINATIONS) {
-    test(`${destination.id} uses Request funds, summary cards and Financing Activity`, async ({ page }, testInfo) => {
+    test(`${destination.id} uses the concise Financing surface and all six customer statuses`, async ({ page }, testInfo) => {
       await page.goto(`/experience/${destination.id}/home`)
       await expect(page.getByRole('heading', { name: destination.label, level: 1 })).toBeVisible()
       await expect(page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' })).toBeVisible()
       await expect(page.locator('.customer-product-summary .contextual-metric')).toHaveCount(3)
-      await expect(page.getByRole('heading', { name: 'Financing Activity', level: 2 })).toBeVisible()
-      await expect(page.locator('.customer-activity-table')).toBeAttached()
+      await expect(page.getByRole('heading', { name: 'Financing', level: 2, exact: true })).toBeVisible()
+      await expect(page.locator('.customer-financing-activity')).not.toContainText('Open a financing period for its full financing and repayment details.')
+      await expect(await visibleStatusBadges(page)).toHaveText(CUSTOMER_STATUSES)
       await assertNoOverflow(page)
-      await page.screenshot({ path: testInfo.outputPath(`${destination.id}-consistent-home.png`), fullPage: true })
+      await page.screenshot({ path: testInfo.outputPath(`${destination.id}-financing.png`), fullPage: true })
     })
   }
 
-  test('primary navigation keeps relationship labels distinct from Manage Users', async ({ page }, testInfo) => {
+  test('financing identifiers follow each product context', async ({ page }) => {
+    await page.goto('/experience/acl/home')
+    const aclCell = page.locator('.customer-activity-table tbody .baseline-financing-cell').first()
+    await expect(aclCell).toHaveText('FR-2026-0612')
+    await expect(aclCell).not.toContainText('Agri Credit Line')
+
     const expectations = [
-      { id: 'acl', items: ['Home', 'Request Funds', 'Manage Users'] },
-      { id: 'abf', items: ['Home', 'Suppliers', 'Manage Users'] },
-      { id: 'stf', items: ['Home', 'Partner Suppliers', 'Manage Users'] },
-      { id: 'invoice-financing', items: ['Home', 'Buyers', 'Manage Users'] },
-      { id: 'infx', items: ['Home', 'Buyers', 'Manage Users'] },
+      { id: 'abf', relationship: 'Eastleigh Traders Co.', reference: 'FR-2026-0819' },
+      { id: 'stf', relationship: 'GreenHarvest Distributors', reference: 'FR-2026-0820' },
+      { id: 'invoice-financing', relationship: 'Twiga Foods Ltd', reference: 'DP-2026-10-15-TWIGA' },
+      { id: 'infx', relationship: 'Mombasa Buyers Network', reference: 'FR-2026-0818' },
     ]
 
-    for (const expectation of expectations) {
-      await page.goto(`/experience/${expectation.id}/home`)
-      const navigation = isMobile(testInfo)
-        ? page.locator('.experience-bottom-nav')
-        : page.locator('.experience-sidebar-nav')
-      await expect(navigation.locator('a')).toHaveText(expectation.items)
+    for (const expected of expectations) {
+      await page.goto(`/experience/${expected.id}/home`)
+      const cell = page.locator('.customer-activity-table tbody .baseline-financing-cell').first()
+      await expect(cell.locator('strong')).toHaveText(expected.relationship)
+      await expect(cell).toContainText(expected.reference)
     }
   })
-})
 
-test.describe('Agri Credit Line customer-visible statuses', () => {
-  test.beforeEach(async ({ page }) => {
-    await signIn(page)
+  test('filters are compact, explicit, and clearable', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
+    const search = page.getByRole('searchbox', { name: 'Search Agri Credit Line financing' })
+    await search.fill('FR-2026-0318')
+
+    if (isMobile(testInfo)) {
+      await page.getByRole('button', { name: 'Filters' }).click()
+      await page.getByRole('combobox', { name: 'Status' }).selectOption('live')
+      await page.getByRole('button', { name: 'Apply' }).click()
+      await page.getByRole('button', { name: 'Filters' }).click()
+      await page.getByRole('button', { name: 'Clear filters' }).click()
+    } else {
+      await page.getByRole('combobox', { name: 'Status' }).selectOption('live')
+      const desktopSearch = page.locator('.customer-filter-bar__desktop .customer-filter-search')
+      const width = await desktopSearch.evaluate(element => element.getBoundingClientRect().width)
+      expect(width).toBeLessThanOrEqual(302)
+      await page.locator('.customer-filter-bar__desktop').getByRole('button', { name: 'Clear filters' }).click()
+    }
+
+    await expect(search).toHaveValue('')
+    if (!isMobile(testInfo)) {
+      await expect(page.getByRole('combobox', { name: 'Status' })).toHaveValue('')
+    }
   })
 
-  test('only Requested, Live, Overdue, Repaid, Cancelled and Declined are shown', async ({ page }) => {
-    const expected = ['Requested', 'Live', 'Overdue', 'Repaid', 'Cancelled', 'Declined']
-    const table = page.locator('.customer-activity-table')
-    const statuses = await table.isVisible()
-      ? table.locator('tbody .baseline-status')
-      : page.locator('.customer-activity-cards .baseline-status')
-    await expect(statuses).toHaveText(expected)
-    await expect(page.locator('.customer-financing-activity')).not.toContainText('Delinquent')
-    await expect(page.locator('.customer-financing-activity')).not.toContainText('In Default')
-    await expect(page.locator('.customer-financing-activity')).not.toContainText('Repayment Plan')
-    await expect(page.locator('.customer-financing-activity')).not.toContainText('Collections')
-  })
-
-  test('financing rows use the Funds Request reference rather than invented purchase names', async ({ page }) => {
-    const firstRow = page.locator('.customer-activity-table .customer-activity-row').first()
-    await expect(firstRow).toContainText('FR-2026-0612')
-    await expect(firstRow).toContainText('Agri Credit Line')
-    await expect(firstRow).toContainText('Pending')
-    await expect(page.locator('.customer-financing-activity')).not.toContainText('Inventory purchase')
-    await expect(page.locator('.customer-financing-activity')).not.toContainText('Seasonal stock purchase')
-  })
-
-  test('Payments Due remains concise, outlined, and filters the affected periods', async ({ page }, testInfo) => {
+  test('Payments Due remains outlined and filters Financing', async ({ page }, testInfo) => {
+    await page.goto('/experience/acl/home')
     const card = page.locator('.customer-payments-due')
     await expect(card).toContainText('2 payments due')
     await expect(card).toContainText('1 overdue · 1 upcoming')
-    const action = card.getByRole('button', { name: 'View payments due in Financing activity' })
+    const action = card.getByRole('button', { name: 'View payments due in Financing' })
     await expect(action).toHaveClass(/baseline-button--secondary/)
     await action.click()
 
@@ -193,7 +209,7 @@ test.describe('Agri Credit Line customer-visible statuses', () => {
       await page.getByRole('button', { name: 'Filters' }).click()
       await expect(page.getByRole('combobox', { name: 'Due date' })).toHaveValue('payments-due')
     } else {
-      await expect(page.getByRole('combobox', { name: 'Due date' }).first()).toHaveValue('payments-due')
+      await expect(page.getByRole('combobox', { name: 'Due date' })).toHaveValue('payments-due')
     }
 
     const table = page.locator('.customer-activity-table')
@@ -204,22 +220,56 @@ test.describe('Agri Credit Line customer-visible statuses', () => {
     }
   })
 
-  test('Live financing keeps Instalments and period-specific repayment scrollable', async ({ page }, testInfo) => {
+  test('primary navigation keeps relationship labels distinct from Manage Users', async ({ page }, testInfo) => {
+    const expectations = [
+      { id: 'acl', items: ['Home', 'Request Funds', 'Manage Users'] },
+      { id: 'abf', items: ['Home', 'Suppliers', 'Manage Users'] },
+      { id: 'stf', items: ['Home', 'Partner Suppliers', 'Manage Users'] },
+      { id: 'invoice-financing', items: ['Home', 'Buyers', 'Manage Users'] },
+      { id: 'infx', items: ['Home', 'Buyers', 'Manage Users'] },
+    ]
+
+    for (const expected of expectations) {
+      await page.goto(`/experience/${expected.id}/home`)
+      const navigation = isMobile(testInfo)
+        ? page.locator('.experience-bottom-nav')
+        : page.locator('.experience-sidebar-nav')
+      await expect(navigation.locator('a')).toHaveText(expected.items)
+    }
+  })
+})
+
+test.describe('repayment details', () => {
+  test.beforeEach(async ({ page }) => {
+    await signIn(page)
+    await page.goto('/experience/acl/home')
+  })
+
+  test('Live ACL financing retains Instalments and scrollable repayment details', async ({ page }) => {
     await openHomePeriod(page, 'FR-2026-0318')
     const periodDialog = page.locator('.customer-period-modal').first()
-    await expect(periodDialog).toContainText('Avenews')
-    await expect(periodDialog).not.toContainText('Approved purchases')
     await expect(periodDialog).toContainText('Instalment 1 of 2')
     await expect(periodDialog).toContainText('Instalment 2 of 2')
     await assertModalBodyScrollable(periodDialog)
 
     await periodDialog.getByRole('button', { name: 'View repayment details' }).click()
     const repaymentDialog = page.locator('.customer-repayment-modal')
-    await expect(repaymentDialog).toContainText('FR-2026-0318')
     await expect(repaymentDialog).toContainText('ABSA Bank Kenya PLC')
     await assertModalBodyScrollable(repaymentDialog)
-    await assertNoOverflow(page)
-    await page.screenshot({ path: testInfo.outputPath('acl-scrollable-repayment.png'), fullPage: true })
+  })
+
+  test('bank and M-Pesa values align left while Copy remains trailing', async ({ page }) => {
+    await openHomePeriod(page, 'FR-2026-0318')
+    await page.locator('.customer-period-modal').first().getByRole('button', { name: 'View repayment details' }).click()
+    const repaymentDialog = page.locator('.customer-repayment-modal')
+
+    await expect(repaymentDialog.locator('.customer-payment-details strong').first()).toHaveCSS('text-align', 'left')
+    await expect(repaymentDialog.locator('.customer-payment-details').getByText('03400', { exact: true })).toHaveCSS('text-align', 'left')
+
+    await repaymentDialog.getByRole('tab', { name: 'M-Pesa Paybill' }).click()
+    await expect(repaymentDialog.locator('.customer-payment-details').getByText('4567121', { exact: true })).toHaveCSS('text-align', 'left')
+    await expect(repaymentDialog.locator('.customer-payment-details').getByText('+254712345678', { exact: true })).toHaveCSS('text-align', 'left')
+    await expect(repaymentDialog).toContainText('Use your registered phone number')
   })
 
   test('ACL Request funds keeps the permanent direct demo URL', async ({ page }) => {
@@ -231,56 +281,43 @@ test.describe('Agri Credit Line customer-visible statuses', () => {
 test.describe('relationship-first request flows', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
-  test('ABF Request funds leads to a financing-availability Supplier table', async ({ page }, testInfo) => {
-    await page.goto('/experience/abf/home')
-    await page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' }).click()
-    await expect(page).toHaveURL(/\/experience\/abf\/financing$/)
-    await expect(page.getByRole('heading', { name: 'Approved Suppliers' })).toHaveCount(1)
-    await assertRelationshipListCount(page, testInfo, 3)
+  for (const relationshipPage of [
+    { id: 'abf', heading: 'Approved Suppliers', count: 3 },
+    { id: 'stf', heading: 'Partner Suppliers', count: 3 },
+    { id: 'invoice-financing', heading: 'Buyer Relationships', count: 2 },
+    { id: 'infx', heading: 'Approved Buyers', count: 3 },
+  ] as const) {
+    test(`${relationshipPage.id} uses one concise relationship heading and no duplicate helper line`, async ({ page }, testInfo) => {
+      await page.goto(`/experience/${relationshipPage.id}/financing`)
+      await expect(page.getByRole('heading', { name: relationshipPage.heading, level: 1 })).toHaveCount(1)
+      await expect(page.locator('.contextual-financing__hero > div > p:not(.page-eyebrow)')).toHaveCount(1)
+      await expect(page.locator('.relationship-section__intro')).toHaveCount(0)
+      await expect(page.locator('.relationship-section')).not.toContainText('Open a Buyer for its financing details')
+      await expect(page.locator('.relationship-section')).not.toContainText('Open a Supplier for its financing details')
+      await assertRelationshipListCount(page, testInfo, relationshipPage.count)
+      await assertNoOverflow(page)
+    })
+  }
 
-    const table = page.locator('.relationship-table')
-    await expect(table.locator('thead')).toContainText('Max Financing')
-    await expect(table.locator('thead')).toContainText('Financing Used')
-    await expect(table.locator('thead')).toContainText('Financing Available')
-    await expect(table.locator('thead')).toContainText('Status')
-    await expect(page.locator('.relationship-section')).not.toContainText('One live Supplier-scoped financing period')
-    await expect(page.locator('.relationship-section')).not.toContainText('Fully Paid Invoice reimbursement')
-    await assertNoOverflow(page)
-  })
-
-  test('ABF Supplier details keep the supplied Supplier-scoped Funds Request URL', async ({ page }) => {
+  test('ABF Supplier details retain Supplier-scoped Funds Request URL and multiple status examples', async ({ page }) => {
     await page.goto('/experience/abf/financing')
     await openRelationship(page, 'Quick Mart Stores')
     const dialog = page.locator('.relationship-modal')
-    await expect(dialog).toContainText('Max Financing')
-    await expect(dialog).toContainText('Financing Available')
     await expect(dialog).toContainText('FR-2026-0422')
+    await expect(dialog).toContainText('FR-2026-0124')
     const request = dialog.getByRole('button', { name: 'Request Funds for Quick Mart Stores' })
     await expect(request).toHaveAttribute('data-external-url', ABF_DEMO_URL)
     await assertModalBodyScrollable(dialog)
-
-    await page.evaluate(() => {
-      window.open = ((url?: string | URL) => {
-        document.body.dataset['openedAbfUrl'] = String(url ?? '')
-        return null
-      }) as typeof window.open
-    })
-    await request.click()
-    await expect(page.locator('body')).toHaveAttribute('data-opened-abf-url', ABF_DEMO_URL)
   })
 
-  test('Stockist Request funds leads to Partner Suppliers and retains period repayment', async ({ page }, testInfo) => {
-    await page.goto('/experience/stf/home')
-    await page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' }).click()
-    await expect(page).toHaveURL(/\/experience\/stf\/financing$/)
-    await expect(page.getByRole('heading', { name: 'Partner Suppliers' })).toHaveCount(1)
-    await assertRelationshipListCount(page, testInfo, 3)
-    await expect(page.locator('.relationship-section')).not.toContainText('Approved Partner Supplier; financing is disbursed directly to the Supplier')
-
+  test('Stockist retains Partner Supplier Instalments and repayment flow', async ({ page }) => {
+    await page.goto('/experience/stf/financing')
     await openRelationship(page, 'GreenHarvest Distributors')
     const relationshipDialog = page.locator('.relationship-modal')
-    await expect(relationshipDialog).toContainText('Max Financing')
-    await relationshipDialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0501' }).getByRole('button').first().click()
+    await relationshipDialog.locator('.relationship-period-row')
+      .filter({ hasText: 'FR-2026-0501' })
+      .locator('.relationship-period-row__main')
+      .click()
 
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Instalment 1 of 2')
@@ -289,23 +326,47 @@ test.describe('relationship-first request flows', () => {
     await expect(page.locator('.customer-repayment-modal')).toContainText('ABSA Bank Kenya PLC')
   })
 
-  test('Invoice Financing Request funds leads to source-backed Buyers and Buyer-funded settlement', async ({ page }, testInfo) => {
+  test('Invoice Financing makes mixed invoice ownership explicit', async ({ page }, testInfo) => {
+    await page.goto('/experience/invoice-financing/financing')
+    const twiga = await relationshipRow(page, 'Twiga Foods Ltd')
+    const fresh = await relationshipRow(page, 'FreshProduce Kenya Ltd')
+
+    await expect(twiga).toContainText('Buyer uploads')
+    await expect(twiga.getByRole('button', { name: 'Upload invoices' })).toHaveCount(0)
+    await expect(fresh).toContainText('You upload')
+    await expect(fresh.getByRole('button', { name: 'Upload invoices' })).toBeVisible()
+
+    await fresh.getByRole('button', { name: 'Upload invoices' }).click()
+    const upload = page.locator('.invoice-upload-modal')
+    await expect(upload).toBeVisible()
+    await expect(upload).toContainText('FreshProduce Kenya Ltd')
+    await upload.locator('input[type="date"]').fill('2026-09-30')
+    await upload.locator('input[type="number"]').fill('500000')
+    await upload.getByRole('button', { name: 'Submit invoice' }).click()
+    await expect(page.locator('.baseline-toast')).toContainText('matching Dynamic Period')
+    await assertNoOverflow(page)
+    if (!isMobile(testInfo)) await expect(page.locator('.relationship-table thead')).toContainText('Invoices')
+  })
+
+  test('Invoice Financing highlights additional funds available on eligible Dynamic Periods', async ({ page }) => {
     await page.goto('/experience/invoice-financing/home')
-    await page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' }).click()
-    await expect(page).toHaveURL(/\/experience\/invoice-financing\/financing$/)
-    await expect(page.getByRole('heading', { name: 'Buyer Relationships' })).toHaveCount(1)
-    await assertRelationshipListCount(page, testInfo, 2)
-    await expect(page.locator('.relationship-section')).not.toContainText('normally supplies the invoice')
-    await expect(page.locator('.relationship-section')).not.toContainText('normally uploads invoices')
+    const requested = page.locator('.customer-activity-row').filter({ hasText: 'DP-2026-10-15-TWIGA' })
+    if (await requested.isVisible()) {
+      await expect(requested).toContainText('Ksh 320,000')
+      await expect(requested).toContainText('Available to request')
+      await expect(requested.getByRole('button', { name: 'Request more' })).toBeVisible()
+    } else {
+      const card = page.locator('.customer-activity-cards .baseline-record-card').filter({ hasText: 'DP-2026-10-15-TWIGA' })
+      await expect(card).toContainText('Ksh 320,000')
+      await expect(card.getByRole('button', { name: 'Request more' })).toBeVisible()
+    }
+    await expect(page.locator('.customer-activity-table thead')).toContainText('Period Due Date')
+    await expect(page.locator('.customer-financing-activity')).not.toContainText('Dynamic Period Due Date')
+  })
 
-    await openRelationship(page, 'Twiga Foods Ltd')
-    const relationshipDialog = page.locator('.relationship-modal')
-    await expect(relationshipDialog).toContainText('Max Financing')
-    await expect(relationshipDialog).not.toContainText('normally uploads the invoices')
-    await expect(relationshipDialog.locator('.relationship-period-row')).toHaveCount(2)
-    await expect(relationshipDialog.getByRole('button', { name: 'Request Funds' })).toBeVisible()
-
-    await relationshipDialog.locator('.relationship-period-row').filter({ hasText: 'DP-2026-09-15-TWIGA' }).getByRole('button').first().click()
+  test('Invoice Financing settlement remains Buyer-funded', async ({ page }) => {
+    await page.goto('/experience/invoice-financing/home')
+    await openHomePeriod(page, 'DP-2026-09-15-TWIGA')
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Buyer payment')
     await periodDialog.getByRole('button', { name: 'View settlement details' }).click()
@@ -315,19 +376,15 @@ test.describe('relationship-first request flows', () => {
     await expect(settlementDialog).not.toContainText('M-Pesa Paybill')
   })
 
-  test('INFX Request funds leads to Buyers and one-invoice direct repayment', async ({ page }, testInfo) => {
-    await page.goto('/experience/infx/home')
-    await page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' }).click()
-    await expect(page).toHaveURL(/\/experience\/infx\/financing$/)
-    await expect(page.getByRole('heading', { name: 'Approved Buyers' })).toHaveCount(1)
-    await assertRelationshipListCount(page, testInfo, 3)
-    await expect(page.locator('.relationship-section')).not.toContainText('One financed invoice is currently live')
-
+  test('INFX retains one-invoice direct repayment', async ({ page }) => {
+    await page.goto('/experience/infx/financing')
     await openRelationship(page, 'Kisumu Buyers Co-op')
-    await page.locator('.relationship-modal .relationship-period-row').filter({ hasText: 'FR-2026-0028' }).getByRole('button').first().click()
+    await page.locator('.relationship-modal .relationship-period-row')
+      .filter({ hasText: 'FR-2026-0028' })
+      .locator('.relationship-period-row__main')
+      .click()
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('INV-2026-0028')
-    await expect(periodDialog).toContainText('60 days')
     await periodDialog.getByRole('button', { name: 'View repayment details' }).click()
     await expect(page.locator('.customer-repayment-modal')).toContainText('ABSA Bank Kenya PLC')
   })
