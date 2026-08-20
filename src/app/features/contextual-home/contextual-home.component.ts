@@ -112,9 +112,11 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   get searchPlaceholder(): string {
-    if (this.workspace?.id === 'acl') return 'Search FR'
-    if (this.workspace?.id === 'invoice-financing') return 'Search Buyer or Period'
-    return 'Search financing'
+    return 'Search'
+  }
+
+  get primaryActionLabel(): string {
+    return this.workspace?.id === 'invoice-financing' ? 'Upload invoices' : (this.workspace?.primaryActionLabel ?? '')
   }
 
   get dueCounts(): { overdue: number; upcoming: number; total: number } {
@@ -148,14 +150,21 @@ export class ContextualHomeComponent implements OnDestroy {
         if (!query) return true
         const relationshipSearch = this.workspace?.id === 'acl'
           ? 'Avenews Agri Credit Line'
-          : `${period.relationshipName} ${period.relationshipType}`
-        return [
+          : `${period.relationshipName} ${this.customerRelationshipType(period.relationshipType)}`
+        const searchableValues = [
           period.reference,
           relationshipSearch,
           period.statusLabel,
+          period.disbursementDate ? formatDate(period.disbursementDate, true) : 'Pending',
+          formatDate(period.repaymentDueDate, true),
+          formatKes(period.amountFinanced),
+          period.availableToWithdraw !== undefined ? formatKes(period.availableToWithdraw) : '',
+          formatKes(period.totalRepaid),
+          formatKes(period.outstandingBalance),
           period.invoiceReference ?? '',
           period.invoiceType ?? '',
-        ].join(' ').toLowerCase().includes(query)
+        ]
+        return searchableValues.join(' ').toLowerCase().includes(query)
       })
   }
 
@@ -216,19 +225,20 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
-    return this.workspace?.id === 'invoice-financing'
-      && (period.availableToWithdraw ?? 0) > 0
-      && (period.statusKey === 'live' || period.statusKey === 'requested')
+    if (this.workspace?.id !== 'invoice-financing') return false
+    if ((period.availableToWithdraw ?? 0) <= 0) return false
+    if (period.statusKey !== 'live' && period.statusKey !== 'requested') return false
+    return this.isWithinInvoiceFundingWindow(period)
   }
 
-  periodRequestLabel(period: CustomerFinancingPeriod): string {
-    return period.amountFinanced > 0 || period.statusKey === 'requested' ? 'Request more' : 'Request funds'
+  periodRequestLabel(_period: CustomerFinancingPeriod): string {
+    return 'Request funds'
   }
 
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
     if (!this.canRequestFromPeriod(period)) return
-    this.toast = `${this.periodRequestLabel(period)} from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
+    this.toast = `Request funds from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
     this.cdr.markForCheck()
   }
 
@@ -267,6 +277,20 @@ export class ContextualHomeComponent implements OnDestroy {
       return
     }
     void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads'))
+  }
+
+  private customerRelationshipType(type: string): string {
+    if (type.includes('Supplier')) return 'Supplier'
+    if (type.includes('Buyer')) return 'Buyer'
+    return type
+  }
+
+  private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean {
+    const dueDate = new Date(`${period.repaymentDueDate}T00:00:00`)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const daysToDue = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
+    return daysToDue >= 7 && daysToDue <= 60
   }
 
   private matchesDueFilter(period: CustomerFinancingPeriod): boolean {
