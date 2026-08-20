@@ -19,7 +19,6 @@ import {
   statusTone,
   type CreditLine,
   type FinancingRecord,
-  type FinancingStatus,
   type Installment,
 } from '../../shared/customer-portal.data'
 import {
@@ -38,6 +37,43 @@ import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.co
 
 type RepaymentMethod = 'bank' | 'mpesa'
 
+type CustomerFinancingPeriodStatus = {
+  key: string
+  label: string
+  tone: string
+}
+
+type FinancingStatusRule = CustomerFinancingPeriodStatus & {
+  customerFacing: boolean
+}
+
+const FINANCING_STATUS_RULES: Readonly<Record<string, FinancingStatusRule>> = {
+  requested: { key: 'requested', label: 'Requested', tone: 'status-info', customerFacing: false },
+  offered: { key: 'offered', label: 'Offered', tone: 'status-warning', customerFacing: false },
+  validating: { key: 'validating', label: 'Validating', tone: 'status-warning', customerFacing: false },
+  unavailable: { key: 'unavailable', label: 'Unavailable', tone: 'status-neutral', customerFacing: false },
+  'to-sign-ap': { key: 'to-sign-ap', label: 'To Sign AP', tone: 'status-warning', customerFacing: false },
+  'to-sign-rollover-ap': { key: 'to-sign-rollover-ap', label: 'To Sign Rollover AP', tone: 'status-warning', customerFacing: false },
+  live: { key: 'live', label: 'Live', tone: 'status-live', customerFacing: true },
+  overdue: { key: 'overdue', label: 'Overdue', tone: 'status-danger', customerFacing: true },
+  default: { key: 'default', label: 'In Default', tone: 'status-danger', customerFacing: true },
+  'in-default': { key: 'in-default', label: 'In Default', tone: 'status-danger', customerFacing: true },
+  delinquent: { key: 'delinquent', label: 'Delinquent', tone: 'status-danger', customerFacing: true },
+  'on-repayment-plan': { key: 'on-repayment-plan', label: 'On Repayment Plan', tone: 'status-warning', customerFacing: true },
+  'transferred-to-repayment-plan': {
+    key: 'transferred-to-repayment-plan',
+    label: 'Transferred to Repayment Plan',
+    tone: 'status-warning',
+    customerFacing: true,
+  },
+  collections: { key: 'collections', label: 'Collections', tone: 'status-danger', customerFacing: true },
+  'rolled-over': { key: 'rolled-over', label: 'Rolled Over', tone: 'status-neutral', customerFacing: false },
+  refinanced: { key: 'refinanced', label: 'Refinanced', tone: 'status-neutral', customerFacing: false },
+  repaid: { key: 'repaid', label: 'Repaid', tone: 'status-success', customerFacing: false },
+  cancelled: { key: 'cancelled', label: 'Cancelled', tone: 'status-neutral', customerFacing: false },
+  declined: { key: 'declined', label: 'Declined', tone: 'status-danger', customerFacing: false },
+}
+
 const BANK_DETAILS = [
   { label: 'Bank', value: 'ABSA Bank Kenya PLC' },
   { label: 'Account Name', value: 'Avenews KE Limited' },
@@ -51,21 +87,20 @@ const MPESA_DETAILS = [
   { label: 'Account Name', value: 'Avenews KE Limited' },
 ] as const
 
-const ACL_LIFECYCLE_SOURCE_IDS = [
-  'loan_acl_req_001',
+// Reuse existing production-representative rows for the ACL review view; do not invent new amounts.
+// One row is overdue and one is upcoming so the Payments Due shortcut can demonstrate both paths.
+const ACL_PERIOD_SOURCE_IDS = [
+  'loan_asf_001',
   'loan_acl_001',
-  'loan_abf_001',
-  'loan_abf_can_001',
-  'loan_asfx_dec_001',
 ] as const
 
-function aclLifecycleRecord(id: string): FinancingRecord {
+function aclPeriodRecord(id: string): FinancingRecord {
   const source = FINANCING_RECORDS.find(record => record.id === id)
-  if (!source) throw new Error(`Missing ACL lifecycle source record: ${id}`)
+  if (!source) throw new Error(`Missing ACL financing-period source record: ${id}`)
 
   return {
     ...source,
-    id: `acl_lifecycle_${source.id}`,
+    id: `acl_period_${source.id}`,
     product: 'ACL',
     partner: 'Avenews',
     installments: source.installments.map(installment => ({ ...installment })),
@@ -98,23 +133,24 @@ export class ContextualHomeComponent implements OnDestroy {
   experience: PortalExperience = this.resolveExperience()
 
   readonly aclFundsRequestDemoUrl = ACL_FUNDS_REQUEST_DEMO_URL
-  readonly aclFinancingRecords: readonly FinancingRecord[] = ACL_LIFECYCLE_SOURCE_IDS
-    .map(id => aclLifecycleRecord(id))
+  readonly aclFinancingRecords: readonly FinancingRecord[] = ACL_PERIOD_SOURCE_IDS
+    .map(id => aclPeriodRecord(id))
+    .filter(record => this.customerFinancingPeriodStatus(record) !== null)
   readonly aclFilterFields: readonly CustomerFilterField[] = [
     {
       key: 'status',
       label: 'Status',
       allLabel: 'All statuses',
-      options: this.uniqueAclStatuses().map(status => ({ value: status, label: statusLabel(status) })),
+      options: this.uniqueAclStatuses(),
     },
     {
       key: 'dueDate',
       label: 'Due date',
       allLabel: 'Any due date',
       options: [
-        { value: 'upcoming', label: 'Upcoming' },
+        { value: 'payments-due', label: 'Payments due' },
         { value: 'overdue', label: 'Overdue' },
-        { value: 'no-schedule', label: 'No repayment schedule' },
+        { value: 'upcoming', label: 'Upcoming' },
       ],
     },
   ]
@@ -149,8 +185,13 @@ export class ContextualHomeComponent implements OnDestroy {
     return experienceById(id) ?? experienceById('acl')!
   }
 
-  private uniqueAclStatuses(): FinancingStatus[] {
-    return Array.from(new Set(this.aclFinancingRecords.map(record => record.status)))
+  private uniqueAclStatuses(): { value: string; label: string }[] {
+    const statuses = new Map<string, string>()
+    for (const record of this.aclFinancingRecords) {
+      const status = this.customerFinancingPeriodStatus(record)
+      if (status) statuses.set(status.key, status.label)
+    }
+    return Array.from(statuses, ([value, label]) => ({ value, label }))
   }
 
   displayProductName(experience: PortalExperience): string {
@@ -181,16 +222,6 @@ export class ContextualHomeComponent implements OnDestroy {
     return Math.max(BUSINESS.duePeriodsCount - this.overduePaymentsCount, 0)
   }
 
-  get overduePaymentsLabel(): string {
-    const count = this.overduePaymentsCount
-    return `${count} ${count === 1 ? 'overdue payment' : 'overdue payments'}`
-  }
-
-  get upcomingPaymentsLabel(): string {
-    const count = this.upcomingPaymentsCount
-    return `${count} ${count === 1 ? 'upcoming payment' : 'upcoming payments'}`
-  }
-
   get aclFilterValues(): Readonly<Record<string, string>> {
     return {
       status: this.aclStatusFilter,
@@ -202,14 +233,17 @@ export class ContextualHomeComponent implements OnDestroy {
     const query = this.aclSearchQuery.trim().toLowerCase()
 
     return this.aclFinancingRecords
-      .filter(record => !this.aclStatusFilter || record.status === this.aclStatusFilter)
+      .filter(record => {
+        if (!this.aclStatusFilter) return true
+        return this.customerFinancingPeriodStatus(record)?.key === this.aclStatusFilter
+      })
       .filter(record => this.matchesAclDueDateFilter(record))
       .filter(record => {
         if (!query) return true
         return [
           record.partner,
           this.fundsRequestReference(record),
-          statusLabel(record.status),
+          this.customerFinancingPeriodStatusLabel(record),
         ].join(' ').toLowerCase().includes(query)
       })
   }
@@ -274,8 +308,24 @@ export class ContextualHomeComponent implements OnDestroy {
     this.cdr.markForCheck()
   }
 
-  openRepaymentDetails(returnRecord: FinancingRecord | null = null, method: RepaymentMethod = 'bank'): void {
-    if (BUSINESS.duePeriodsCount <= 0) return
+  filterPaymentsDue(): void {
+    this.closeAclOverlays()
+    this.aclSearchQuery = ''
+    this.aclStatusFilter = ''
+    this.aclDueDateFilter = 'payments-due'
+    this.aclPage = 1
+    this.cdr.markForCheck()
+
+    requestAnimationFrame(() => {
+      document.getElementById('acl-financing-activity')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
+
+  openRepaymentDetails(returnRecord: FinancingRecord, method: RepaymentMethod = 'bank'): void {
+    if (!this.nextRepaymentFor(returnRecord)) return
     this.selectedAclRecord = null
     this.repaymentReturnRecord = returnRecord
     this.repaymentMethod = method
@@ -360,6 +410,11 @@ export class ContextualHomeComponent implements OnDestroy {
     return record.installments.find(item => item.status !== 'paid')
   }
 
+  recordPaymentsDueLabel(record: FinancingRecord): string {
+    const count = record.installments.filter(item => item.status !== 'paid').length
+    return `${count} ${count === 1 ? 'payment' : 'payments'} due`
+  }
+
   installmentStatusLabel(status: Installment['status']): string {
     if (status === 'paid') return 'Paid'
     if (status === 'overdue') return 'Overdue'
@@ -370,6 +425,29 @@ export class ContextualHomeComponent implements OnDestroy {
     if (status === 'paid') return 'status-success'
     if (status === 'overdue') return 'status-danger'
     return 'status-info'
+  }
+
+  customerFinancingPeriodStatus(record: FinancingRecord): CustomerFinancingPeriodStatus | null {
+    if (!record.disbursementDate) return null
+
+    const rawStatus = String(record.status).trim().toLowerCase()
+    const rawRule = FINANCING_STATUS_RULES[rawStatus]
+    if (!rawRule?.customerFacing) return null
+
+    if (rawStatus === 'live' && record.installments.some(item => item.status === 'overdue')) {
+      const overdue = FINANCING_STATUS_RULES['overdue']
+      return { key: overdue.key, label: overdue.label, tone: overdue.tone }
+    }
+
+    return { key: rawRule.key, label: rawRule.label, tone: rawRule.tone }
+  }
+
+  customerFinancingPeriodStatusLabel(record: FinancingRecord): string {
+    return this.customerFinancingPeriodStatus(record)?.label ?? statusLabel(record.status)
+  }
+
+  customerFinancingPeriodStatusTone(record: FinancingRecord): string {
+    return this.customerFinancingPeriodStatus(record)?.tone ?? statusTone(record.status)
   }
 
   fundsRequestReference(record: FinancingRecord): string {
@@ -404,7 +482,9 @@ export class ContextualHomeComponent implements OnDestroy {
 
   private matchesAclDueDateFilter(record: FinancingRecord): boolean {
     if (!this.aclDueDateFilter) return true
-    if (this.aclDueDateFilter === 'no-schedule') return !record.installments.some(item => item.status !== 'paid')
+    if (this.aclDueDateFilter === 'payments-due') {
+      return record.installments.some(item => item.status === 'overdue' || item.status === 'upcoming')
+    }
     if (this.aclDueDateFilter === 'overdue') return record.installments.some(item => item.status === 'overdue')
     if (this.aclDueDateFilter === 'upcoming') return record.installments.some(item => item.status === 'upcoming')
     return true
