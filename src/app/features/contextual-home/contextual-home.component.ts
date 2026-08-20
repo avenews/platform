@@ -111,6 +111,12 @@ export class ContextualHomeComponent implements OnDestroy {
     return { status: this.statusFilter, dueDate: this.dueDateFilter }
   }
 
+  get searchPlaceholder(): string {
+    if (this.workspace?.id === 'acl') return 'Search FR'
+    if (this.workspace?.id === 'invoice-financing') return 'Search Buyer or Period'
+    return 'Search financing'
+  }
+
   get dueCounts(): { overdue: number; upcoming: number; total: number } {
     return this.workspace ? paymentAttentionCounts(this.workspace) : { overdue: 0, upcoming: 0, total: 0 }
   }
@@ -207,6 +213,23 @@ export class ContextualHomeComponent implements OnDestroy {
         block: 'start',
       })
     })
+  }
+
+  canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
+    return this.workspace?.id === 'invoice-financing'
+      && (period.availableToWithdraw ?? 0) > 0
+      && (period.statusKey === 'live' || period.statusKey === 'requested')
+  }
+
+  periodRequestLabel(period: CustomerFinancingPeriod): string {
+    return period.amountFinanced > 0 || period.statusKey === 'requested' ? 'Request more' : 'Request funds'
+  }
+
+  requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
+    event?.stopPropagation()
+    if (!this.canRequestFromPeriod(period)) return
+    this.toast = `${this.periodRequestLabel(period)} from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
+    this.cdr.markForCheck()
   }
 
   openPeriod(period: CustomerFinancingPeriod): void {
