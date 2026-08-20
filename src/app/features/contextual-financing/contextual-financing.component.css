@@ -31,239 +31,274 @@
 }
 
 .contextual-financing__hero > div > p:not(.page-eyebrow) {
-  max-width: 720px;
+  max-width: 760px;
   color: var(--av-color-text-muted, #66788a);
   font-size: 13px;
 }
 
-.contextual-overview-grid,
-.contextual-relationship-grid {
+.relationship-section {
+  gap: 16px;
+}
+
+.relationship-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
-.contextual-overview-card {
+.relationship-card {
   min-width: 0;
-}
-
-.contextual-step-list {
   display: grid;
-  gap: 9px;
-  margin: 0;
-  padding-left: 20px;
-  color: var(--av-color-text, #25384a);
-  font-size: 13px;
-}
-
-.contextual-decision-banner,
-.contextual-inline-note,
-.contextual-relationship-message {
-  display: grid;
-  gap: 4px;
-  padding: 14px 16px;
-  border: 1px solid var(--av-color-primary-border, #bdeff3);
-  border-radius: 10px;
-  background: var(--av-color-primary-subtle, #eefbfc);
-}
-
-.contextual-decision-banner strong,
-.contextual-inline-note strong,
-.contextual-relationship-message strong {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 13px;
-}
-
-.contextual-decision-banner p,
-.contextual-inline-note span,
-.contextual-relationship-message span {
-  margin: 0;
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
-}
-
-.contextual-relationship-card {
-  display: grid;
+  align-content: start;
   gap: 14px;
   padding: 18px;
+  cursor: pointer;
 }
 
-.contextual-relationship-card > div:first-child {
+.relationship-card:hover,
+.relationship-card:focus-visible {
+  border-color: var(--av-color-primary-border, #bdeff3);
+  box-shadow: 0 4px 14px rgba(16, 24, 40, .08);
+  outline: none;
+}
+
+.relationship-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.relationship-card__head > div {
+  min-width: 0;
   display: grid;
-  gap: 2px;
+  gap: 3px;
 }
 
-.contextual-relationship-card > div:first-child strong {
+.relationship-card__head strong {
   color: var(--av-color-text-heading, #0d343f);
   font-size: 15px;
 }
 
-.contextual-relationship-card > div:first-child span {
+.relationship-card__head span,
+.relationship-card__count,
+.relationship-card__helper {
   color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.contextual-relationship-card dl {
+.relationship-card__count {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--av-color-surface-subtle, #f6f7f9);
+}
+
+.relationship-card__metrics {
   display: grid;
-  gap: 8px;
   margin: 0;
-}
-
-.contextual-relationship-card dl > div {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding-top: 8px;
   border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
 }
 
-.contextual-relationship-card dt,
-.contextual-relationship-card dd {
+.relationship-card__metrics > div {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+
+.relationship-card__metrics dt,
+.relationship-card__metrics dd {
   margin: 0;
   font-size: 12px;
 }
 
-.contextual-relationship-card dt {
+.relationship-card__metrics dt {
   color: var(--av-color-text-muted, #66788a);
 }
 
-.contextual-relationship-card dd {
+.relationship-card__metrics dd {
   color: var(--av-color-text-heading, #0d343f);
   font-weight: 700;
   text-align: right;
 }
 
-.contextual-table {
-  min-width: 820px;
+.relationship-card__helper {
+  min-height: 34px;
+  margin: 0;
+  line-height: 1.5;
 }
 
-.contextual-period-table {
-  min-width: 1040px;
+.relationship-card__view {
+  color: var(--av-color-action, #16b3c4);
+  font-size: 12px;
+  font-weight: 700;
 }
 
-.contextual-period-cards {
-  display: none;
+.relationship-modal-backdrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
 }
 
-.contextual-period-available {
+.relationship-modal {
+  width: min(100%, 720px);
+  max-height: min(88dvh, 880px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0;
+  border-radius: 14px;
+}
+
+.relationship-modal__head {
+  flex: 0 0 auto;
+}
+
+.relationship-modal__head > div {
+  min-width: 0;
   display: grid;
   gap: 4px;
-  padding: 14px;
-  border: 1px solid var(--av-color-primary-border, #bdeff3);
-  border-radius: 10px;
-  background: var(--av-color-primary-subtle, #eefbfc);
 }
 
-.contextual-period-available small {
+.relationship-modal__head p,
+.relationship-modal__head h2 {
+  margin: 0;
+}
+
+.relationship-modal__body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.relationship-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
+}
+
+.relationship-detail-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px;
+  border-right: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+
+.relationship-detail-grid > div:nth-child(2n) {
+  border-right: 0;
+}
+
+.relationship-detail-grid dt,
+.relationship-detail-grid dd {
+  margin: 0;
+}
+
+.relationship-detail-grid dt {
   color: var(--av-color-text-muted, #66788a);
   font-size: 11px;
 }
 
-.contextual-period-available strong {
+.relationship-detail-grid dd {
   color: var(--av-color-text-heading, #0d343f);
-  font-size: 22px;
+  font-size: 14px;
+  font-weight: 700;
 }
 
-.contextual-flow-modal {
-  width: min(100%, 560px);
-}
-
-.contextual-flow-intro {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.contextual-flow-intro strong {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 15px;
-}
-
-.contextual-flow-intro p {
-  margin: 4px 0 0;
+.relationship-detail-note {
+  display: grid;
+  gap: 3px;
+  padding: 13px 15px;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
+  background: var(--av-color-surface-subtle, #f6f7f9);
   color: var(--av-color-text-muted, #66788a);
   font-size: 12px;
+  line-height: 1.55;
 }
 
-.contextual-change-link {
+.relationship-detail-note strong {
+  color: var(--av-color-text-heading, #0d343f);
+}
+
+.relationship-periods {
+  display: grid;
+  gap: 10px;
+}
+
+.relationship-periods__heading > div {
+  display: grid;
+  gap: 4px;
+}
+
+.relationship-periods__heading p,
+.relationship-periods__heading h3 {
+  margin: 0;
+}
+
+.relationship-periods__heading h3 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 16px;
+}
+
+.relationship-period-row {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.relationship-period-row__main {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0;
   border: 0;
   background: transparent;
-  color: var(--av-color-action, #16b3c4);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.contextual-choice-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.contextual-choice-grid button {
-  min-height: 150px;
-  display: grid;
-  align-content: start;
-  gap: 7px;
-  padding: 16px;
-  border: 1px solid var(--av-color-surface-border, #dfe4e8);
-  border-radius: 10px;
-  background: var(--av-color-surface, #fff);
   color: inherit;
   font: inherit;
   text-align: left;
   cursor: pointer;
 }
 
-.contextual-choice-grid button:hover,
-.contextual-choice-grid button:focus-visible {
-  border-color: var(--av-color-action, #16b3c4);
-  background: var(--av-color-primary-subtle, #eefbfc);
-}
-
-.contextual-choice-grid strong {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 14px;
-}
-
-.contextual-choice-grid span {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
-}
-
-.contextual-flow-section {
+.relationship-period-row__main > div {
+  min-width: 0;
   display: grid;
-  gap: 10px;
-  padding: 16px;
-  border: 1px solid var(--av-color-surface-border, #dfe4e8);
-  border-radius: 10px;
-  background: #fff;
+  gap: 3px;
 }
 
-.contextual-flow-section h3,
-.contextual-flow-section p,
-.contextual-flow-section ul {
-  margin: 0;
-}
-
-.contextual-flow-section h3 {
+.relationship-period-row__main strong {
   color: var(--av-color-text-heading, #0d343f);
-  font-size: 15px;
+  font-size: 13px;
 }
 
-.contextual-flow-section p,
-.contextual-flow-section li {
+.relationship-period-row__main span:not(.baseline-status) {
   color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
+  font-size: 11px;
 }
 
-.contextual-flow-section ul {
-  display: grid;
-  gap: 6px;
-  padding-left: 20px;
+.relationship-period-row__action {
+  width: fit-content;
+  justify-self: start;
+}
+
+@media (max-width: 1023px) {
+  .relationship-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 767px) {
@@ -280,25 +315,31 @@
     font-size: 26px;
   }
 
-  .contextual-financing__hero > .baseline-button {
-    width: 100%;
-  }
-
-  .contextual-overview-grid,
-  .contextual-relationship-grid,
-  .contextual-choice-grid {
+  .relationship-grid {
     grid-template-columns: 1fr;
   }
 
-  .contextual-period-cards {
-    display: grid;
+  .relationship-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
   }
 
-  .contextual-flow-modal {
+  .relationship-modal {
     width: 100%;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
   }
 
-  .contextual-choice-grid button {
-    min-height: 0;
+  .relationship-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .relationship-detail-grid > div {
+    border-right: 0;
+  }
+
+  .relationship-period-row__main {
+    align-items: flex-start;
   }
 }
