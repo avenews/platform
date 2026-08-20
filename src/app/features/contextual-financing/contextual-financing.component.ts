@@ -66,6 +66,14 @@ export class ContextualFinancingComponent implements OnDestroy {
     return experienceById(id) ?? experienceById('acl')!
   }
 
+  relationshipAvailabilityLabel(relationship: CustomerRelationship): string {
+    return relationship.available > 0 ? 'Available' : 'Unavailable'
+  }
+
+  relationshipAvailabilityTone(relationship: CustomerRelationship): string {
+    return relationship.available > 0 ? 'status-success' : 'status-neutral'
+  }
+
   openRelationship(relationship: CustomerRelationship): void {
     this.selectedRelationship = relationship
     this.selectedPeriod = null
@@ -96,7 +104,7 @@ export class ContextualFinancingComponent implements OnDestroy {
 
   startFundsRequest(relationship: CustomerRelationship, event?: Event): void {
     event?.stopPropagation()
-    if (!relationship.fundsRequestEnabled) return
+    if (!relationship.fundsRequestEnabled || relationship.available <= 0) return
 
     if (relationship.fundsRequestUrl) {
       const opened = window.open(relationship.fundsRequestUrl, '_blank', 'noopener,noreferrer')
