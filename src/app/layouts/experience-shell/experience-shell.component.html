@@ -135,18 +135,16 @@
       <div class="experience-context-menu__label">Your products</div>
       @for (experience of availableExperiences; track experience.id) {
         @if (experience.kind === 'customer') {
-          <button type="button" role="menuitem" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
+          <button type="button" role="menuitem" class="experience-context-menu__product" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
             <strong>{{ displayProductName(experience) }}</strong>
-            <span>{{ experience.businessName }}</span>
           </button>
         }
       }
       <div class="experience-context-menu__label">Partner workspace</div>
       @for (experience of availableExperiences; track experience.id) {
         @if (experience.kind === 'partner') {
-          <button type="button" role="menuitem" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
+          <button type="button" role="menuitem" class="experience-context-menu__product" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
             <strong>{{ displayProductName(experience) }}</strong>
-            <span>{{ experience.businessName }}</span>
           </button>
         }
       }
