@@ -53,19 +53,23 @@ const MPESA_DETAILS = [
             <div class="customer-period-modal__summary">
               <span class="baseline-financing-cell">
                 <strong>{{ period.relationshipName }}</strong>
-                <span>{{ period.relationshipType }}</span>
+                @if (productId !== 'acl') {
+                  <span>{{ customerRelationshipType }}</span>
+                }
               </span>
               <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
             </div>
 
             <dl class="customer-period-details">
-              <div><dt>Disbursement Date</dt><dd>{{ formatDate(period.disbursementDate) }}</dd></div>
+              <div title="The date Avenews disbursed the approved financing."><dt>Disbursement Date</dt><dd>{{ period.disbursementDate ? formatDate(period.disbursementDate) : 'Pending' }}</dd></div>
               <div><dt>{{ dueDateLabel }}</dt><dd>{{ formatDate(period.repaymentDueDate) }}</dd></div>
               <div><dt>Amount Financed</dt><dd>{{ formatKes(period.amountFinanced) }}</dd></div>
               <div><dt>{{ totalRepaidLabel }}</dt><dd>{{ formatKes(period.totalRepaid) }}</dd></div>
               <div><dt>{{ outstandingLabel }}</dt><dd>{{ formatKes(period.outstandingBalance) }}</dd></div>
-              <div><dt>{{ settlementModeLabel }}</dt><dd>{{ settlementModeValue }}</dd></div>
-              @if (period.invoiceReference) {
+              @if (period.settlementMode === 'buyer-payment') {
+                <div><dt>Settlement</dt><dd>Buyer payment</dd></div>
+              }
+              @if (period.invoiceReference && productId !== 'abf') {
                 <div><dt>Invoice</dt><dd>{{ period.invoiceReference }}</dd></div>
               }
               @if (period.invoiceType) {
@@ -82,14 +86,18 @@ const MPESA_DETAILS = [
               }
             </dl>
 
-            @if (period.note) {
-              <div class="customer-period-note">{{ period.note }}</div>
+            @if (canRequestFunds) {
+              <button
+                type="button"
+                class="baseline-button baseline-button--primary baseline-button--block customer-period-request"
+                (click)="requestFunds.emit(period)"
+              >Request funds</button>
             }
 
             <section class="customer-instalments" aria-label="Repayment schedule">
               <div class="customer-instalments__heading">
                 <div>
-                  <p class="page-eyebrow">Repayment schedule</p>
+                  <p class="page-eyebrow">{{ period.settlementMode === 'buyer-payment' ? 'Settlement' : 'Repayment schedule' }}</p>
                   <h3>{{ period.instalments.length ? 'Instalments' : singleRepaymentHeading }}</h3>
                 </div>
               </div>
@@ -156,14 +164,13 @@ const MPESA_DETAILS = [
 
             @if (period.settlementMode === 'buyer-payment') {
               <section class="customer-settlement-card">
-                <div><span>Repayment source</span><strong>Buyer payment</strong></div>
-                <div><span>Payment destination</span><strong>Client Clearing Account (Managed by Avenews)</strong></div>
                 <div><span>Buyer</span><strong>{{ period.relationshipName }}</strong></div>
+                <div><span>Payment destination</span><strong>Client Clearing Account managed by Avenews</strong></div>
                 <div><span>Dynamic Period</span><strong>{{ period.reference }}</strong></div>
               </section>
 
               <div class="customer-period-note">
-                The Buyer payment is allocated to this Dynamic Period. Avenews retains the applicable outstanding principal, markup and approved adjustments, then settles any remaining proceeds according to the financing relationship.
+                The Buyer payment is applied to this Dynamic Period. Avenews settles the financing and transfers any remaining proceeds according to your financing arrangement.
               </div>
             } @else {
               <div class="customer-payment-methods" role="tablist" aria-label="Repayment method">
@@ -185,10 +192,6 @@ const MPESA_DETAILS = [
                   <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" (click)="copy(clientPhone, 'Account Number')">Copy</button></div>
                 </div>
               }
-
-              <div class="customer-period-note">
-                This is the repayment destination for this financing period. Avenews allocates received funds to the applicable Advance, Instalment, Principal, Markup or other permitted amount.
-              </div>
             }
           </div>
         </section>
@@ -219,21 +222,11 @@ const MPESA_DETAILS = [
       border-radius: 14px;
     }
 
-    .customer-period-modal__head {
-      flex: 0 0 auto;
-    }
-
+    .customer-period-modal__head { flex: 0 0 auto; }
     .customer-period-modal__head > div,
-    .customer-repayment-modal__heading > div {
-      display: grid;
-      gap: 4px;
-      min-width: 0;
-    }
-
+    .customer-repayment-modal__heading > div { display: grid; gap: 4px; min-width: 0; }
     .customer-period-modal__head p,
-    .customer-period-modal__head h2 {
-      margin: 0;
-    }
+    .customer-period-modal__head h2 { margin: 0; }
 
     .customer-period-modal__body {
       min-height: 0;
@@ -274,14 +267,10 @@ const MPESA_DETAILS = [
     .customer-period-details dt { color: var(--av-color-text-muted, #66788a); font-size: 11px; }
     .customer-period-details dd { color: var(--av-color-text-heading, #0d343f); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
 
-    .customer-period-note {
-      padding: 13px 15px;
-      border: 1px solid var(--av-color-surface-border, #e1e7eb);
-      border-radius: 10px;
-      background: var(--av-color-surface-subtle, #f6f7f9);
-      color: var(--av-color-text-muted, #66788a);
-      font-size: 12px;
-      line-height: 1.55;
+    .customer-period-request {
+      border-color: var(--av-color-success, #16865b) !important;
+      background: var(--av-color-success, #16865b) !important;
+      color: #fff !important;
     }
 
     .customer-instalments,
@@ -323,12 +312,7 @@ const MPESA_DETAILS = [
     .customer-single-repayment small { color: var(--av-color-text-muted, #66788a); font-size: 11px; }
     .customer-single-repayment strong { color: var(--av-color-text-heading, #0d343f); font-size: 20px; }
 
-    .customer-repayment-modal__heading {
-      min-width: 0;
-      display: grid;
-      gap: 7px;
-    }
-
+    .customer-repayment-modal__heading { min-width: 0; display: grid; gap: 7px; }
     .customer-modal-back {
       width: fit-content;
       display: inline-flex;
@@ -356,12 +340,21 @@ const MPESA_DETAILS = [
     .customer-repayment-summary small { color: var(--av-color-text-muted, #66788a); font-size: 11px; }
     .customer-repayment-summary strong { color: var(--av-color-text-heading, #0d343f); font-size: 24px; }
 
+    .customer-period-note,
     .customer-settlement-card,
     .customer-payment-details {
       overflow: hidden;
       border: 1px solid var(--av-color-surface-border, #e1e7eb);
       border-radius: 10px;
       background: #fff;
+    }
+
+    .customer-period-note {
+      padding: 13px 15px;
+      background: var(--av-color-surface-subtle, #f6f7f9);
+      color: var(--av-color-text-muted, #66788a);
+      font-size: 12px;
+      line-height: 1.55;
     }
 
     .customer-settlement-card > div,
@@ -441,9 +434,11 @@ const MPESA_DETAILS = [
 })
 export class CustomerFinancingPeriodModalComponent implements OnChanges {
   @Input() period: CustomerFinancingPeriod | null = null
+  @Input() productId = ''
   @Input() dueDateLabel = 'Repayment Due Date'
   @Input() totalRepaidLabel = 'Total Repaid'
   @Input() outstandingLabel = 'Outstanding Balance'
+  @Output() readonly requestFunds = new EventEmitter<CustomerFinancingPeriod>()
   @Output() readonly close = new EventEmitter<void>()
 
   repaymentOpen = false
@@ -468,12 +463,22 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     return this.period?.settlementMode === 'buyer-payment' ? 'Dynamic Period details' : 'Financing period details'
   }
 
-  get settlementModeLabel(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Settlement source' : 'Repayment source'
+  get customerRelationshipType(): string {
+    const type = this.period?.relationshipType ?? ''
+    if (type.includes('Supplier')) return 'Supplier'
+    if (type.includes('Buyer')) return 'Buyer'
+    return type
   }
 
-  get settlementModeValue(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Buyer payment' : 'Client repayment'
+  get canRequestFunds(): boolean {
+    if (this.productId !== 'invoice-financing' || !this.period) return false
+    if ((this.period.availableToWithdraw ?? 0) <= 0) return false
+    if (this.period.statusKey !== 'live' && this.period.statusKey !== 'requested') return false
+    const dueDate = new Date(`${this.period.repaymentDueDate}T00:00:00`)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const daysToDue = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
+    return daysToDue >= 7 && daysToDue <= 60
   }
 
   get singleRepaymentHeading(): string {
