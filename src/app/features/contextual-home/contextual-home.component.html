@@ -221,24 +221,46 @@
       }
     </section>
 
-    <section class="baseline-section">
+    <section class="baseline-section partner-home-activity" aria-labelledby="partner-activity-title">
       <div class="baseline-section-heading">
-        <div><p class="page-eyebrow">Current activity</p><h2>Items requiring attention</h2></div>
+        <div><h2 id="partner-activity-title">Partner activity</h2></div>
       </div>
       <div class="baseline-table-wrap">
         <table class="baseline-table contextual-home__table">
-          <thead><tr><th>Activity</th><th>Result</th><th>Status</th><th>Action</th></tr></thead>
+          <thead>
+            <tr>
+              <th title="The Partner Buyer task or activity that may need your attention.">Activity</th>
+              <th title="The key amount or result for this activity.">Result</th>
+              <th title="The current status of this activity.">Status</th>
+              <th title="Open the relevant Partner Buyer workflow.">Action</th>
+            </tr>
+          </thead>
           <tbody>
             @for (record of experience.records; track record.title + record.subtitle) {
               <tr>
                 <td><span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span></td>
                 <td><span class="baseline-financing-cell"><span>{{ record.amountLabel }}</span><strong>{{ record.amount }}</strong></span></td>
                 <td><span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span></td>
-                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction(record.actionKind)">{{ record.actionLabel }}</button></td>
+                <td><button type="button" class="baseline-button baseline-button--secondary" [attr.title]="record.actionLabel" (click)="takePartnerAction(record.actionKind)">{{ record.actionLabel }}</button></td>
               </tr>
             }
           </tbody>
         </table>
+      </div>
+
+      <div class="baseline-cards contextual-partner-home-cards">
+        @for (record of experience.records; track record.title + record.subtitle) {
+          <article class="baseline-record-card contextual-partner-home-card">
+            <div class="baseline-record-card__head">
+              <span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span>
+              <span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span>
+            </div>
+            <div class="baseline-metrics">
+              <span class="baseline-metric" title="The key amount or result for this activity."><small>{{ record.amountLabel }}</small><strong>{{ record.amount }}</strong></span>
+            </div>
+            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" [attr.title]="record.actionLabel" (click)="takePartnerAction(record.actionKind)">{{ record.actionLabel }}</button>
+          </article>
+        }
       </div>
     </section>
   }
