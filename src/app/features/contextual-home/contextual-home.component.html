@@ -19,7 +19,7 @@
       <article class="contextual-metric baseline-card">
         <span>{{ product.availableMetricLabel }}</span>
         <strong>{{ formatKes(product.availableMetricValue) }}</strong>
-        <small>{{ product.availableMetricHelper }}</small>
+        <small>{{ product.id === 'invoice-financing' ? 'Across eligible periods' : product.availableMetricHelper }}</small>
       </article>
 
       <article class="contextual-metric baseline-card">
@@ -93,10 +93,12 @@
                 (keydown.space)="openPeriod(period); $event.preventDefault()"
               >
                 <td>
-                  <span class="baseline-financing-cell">
-                    <strong>{{ period.reference }}</strong>
-                    @if (product.id !== 'acl') {
-                      <span>{{ period.relationshipName }}</span>
+                  <span class="baseline-financing-cell customer-reference-cell">
+                    @if (product.id === 'acl') {
+                      <strong>{{ period.reference }}</strong>
+                    } @else {
+                      <strong>{{ period.relationshipName }}</strong>
+                      <span>{{ period.reference }}</span>
                     }
                   </span>
                 </td>
@@ -150,10 +152,12 @@
               (click)="openPeriod(period)"
             >
               <div class="baseline-record-card__head">
-                <span class="baseline-financing-cell">
-                  <strong>{{ period.reference }}</strong>
-                  @if (product.id !== 'acl') {
-                    <span>{{ period.relationshipName }}</span>
+                <span class="baseline-financing-cell customer-reference-cell">
+                  @if (product.id === 'acl') {
+                    <strong>{{ period.reference }}</strong>
+                  } @else {
+                    <strong>{{ period.relationshipName }}</strong>
+                    <span>{{ period.reference }}</span>
                   }
                 </span>
                 <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
@@ -198,17 +202,23 @@
       }
     </section>
   } @else {
-    <section class="contextual-home__hero">
+    <section class="contextual-home__hero partner-home-hero">
       <div>
         <h1>{{ experience.homeHeading }}</h1>
-        <p>{{ experience.homeIntro }}</p>
+        <p>Manage Supplier periods, payments and invoice uploads from one Partner Buyer workspace.</p>
       </div>
-      <button
-        type="button"
-        class="baseline-button baseline-button--primary contextual-home__primary"
-        [attr.data-action-kind]="experience.primaryActionKind"
-        (click)="takePartnerAction(experience.primaryActionKind)"
-      >{{ experience.primaryActionLabel }}</button>
+      <div class="partner-home-hero__actions">
+        <button
+          type="button"
+          class="baseline-button baseline-button--primary contextual-home__primary"
+          (click)="takePartnerAction('view-suppliers')"
+        >View suppliers</button>
+        <button
+          type="button"
+          class="baseline-button baseline-button--secondary contextual-home__primary"
+          (click)="takePartnerAction('upload-invoices')"
+        >Upload invoices</button>
+      </div>
     </section>
 
     <section class="contextual-metrics" aria-label="Partner summary">
@@ -221,46 +231,41 @@
       }
     </section>
 
-    <section class="baseline-section partner-home-activity" aria-labelledby="partner-activity-title">
+    <section class="baseline-section partner-home-workspaces" aria-labelledby="partner-workspaces-title">
       <div class="baseline-section-heading">
-        <div><h2 id="partner-activity-title">Partner activity</h2></div>
-      </div>
-      <div class="baseline-table-wrap">
-        <table class="baseline-table contextual-home__table">
-          <thead>
-            <tr>
-              <th title="The Partner Buyer task or activity that may need your attention.">Activity</th>
-              <th title="The key amount or result for this activity.">Result</th>
-              <th title="The current status of this activity.">Status</th>
-              <th title="Open the relevant Partner Buyer workflow.">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (record of experience.records; track record.title + record.subtitle) {
-              <tr>
-                <td><span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span></td>
-                <td><span class="baseline-financing-cell"><span>{{ record.amountLabel }}</span><strong>{{ record.amount }}</strong></span></td>
-                <td><span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span></td>
-                <td><button type="button" class="baseline-button baseline-button--secondary" [attr.title]="record.actionLabel" (click)="takePartnerAction(record.actionKind)">{{ record.actionLabel }}</button></td>
-              </tr>
-            }
-          </tbody>
-        </table>
+        <div>
+          <h2 id="partner-workspaces-title">Manage Supplier financing</h2>
+          <p>Start with a Supplier, then move into the periods and payments connected to that relationship.</p>
+        </div>
       </div>
 
-      <div class="baseline-cards contextual-partner-home-cards">
-        @for (record of experience.records; track record.title + record.subtitle) {
-          <article class="baseline-record-card contextual-partner-home-card">
-            <div class="baseline-record-card__head">
-              <span class="baseline-financing-cell"><strong>{{ record.title }}</strong><span>{{ record.subtitle }}</span></span>
-              <span class="baseline-status" [class]="'baseline-status ' + record.statusTone">{{ record.status }}</span>
-            </div>
-            <div class="baseline-metrics">
-              <span class="baseline-metric" title="The key amount or result for this activity."><small>{{ record.amountLabel }}</small><strong>{{ record.amount }}</strong></span>
-            </div>
-            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" [attr.title]="record.actionLabel" (click)="takePartnerAction(record.actionKind)">{{ record.actionLabel }}</button>
-          </article>
-        }
+      <div class="partner-home-workspace-grid">
+        <article class="baseline-card partner-home-workspace-card">
+          <div>
+            <p class="page-eyebrow">Suppliers</p>
+            <h3>Supplier periods</h3>
+            <p>Find a Supplier, review its periods, and see what needs to be paid.</p>
+          </div>
+          <button type="button" class="baseline-button baseline-button--primary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
+        </article>
+
+        <article class="baseline-card partner-home-workspace-card">
+          <div>
+            <p class="page-eyebrow">Payments</p>
+            <h3>Payments by period</h3>
+            <p>Search upcoming, overdue and completed payments with the Supplier and Period always visible.</p>
+          </div>
+          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View payments</button>
+        </article>
+
+        <article class="baseline-card partner-home-workspace-card">
+          <div>
+            <p class="page-eyebrow">Invoice Uploads</p>
+            <h3>Supplier invoice information</h3>
+            <p>Upload receivables information and review how processing updates Supplier periods.</p>
+          </div>
+          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-invoice-uploads')">View uploads</button>
+        </article>
       </div>
     </section>
   }
