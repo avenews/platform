@@ -1,376 +1,169 @@
-<div class="portal-page contextual-financing" [attr.data-product-context]="experience.id">
-  @switch (experience.id) {
-    @case ('acl') {
-      <section class="contextual-financing__hero">
+@if (workspace; as product) {
+  <div class="portal-page contextual-financing" [attr.data-product-context]="product.id">
+    <section class="contextual-financing__hero">
+      <div>
+        <p class="page-eyebrow">{{ product.relationshipNoun }} workspace</p>
+        <h1>{{ product.relationshipHeading }}</h1>
+        <p>{{ product.relationshipIntro }}</p>
+      </div>
+    </section>
+
+    @if (product.id === 'abf') {
+      <app-prototype-explainer tone="decision" title="ABF Funds Requests are Supplier-scoped">
+        <p>The customer chooses an approved Supplier first. That Supplier card carries the Supplier sub-limit, current financing period and the direct Funds Request entry point. The supplied ABF journey is opened from the selected Supplier so Home never asks the customer to choose an invoice path without Supplier context.</p>
+      </app-prototype-explainer>
+    }
+
+    @if (product.id === 'stf') {
+      <app-prototype-explainer tone="handbook" title="Stockist Financing starts from a Partner Supplier relationship">
+        <p>The Stockist is the Client Buyer. The Partner Supplier supplies the goods, holds the applicable sub-limit context and receives the approved financing disbursement. Financing periods stay grouped under that Partner Supplier.</p>
+      </app-prototype-explainer>
+    }
+
+    @if (product.id === 'invoice-financing') {
+      <app-prototype-explainer tone="handbook" title="Invoice Financing is organised by Buyer relationship and Dynamic Period">
+        <p>A Dynamic Period groups the Client Supplier, one Buyer and one invoice Due Date. The Buyer relationship page therefore acts as the shortest route to the periods, invoice responsibility and settlement context that belong to that Buyer.</p>
+      </app-prototype-explainer>
+    }
+
+    @if (product.id === 'infx') {
+      <app-prototype-explainer tone="handbook" title="Invoice Financing Express starts from an approved Buyer">
+        <p>The Client Supplier selects an approved Buyer, then one invoice is financed in one Funds Request. Each approved request creates its own Financing Period and the Client Supplier manually repays Avenews.</p>
+      </app-prototype-explainer>
+    }
+
+    <section class="baseline-section relationship-section">
+      <div class="baseline-section-heading">
         <div>
-          <p class="page-eyebrow">Client Buyer</p>
-          <h1>Agri Credit Line</h1>
-          <p>Use an approved Credit Facility for eligible inventory and business purchases.</p>
+          <h2>{{ product.relationshipHeading }}</h2>
+          <p>Open a {{ product.relationshipNoun }} to see its limit, availability and associated financing periods.</p>
         </div>
-        <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('acl')">Start Funds Request</button>
-      </section>
+      </div>
 
-      <app-prototype-explainer tone="handbook" title="An approved Credit Limit does not create financing by itself">
-        <p>The Client Buyer activates ACL financing by submitting a Funds Request against an eligible commercial transaction. Available Credit, transaction eligibility, sub-limits, documentation, and Credit or Risk conditions still apply.</p>
-      </app-prototype-explainer>
+      <div class="relationship-grid">
+        @for (relationship of product.relationships; track relationship.id) {
+          <article
+            class="baseline-card relationship-card"
+            tabindex="0"
+            [attr.aria-label]="'View ' + relationship.name + ' details'"
+            (click)="openRelationship(relationship)"
+            (keydown.enter)="openRelationship(relationship)"
+            (keydown.space)="openRelationship(relationship); $event.preventDefault()"
+          >
+            <div class="relationship-card__head">
+              <div>
+                <strong>{{ relationship.name }}</strong>
+                <span>{{ relationship.relationshipType }}</span>
+              </div>
+              <span class="relationship-card__count">{{ relationship.periodIds.length }} {{ relationship.periodIds.length === 1 ? 'period' : 'periods' }}</span>
+            </div>
 
-      <app-prototype-explainer tone="action" title="Transaction documents belong inside the ACL Funds Request">
-        <p>The amount, Instalment option, supporting invoice or other transaction evidence, and approved disbursement recipient form one request. This avoids creating an invoice record that is disconnected from the financing instruction.</p>
-      </app-prototype-explainer>
-
-      <section class="contextual-overview-grid">
-        <article class="baseline-card contextual-overview-card">
-          <div class="baseline-card__header"><h2>Credit Facility</h2><p>Approved credit facility summary</p></div>
-          <div class="baseline-card__body">
-            <dl class="baseline-data-list">
-              <div><dt>Credit Limit</dt><dd>KES 2,500,000</dd></div>
-              <div><dt>Outstanding Principal</dt><dd>KES 1,200,000</dd></div>
-              <div><dt>Available Credit</dt><dd>KES 1,300,000</dd></div>
-              <div><dt>Maximum approved Instalments</dt><dd>2</dd></div>
+            <dl class="relationship-card__metrics">
+              <div><dt>{{ relationship.limitLabel }}</dt><dd>{{ formatKes(relationship.limit) }}</dd></div>
+              <div><dt>Used</dt><dd>{{ formatKes(relationship.used) }}</dd></div>
+              <div><dt>Available</dt><dd><strong>{{ formatKes(relationship.available) }}</strong></dd></div>
             </dl>
-          </div>
-        </article>
 
-        <article class="baseline-card contextual-overview-card" data-upload-placement="inside-funds-request">
-          <div class="baseline-card__header"><h2>Funds Request contents</h2><p>Documentation stays inside the request</p></div>
-          <div class="baseline-card__body">
-            <ol class="contextual-step-list">
-              <li>Select the financing amount.</li>
-              <li>Select an available Instalment option.</li>
-              <li>Upload the approved transaction evidence required for this request.</li>
-              <li>Select or confirm the approved disbursement recipient.</li>
-            </ol>
-          </div>
-        </article>
-      </section>
+            <p class="relationship-card__helper">{{ relationship.helper }}</p>
 
-      <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Financing activity</p><h2>Funds Requests and Advances</h2></div></div>
-        <div class="baseline-table-wrap">
-          <table class="baseline-table contextual-table">
-            <thead><tr><th>Reference</th><th>Purpose</th><th>Principal</th><th>Repayment schedule</th><th>Status</th></tr></thead>
-            <tbody>
-              <tr><td><strong>FR-2026-0318</strong></td><td>Approved purchases</td><td>KES 1,400,000</td><td>2 Instalments</td><td><span class="baseline-status status-info">Live</span></td></tr>
-              <tr><td><strong>FR-2026-0510</strong></td><td>Inventory purchase</td><td>KES 600,000</td><td>1 Instalment</td><td><span class="baseline-status status-warning">Submitted</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="baseline-cards">
-          <article class="baseline-record-card"><div class="baseline-record-card__head"><strong>FR-2026-0318</strong><span class="baseline-status status-info">Live</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Principal</small><strong>KES 1,400,000</strong></span><span class="baseline-metric"><small>Schedule</small><strong>2 Instalments</strong></span></div></article>
-          <article class="baseline-record-card"><div class="baseline-record-card__head"><strong>FR-2026-0510</strong><span class="baseline-status status-warning">Submitted</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Principal</small><strong>KES 600,000</strong></span><span class="baseline-metric"><small>Schedule</small><strong>1 Instalment</strong></span></div></article>
-        </div>
-      </section>
-    }
-
-    @case ('abf') {
-      <section class="contextual-financing__hero">
-        <div>
-          <p class="page-eyebrow">Client Buyer</p>
-          <h1>Agri Buyer Financing</h1>
-          <p>Finance an eligible Supplier invoice or receive reimbursement for an eligible invoice already paid.</p>
-        </div>
-        <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('abf')">Start Funds Request</button>
-      </section>
-
-      <app-prototype-explainer tone="handbook" title="ABF has two materially different invoice paths">
-        <ul>
-          <li><strong>Fully Paid Invoice:</strong> the Client Buyer already paid the Supplier and requests reimbursement.</li>
-          <li><strong>Unpaid Invoice:</strong> Avenews pays the approved amount to the Supplier.</li>
-        </ul>
-      </app-prototype-explainer>
-
-      <app-prototype-explainer tone="action" title="Choose Fully Paid or Unpaid before asking for documents">
-        <p>The choice changes the required evidence and the disbursement recipient. Keeping the invoice upload inside the request prevents the portal from asking for irrelevant documents.</p>
-      </app-prototype-explainer>
-
-      <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Supplier sub-limits</p><h2>Available financing by Supplier</h2></div></div>
-        <div class="contextual-relationship-grid">
-          <article class="baseline-card contextual-relationship-card">
-            <div><strong>Quick Mart Stores</strong><span>Counterparty Supplier</span></div>
-            <dl><div><dt>Sub-limit</dt><dd>KES 900,000</dd></div><div><dt>Available</dt><dd>KES 520,000</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openFundsRequest('abf')">Start Funds Request</button>
-          </article>
-          <article class="baseline-card contextual-relationship-card">
-            <div><strong>Naivas Fresh Produce</strong><span>Counterparty Supplier</span></div>
-            <dl><div><dt>Sub-limit</dt><dd>KES 1,500,000</dd></div><div><dt>Available</dt><dd>KES 0</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" disabled>Sub-limit fully used</button>
-          </article>
-        </div>
-      </section>
-
-      <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Financing activity</p><h2>Funds Requests and Advances</h2></div></div>
-        <div class="baseline-table-wrap">
-          <table class="baseline-table contextual-table">
-            <thead><tr><th>Supplier</th><th>Invoice type</th><th>Principal</th><th>Disbursement recipient</th><th>Status</th></tr></thead>
-            <tbody>
-              <tr><td><strong>Quick Mart Stores</strong></td><td>Unpaid Invoice</td><td>KES 380,000</td><td>Supplier</td><td><span class="baseline-status status-info">Live</span></td></tr>
-              <tr><td><strong>Naivas Fresh Produce</strong></td><td>Fully Paid Invoice</td><td>KES 459,000</td><td>Client reimbursement</td><td><span class="baseline-status status-success">Repaid</span></td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="baseline-cards">
-          <article class="baseline-record-card"><div class="baseline-record-card__head"><strong>Quick Mart Stores</strong><span class="baseline-status status-info">Live</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Invoice type</small><strong>Unpaid Invoice</strong></span><span class="baseline-metric"><small>Principal</small><strong>KES 380,000</strong></span></div></article>
-          <article class="baseline-record-card"><div class="baseline-record-card__head"><strong>Naivas Fresh Produce</strong><span class="baseline-status status-success">Repaid</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Invoice type</small><strong>Fully Paid Invoice</strong></span><span class="baseline-metric"><small>Principal</small><strong>KES 459,000</strong></span></div></article>
-        </div>
-      </section>
-    }
-
-    @case ('stf') {
-      <section class="contextual-financing__hero">
-        <div>
-          <p class="page-eyebrow">Client Buyer - Stockist</p>
-          <h1>Stockist Financing</h1>
-          <p>Select an approved Partner Supplier before starting the Funds Request.</p>
-        </div>
-      </section>
-
-      <app-prototype-explainer tone="role" title="The Partner Supplier receives the approved disbursement">
-        <p>The Stockist is the Client Buyer. The approved Supplier participates as a <strong>Partner Supplier</strong>, provides goods to the Stockist, and receives the approved financing amount directly from Avenews.</p>
-      </app-prototype-explainer>
-
-      <app-prototype-explainer tone="action" title="STF invoice and delivery evidence belong inside the Funds Request">
-        <p>The Partner Supplier invoice, delivery date, online delivery confirmation, amount, and Instalment choice are parts of one financing instruction. There is no separate top-level invoice uploader in this customer context.</p>
-      </app-prototype-explainer>
-
-      <section class="baseline-section" data-upload-placement="inside-funds-request">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Partner Supplier relationships</p><h2>Available financing</h2></div></div>
-        <div class="contextual-relationship-grid">
-          <article class="baseline-card contextual-relationship-card">
-            <div><strong>GreenHarvest Distributors</strong><span>Partner Supplier</span></div>
-            <dl><div><dt>Supplier sub-limit</dt><dd>KES 900,000</dd></div><div><dt>Available</dt><dd>KES 800,000</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="funds-request" (click)="openFundsRequest('stf')">Start Funds Request</button>
-          </article>
-          <article class="baseline-card contextual-relationship-card">
-            <div><strong>Meru Agrovets Ltd</strong><span>Partner Supplier</span></div>
-            <dl><div><dt>Supplier sub-limit</dt><dd>KES 450,000</dd></div><div><dt>Available</dt><dd>KES 450,000</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="funds-request" (click)="openFundsRequest('stf')">Start Funds Request</button>
-          </article>
-        </div>
-      </section>
-    }
-
-    @case ('invoice-financing') {
-      <section class="contextual-financing__hero">
-        <div>
-          <p class="page-eyebrow">Client Supplier</p>
-          <h1>Invoice Financing</h1>
-          <p>Buyer relationships create Dynamic Periods. Funds Requests are submitted from the relevant Dynamic Period.</p>
-        </div>
-      </section>
-
-      <app-prototype-explainer tone="terminology" title="Invoice Financing is the Product-approved current name for former ASF and ASFO structures">
-        <p>The Partner Buyer and Counterparty Buyer variants are <strong>Financing Relationship models under one product</strong>. They are not separate products.</p>
-      </app-prototype-explainer>
-
-      <app-prototype-explainer tone="handbook" title="The Dynamic Period is the Client Supplier's financing object">
-        <p>One Dynamic Period groups one Client Supplier, one Buyer, and one invoice Due Date. It recalculates when invoices, Funds Requests, disbursements, Buyer payments, settlements, or approved adjustments change the period.</p>
-      </app-prototype-explainer>
-
-      <app-prototype-explainer tone="action" title="Funds Requests belong to the Dynamic Period, not the product or relationship">
-        <p>The requested amount cannot exceed that period's Available to Withdraw. Multiple Funds Requests may be submitted while the request window is open and sufficient availability remains.</p>
-      </app-prototype-explainer>
-
-      <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Financing Relationships</p><h2>Buyer relationships</h2></div></div>
-
-        <app-prototype-explainer tone="role" title="Who uploads invoices changes; who borrows does not">
-          <ul>
-            <li><strong>Partner Buyer:</strong> normally uploads the invoices or receivables information.</li>
-            <li><strong>Counterparty Buyer:</strong> normally does not participate; the Client Supplier uploads invoices.</li>
-            <li><strong>Client Supplier:</strong> always submits the Funds Request in both relationship models.</li>
-          </ul>
-        </app-prototype-explainer>
-
-        <div class="contextual-relationship-grid">
-          <article class="baseline-card contextual-relationship-card" data-relationship-model="partner-buyer" data-can-upload-invoices="false">
-            <div><strong>Twiga Foods Ltd</strong><span>Partner Buyer</span></div>
-            <dl><div><dt>Buyer sub-limit</dt><dd>KES 1,500,000</dd></div><div><dt>Available headroom</dt><dd>KES 650,000</dd></div></dl>
-            <div class="contextual-relationship-message"><strong>Invoices are provided by Twiga Foods Ltd.</strong><span>The Client Supplier submits Funds Requests after the invoices form a Dynamic Period.</span></div>
-          </article>
-          <article class="baseline-card contextual-relationship-card" data-relationship-model="counterparty-buyer" data-can-upload-invoices="true">
-            <div><strong>FreshProduce Kenya Ltd</strong><span>Counterparty Buyer</span></div>
-            <dl><div><dt>Buyer sub-limit</dt><dd>KES 2,000,000</dd></div><div><dt>Invoices under verification</dt><dd>2</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" data-action="upload-invoices" (click)="openInvoiceUpload('FreshProduce Kenya Ltd')">Upload invoices</button>
-          </article>
-        </div>
-      </section>
-
-      <section class="baseline-section">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Invoice Financing</p><h2>Dynamic Periods</h2><p>Each period belongs to one Financing Relationship and one invoice Due Date.</p></div></div>
-        <div class="baseline-table-wrap">
-          <table class="baseline-table contextual-period-table">
-            <thead><tr><th>Buyer</th><th>Invoice Due Date</th><th>Eligible Receivables</th><th>Available to Withdraw</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody>
-              <tr data-dynamic-period-id="twiga-2026-09-15">
-                <td><span class="baseline-financing-cell"><strong>Twiga Foods Ltd</strong><span>Partner Buyer - 2 invoices</span></span></td>
-                <td>15 Sep 2026</td><td>KES 1,750,000</td><td><strong>KES 650,000</strong></td><td><span class="baseline-status status-info">Open for requests</span></td>
-                <td><button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" data-action-scope="dynamic-period" (click)="openPeriod('twiga-2026-09-15')">Request funds</button></td>
-              </tr>
-              <tr data-dynamic-period-id="twiga-2026-10-30">
-                <td><span class="baseline-financing-cell"><strong>Twiga Foods Ltd</strong><span>Partner Buyer - 1 invoice</span></span></td>
-                <td>30 Oct 2026</td><td>KES 700,000</td><td><strong>KES 0</strong></td><td><span class="baseline-status status-neutral">Opens on 31 Aug</span></td>
-                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="openPeriod('twiga-2026-10-30')">View Dynamic Period</button></td>
-              </tr>
-              <tr data-dynamic-period-id="fresh-2026-09-05">
-                <td><span class="baseline-financing-cell"><strong>FreshProduce Kenya Ltd</strong><span>Counterparty Buyer - 2 invoices</span></span></td>
-                <td>05 Sep 2026</td><td>KES 0</td><td><strong>KES 0</strong></td><td><span class="baseline-status status-warning">Invoices under verification</span></td>
-                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="openPeriod('fresh-2026-09-05')">View Dynamic Period</button></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="baseline-cards contextual-period-cards">
-          <article class="baseline-record-card" data-dynamic-period-id="twiga-2026-09-15">
-            <div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>Twiga Foods Ltd</strong><span>Partner Buyer - Due 15 Sep 2026</span></span><span class="baseline-status status-info">Open for requests</span></div>
-            <div class="contextual-period-available"><small>Available to Withdraw</small><strong>KES 650,000</strong></div>
-            <div class="baseline-metrics"><span class="baseline-metric"><small>Eligible Receivables</small><strong>KES 1,750,000</strong></span><span class="baseline-metric"><small>Invoices</small><strong>2</strong></span></div>
-            <div class="baseline-card-actions"><button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="funds-request" data-action-scope="dynamic-period" (click)="openPeriod('twiga-2026-09-15')">Request funds</button></div>
-          </article>
-          <article class="baseline-record-card" data-dynamic-period-id="twiga-2026-10-30">
-            <div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>Twiga Foods Ltd</strong><span>Partner Buyer - Due 30 Oct 2026</span></span><span class="baseline-status status-neutral">Opens on 31 Aug</span></div>
-            <div class="contextual-period-available"><small>Available to Withdraw</small><strong>KES 0</strong></div>
-            <div class="baseline-card-actions"><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openPeriod('twiga-2026-10-30')">View Dynamic Period</button></div>
-          </article>
-          <article class="baseline-record-card" data-dynamic-period-id="fresh-2026-09-05">
-            <div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>FreshProduce Kenya Ltd</strong><span>Counterparty Buyer - Due 05 Sep 2026</span></span><span class="baseline-status status-warning">Invoices under verification</span></div>
-            <div class="contextual-period-available"><small>Available to Withdraw</small><strong>KES 0</strong></div>
-            <div class="baseline-card-actions"><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openPeriod('fresh-2026-09-05')">View Dynamic Period</button></div>
-          </article>
-        </div>
-      </section>
-    }
-
-    @case ('infx') {
-      <section class="contextual-financing__hero">
-        <div>
-          <p class="page-eyebrow">Client Supplier</p>
-          <h1>Invoice Financing Express</h1>
-          <p>Finance one approved invoice per Funds Request and manually repay Avenews.</p>
-        </div>
-        <button type="button" class="baseline-button baseline-button--primary" data-action="funds-request" (click)="openFundsRequest('infx')">Start Funds Request</button>
-      </section>
-
-      <app-prototype-explainer tone="handbook" title="INFX uses one invoice per Funds Request">
-        <p>The request identifies an approved Buyer, one invoice, the invoice value and Due Date, POD, and the requested amount. The Financing Period is established at request submission and starts on disbursement.</p>
-      </app-prototype-explainer>
-
-      <app-prototype-explainer tone="action" title="The invoice uploader remains inside the INFX Funds Request">
-        <p>The invoice is the transaction being financed, so a separate invoice-library step would add complexity without creating a reusable Dynamic Period.</p>
-      </app-prototype-explainer>
-
-      <section class="baseline-section" data-upload-placement="inside-funds-request">
-        <div class="baseline-section-heading"><div><p class="page-eyebrow">Approved Buyers</p><h2>Available Buyer sub-limits</h2></div></div>
-        <div class="contextual-relationship-grid">
-          <article class="baseline-card contextual-relationship-card">
-            <div><strong>Kisumu Buyers Co-op</strong><span>Approved Buyer</span></div>
-            <dl><div><dt>Buyer sub-limit</dt><dd>KES 1,200,000</dd></div><div><dt>Available</dt><dd>KES 300,000</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openFundsRequest('infx')">Start Funds Request</button>
-          </article>
-          <article class="baseline-card contextual-relationship-card">
-            <div><strong>Mombasa Buyers Network</strong><span>Approved Buyer</span></div>
-            <dl><div><dt>Buyer sub-limit</dt><dd>KES 600,000</dd></div><div><dt>Available</dt><dd>KES 600,000</dd></div></dl>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openFundsRequest('infx')">Start Funds Request</button>
-          </article>
-        </div>
-      </section>
-    }
-
-    @default {
-      <div class="baseline-empty"><strong>Use the Partner Buyer navigation</strong><p>Invoice Uploads, Obligations, and Suppliers are separate Partner workspace sections.</p></div>
-    }
-  }
-</div>
-
-@if (selectedFlow) {
-  <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="closeFlow()">
-    <section class="baseline-modal baseline-modal--sheet contextual-flow-modal" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head">
-        <h2>
-          @switch (selectedFlow) {
-            @case ('acl') { Start Agri Credit Line Funds Request }
-            @case ('abf') { Start Agri Buyer Financing Funds Request }
-            @case ('stf') { Start Stockist Financing Funds Request }
-            @case ('infx') { Start Invoice Financing Express Funds Request }
-            @case ('invoice-upload') { Upload invoices - {{ uploadRelationship }} }
-          }
-        </h2>
-        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeFlow()">&times;</button>
-      </header>
-
-      <div class="baseline-modal__body">
-        @switch (selectedFlow) {
-          @case ('abf') {
-            @if (!abfInvoiceType) {
-              <app-prototype-explainer tone="action" title="This decision controls the rest of the ABF request">
-                <p>The portal should not ask for all possible ABF documents at once. It first establishes whether the Client Buyer needs reimbursement or Supplier payment.</p>
-              </app-prototype-explainer>
-              <div class="contextual-flow-intro"><strong>What type of invoice are you financing?</strong><p>This determines the documents, client contribution, and disbursement recipient.</p></div>
-              <div class="contextual-choice-grid">
-                <button type="button" (click)="selectAbfInvoiceType('fully-paid')"><strong>Fully Paid Invoice</strong><span>You already paid the Supplier in full. Avenews reimburses the approved amount to you.</span></button>
-                <button type="button" (click)="selectAbfInvoiceType('unpaid')"><strong>Unpaid Invoice</strong><span>The invoice is not fully paid. Avenews pays the approved amount to the Supplier.</span></button>
-              </div>
-            } @else {
-              <div class="contextual-flow-intro"><strong>{{ abfInvoiceType === 'fully-paid' ? 'Fully Paid Invoice' : 'Unpaid Invoice' }}</strong><button type="button" class="contextual-change-link" (click)="abfInvoiceType = ''">Change invoice type</button></div>
-              <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
-                <h3>Documents inside this Funds Request</h3>
-                @if (abfInvoiceType === 'fully-paid') {
-                  <ul><li>Supplier Invoice</li><li>Proof of Payment</li><li>Proof of Delivery</li></ul>
-                  <p>Approved disbursement: reimbursement to the Client Buyer.</p>
-                } @else {
-                  <ul><li>Supplier Invoice</li><li>Proof of Delivery</li><li>Proof of Payment for the client-funded portion when required</li></ul>
-                  <p>Approved disbursement: direct payment to the Supplier.</p>
-                }
-              </div>
-              <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Agri Buyer Financing Funds Request prepared with the selected invoice path.')">Continue Funds Request</button>
+            @if (relationship.fundsRequestLabel) {
+              <button
+                type="button"
+                class="baseline-button baseline-button--primary baseline-button--block"
+                [disabled]="!relationship.fundsRequestEnabled"
+                [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
+                (click)="startFundsRequest(relationship, $event)"
+              >{{ relationship.fundsRequestLabel }}</button>
             }
-          }
 
-          @case ('acl') {
-            <app-prototype-explainer tone="limitation" title="This is not the final ACL application form">
-              <p>The prototype demonstrates the sequence and action placement only. Required fields and documents may vary by the approved transaction and Credit or Risk conditions.</p>
-            </app-prototype-explainer>
-            <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
-              <h3>Funds Request fields</h3>
-              <ul><li>Financing amount</li><li>Available Instalment option</li><li>Approved transaction evidence</li><li>Approved disbursement recipient</li></ul>
-            </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Agri Credit Line Funds Request opened.')">Continue Funds Request</button>
-          }
-
-          @case ('stf') {
-            <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
-              <h3>Funds Request fields</h3>
-              <ul><li>Partner Supplier invoice</li><li>Delivery date</li><li>Online delivery confirmation</li><li>Financing amount</li><li>Available Instalment option</li></ul>
-              <p>Avenews disburses the approved amount directly to the Partner Supplier.</p>
-            </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Stockist Financing Funds Request opened.')">Continue Funds Request</button>
-          }
-
-          @case ('infx') {
-            <div class="contextual-flow-section" data-upload-placement="inside-funds-request">
-              <h3>One invoice per Funds Request</h3>
-              <ul><li>Approved Buyer</li><li>Invoice</li><li>Invoice value</li><li>Invoice Due Date</li><li>Proof of Delivery</li><li>Requested amount</li></ul>
-              <p>The Client Supplier manually repays Avenews at the end of the Financing Period.</p>
-            </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Invoice Financing Express Funds Request opened.')">Continue Funds Request</button>
-          }
-
-          @case ('invoice-upload') {
-            <app-prototype-explainer tone="role" title="This uploader appears because the Client Supplier owns upload responsibility for this relationship">
-              <p>A Counterparty Buyer does not normally participate in uploading invoices. Uploaded invoices remain subject to verification before they become Eligible Receivables.</p>
-            </app-prototype-explainer>
-            <div class="contextual-flow-section">
-              <h3>Counterparty Buyer relationship uploader</h3>
-              <ul><li>Select or upload invoice files</li><li>Enter invoice reference and amount</li><li>Confirm invoice Due Date</li><li>Upload POD where required</li></ul>
-              <p>Accepted invoices are grouped into the matching Dynamic Period.</p>
-            </div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completePrototype('Invoice upload prepared for the Counterparty Buyer relationship.')">Continue upload</button>
-          }
+            <span class="relationship-card__view">View details</span>
+          </article>
         }
       </div>
     </section>
   </div>
+
+  @if (selectedRelationship; as relationship) {
+    <div class="baseline-modal-backdrop relationship-modal-backdrop" role="presentation" (click)="closeRelationship()">
+      <section
+        class="baseline-modal relationship-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="relationship-modal-title"
+        (click)="$event.stopPropagation()"
+      >
+        <header class="baseline-modal__head relationship-modal__head">
+          <div>
+            <p class="page-eyebrow">{{ relationship.relationshipType }}</p>
+            <h2 id="relationship-modal-title">{{ relationship.name }}</h2>
+          </div>
+          <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRelationship()">&times;</button>
+        </header>
+
+        <div class="baseline-modal__body relationship-modal__body">
+          <dl class="relationship-detail-grid">
+            <div><dt>{{ relationship.limitLabel }}</dt><dd>{{ formatKes(relationship.limit) }}</dd></div>
+            <div><dt>Financing used</dt><dd>{{ formatKes(relationship.used) }}</dd></div>
+            <div><dt>Financing available</dt><dd>{{ formatKes(relationship.available) }}</dd></div>
+            <div><dt>Financing periods</dt><dd>{{ relationship.periodIds.length }}</dd></div>
+          </dl>
+
+          <div class="relationship-detail-note">{{ relationship.helper }}</div>
+
+          @if (relationship.invoiceUploadResponsibility) {
+            <div class="relationship-detail-note"><strong>Invoice responsibility</strong><span>{{ relationship.invoiceUploadResponsibility }}</span></div>
+          }
+
+          @if (relationship.fundsRequestLabel) {
+            <button
+              type="button"
+              class="baseline-button baseline-button--primary baseline-button--block"
+              [disabled]="!relationship.fundsRequestEnabled"
+              [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
+              (click)="startFundsRequest(relationship, $event)"
+            >{{ relationship.fundsRequestLabel }} for {{ relationship.name }}</button>
+          }
+
+          <section class="relationship-periods" aria-label="Financing periods">
+            <div class="relationship-periods__heading">
+              <div>
+                <p class="page-eyebrow">Financing</p>
+                <h3>{{ product.id === 'invoice-financing' ? 'Dynamic Periods' : 'Financing periods' }}</h3>
+              </div>
+            </div>
+
+            @for (period of relationshipPeriods(relationship); track period.id) {
+              <article class="relationship-period-row">
+                <button type="button" class="relationship-period-row__main" (click)="openPeriod(period)">
+                  <div>
+                    <strong>{{ period.reference }}</strong>
+                    <span>Due {{ formatDate(period.repaymentDueDate) }} · {{ formatKes(period.outstandingBalance) }} outstanding</span>
+                  </div>
+                  <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
+                </button>
+
+                @if (product.id === 'invoice-financing' && (period.availableToWithdraw ?? 0) > 0 && period.statusKey === 'open') {
+                  <button type="button" class="baseline-button baseline-button--secondary relationship-period-row__action" (click)="requestFundsForPeriod(period, $event)">Request funds</button>
+                }
+              </article>
+            } @empty {
+              <div class="baseline-empty"><strong>No financing periods</strong><p>No current financing periods are associated with this relationship.</p></div>
+            }
+          </section>
+        </div>
+      </section>
+    </div>
+  }
+
+  <app-customer-financing-period-modal
+    [period]="selectedPeriod"
+    [dueDateLabel]="product.dueDateColumnLabel"
+    [totalRepaidLabel]="product.totalRepaidColumnLabel"
+    [outstandingLabel]="product.outstandingColumnLabel"
+    (close)="closePeriod()"
+  />
 }
 
-@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
+@if (toast) {
+  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
+}
