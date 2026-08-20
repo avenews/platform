@@ -107,6 +107,18 @@ h4 {
   font-size: var(--av-font-size-xs, 12px);
 }
 
+/* Repayment details use one consistent reading edge; Copy remains the trailing action. */
+app-customer-financing-period-modal .customer-payment-details > div > span {
+  flex: 1 1 auto;
+  justify-items: start;
+  text-align: left;
+}
+
+app-customer-financing-period-modal .customer-payment-details strong {
+  width: 100%;
+  text-align: left !important;
+}
+
 @media (max-width: 767px) {
   .page-hero {
     margin-bottom: var(--av-space-5, 20px);
