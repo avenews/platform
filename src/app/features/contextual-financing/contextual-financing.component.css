@@ -8,13 +8,6 @@
 }
 
 .contextual-financing__hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 24px;
-}
-
-.contextual-financing__hero > div {
   display: grid;
   gap: 6px;
 }
@@ -30,111 +23,105 @@
   line-height: 1.15;
 }
 
-.contextual-financing__hero > div > p:not(.page-eyebrow) {
-  max-width: 760px;
+.contextual-financing__hero > div {
+  display: grid;
+  gap: 6px;
+}
+
+.contextual-financing__hero > div > p:not(.page-eyebrow),
+.relationship-section__intro p {
+  margin: 0;
   color: var(--av-color-text-muted, #66788a);
   font-size: 13px;
+  line-height: 1.55;
 }
 
 .relationship-section {
-  gap: 16px;
-}
-
-.relationship-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
 }
 
-.relationship-card {
-  min-width: 0;
+.relationship-section__intro {
+  max-width: 760px;
+}
+
+.relationship-table {
+  min-width: 1120px;
+}
+
+.relationship-table th:first-child,
+.relationship-table td:first-child {
+  width: 28%;
+}
+
+.relationship-table th:last-child,
+.relationship-table td:last-child {
+  width: 260px;
+}
+
+.relationship-name-button {
+  width: 100%;
   display: grid;
-  align-content: start;
-  gap: 14px;
-  padding: 18px;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   cursor: pointer;
 }
 
-.relationship-card:hover,
-.relationship-card:focus-visible {
-  border-color: var(--av-color-primary-border, #bdeff3);
-  box-shadow: 0 4px 14px rgba(16, 24, 40, .08);
-  outline: none;
-}
-
-.relationship-card__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.relationship-card__head > div {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
-
-.relationship-card__head strong {
+.relationship-name-button strong {
   color: var(--av-color-text-heading, #0d343f);
-  font-size: 15px;
+  font-size: 13px;
 }
 
-.relationship-card__head span,
-.relationship-card__count,
-.relationship-card__helper {
+.relationship-name-button span {
   color: var(--av-color-text-muted, #66788a);
   font-size: 11px;
+  line-height: 1.4;
+}
+
+.relationship-name-button:hover strong,
+.relationship-name-button:focus-visible strong {
+  color: var(--av-color-action, #16b3c4);
+}
+
+.relationship-table__actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.relationship-cards {
+  display: none;
 }
 
 .relationship-card__count {
   flex: 0 0 auto;
-  padding: 4px 8px;
+  padding: 4px 9px;
   border-radius: 999px;
   background: var(--av-color-surface-subtle, #f6f7f9);
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 11px;
+  white-space: nowrap;
 }
 
 .relationship-card__metrics {
-  display: grid;
-  margin: 0;
-  border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
-}
-
-.relationship-card__metrics > div {
-  min-height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb);
-}
-
-.relationship-card__metrics dt,
-.relationship-card__metrics dd {
-  margin: 0;
-  font-size: 12px;
-}
-
-.relationship-card__metrics dt {
-  color: var(--av-color-text-muted, #66788a);
-}
-
-.relationship-card__metrics dd {
-  color: var(--av-color-text-heading, #0d343f);
-  font-weight: 700;
-  text-align: right;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .relationship-card__helper {
-  min-height: 34px;
   margin: 0;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
   line-height: 1.5;
 }
 
-.relationship-card__view {
-  color: var(--av-color-action, #16b3c4);
-  font-size: 12px;
-  font-weight: 700;
+.relationship-card__actions {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 .relationship-modal-backdrop {
@@ -146,7 +133,7 @@
 
 .relationship-modal {
   width: min(100%, 720px);
-  max-height: min(88dvh, 880px);
+  max-height: min(88dvh, 860px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -184,6 +171,7 @@
   overflow: hidden;
   border: 1px solid var(--av-color-surface-border, #e1e7eb);
   border-radius: 10px;
+  background: #fff;
 }
 
 .relationship-detail-grid > div {
@@ -210,13 +198,13 @@
 
 .relationship-detail-grid dd {
   color: var(--av-color-text-heading, #0d343f);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .relationship-detail-note {
   display: grid;
-  gap: 3px;
+  gap: 4px;
   padding: 13px 15px;
   border: 1px solid var(--av-color-surface-border, #e1e7eb);
   border-radius: 10px;
@@ -230,14 +218,10 @@
   color: var(--av-color-text-heading, #0d343f);
 }
 
-.relationship-periods {
-  display: grid;
-  gap: 10px;
-}
-
+.relationship-periods,
 .relationship-periods__heading > div {
   display: grid;
-  gap: 4px;
+  gap: 10px;
 }
 
 .relationship-periods__heading p,
@@ -251,8 +235,9 @@
 }
 
 .relationship-period-row {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   padding: 12px;
   border: 1px solid var(--av-color-surface-border, #e1e7eb);
   border-radius: 10px;
@@ -260,11 +245,12 @@
 }
 
 .relationship-period-row__main {
-  width: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 14px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -291,14 +277,7 @@
 }
 
 .relationship-period-row__action {
-  width: fit-content;
-  justify-self: start;
-}
-
-@media (max-width: 1023px) {
-  .relationship-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  flex: 0 0 auto;
 }
 
 @media (max-width: 767px) {
@@ -306,17 +285,25 @@
     gap: 20px;
   }
 
-  .contextual-financing__hero {
-    display: grid;
-    gap: 16px;
-  }
-
   .contextual-financing__hero h1 {
     font-size: 26px;
   }
 
-  .relationship-grid {
-    grid-template-columns: 1fr;
+  .relationship-table-wrap {
+    display: none;
+  }
+
+  .relationship-cards {
+    display: grid;
+    gap: 12px;
+  }
+
+  .relationship-card__metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .relationship-card__actions .baseline-button {
+    flex: 1 1 140px;
   }
 
   .relationship-modal-backdrop {
@@ -339,7 +326,15 @@
     border-right: 0;
   }
 
+  .relationship-period-row {
+    display: grid;
+  }
+
   .relationship-period-row__main {
     align-items: flex-start;
+  }
+
+  .relationship-period-row__action {
+    width: 100%;
   }
 }
