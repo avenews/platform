@@ -268,7 +268,14 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   takePartnerAction(kind: ExperienceActionKind): void {
-    if (kind === 'upload-invoices' || kind === 'view-invoice-uploads') {
+    if (kind === 'upload-invoices') {
+      void this.router.navigate(
+        this.experienceService.routeFor(this.experience.id, 'invoice-uploads'),
+        { queryParams: { action: 'upload' } },
+      )
+      return
+    }
+    if (kind === 'view-invoice-uploads') {
       void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads'))
       return
     }
