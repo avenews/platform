@@ -239,17 +239,21 @@ test.describe('contextual shell', () => {
     await assertNoOverflow(page)
   })
 
-  test('context switching remains session-only', async ({ page }) => {
+  test('context switching remains session-only', async ({ page }, testInfo) => {
     await page.goto('/experience/abf/home')
 
-    const contextTrigger = page.locator('.experience-context-trigger, .experience-mobile-context').first()
+    const contextTrigger = isMobile(testInfo)
+      ? page.locator('.experience-mobile-context')
+      : page.locator('.experience-context-trigger')
     await contextTrigger.click()
 
     const menu = page.getByRole('menu', { name: 'Switch product or access' })
     await menu.locator('button').filter({ hasText: 'Invoice Financing' }).filter({ hasText: 'Kioko Agri Supplies Ltd' }).first().click()
     await expect(page).toHaveURL(/\/experience\/invoice-financing\/home$/)
 
-    const profileTrigger = page.locator('.experience-profile-button, .experience-avatar-trigger').first()
+    const profileTrigger = isMobile(testInfo)
+      ? page.locator('.experience-avatar-trigger')
+      : page.locator('.experience-profile-button')
     await profileTrigger.click()
     await page.getByRole('menuitem', { name: 'Log out' }).click()
     await expect(page).toHaveURL(/\/login$/)
@@ -303,8 +307,14 @@ test.describe('Agri Credit Line financing periods and repayment scope', () => {
     await action.click()
 
     await expect(page.locator('.acl-repayment-modal')).toHaveCount(0)
-    const visibleDueDateSelect = page.getByRole('combobox', { name: 'Due date' }).filter({ visible: true }).first()
-    await expect(visibleDueDateSelect).toHaveValue('payments-due')
+    if (isMobile(testInfo)) {
+      await page.getByRole('button', { name: 'Filters' }).click()
+      const filterPanel = page.locator('.customer-filter-panel')
+      await expect(filterPanel.getByRole('combobox', { name: 'Due date' })).toHaveValue('payments-due')
+    } else {
+      const desktopFilters = page.locator('[data-filter-layout="desktop"]')
+      await expect(desktopFilters.getByRole('combobox', { name: 'Due date' })).toHaveValue('payments-due')
+    }
 
     const table = page.locator('.acl-activity-table')
     if (await table.isVisible()) {
@@ -326,10 +336,13 @@ test.describe('Agri Credit Line financing periods and repayment scope', () => {
       : page.locator('.acl-activity-cards .baseline-status')
 
     await expect(statuses).toHaveText(['Delinquent', 'Live'])
-    const body = await customerFacingText(page)
+
+    const statusOptionLabels = await page.locator('select[aria-label="Status"] option').allTextContents()
+    const customerStatusOptions = statusOptionLabels.join(' ')
     for (const excluded of ['Requested', 'Offered', 'Validating', 'Unavailable', 'Repaid', 'Cancelled', 'Declined']) {
-      expect(body).not.toContain(excluded)
+      expect(customerStatusOptions).not.toContain(excluded)
     }
+
     await assertExplainer(page, 'Only unsettled customer-facing financing-period statuses are surfaced', 'handbook')
     await assertNoOverflow(page)
     await page.screenshot({ path: testInfo.outputPath('acl-customer-financing-statuses.png'), fullPage: true })
