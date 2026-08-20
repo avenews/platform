@@ -94,10 +94,7 @@
 .customer-filter-clear {
   min-height: 44px;
   padding: 0 var(--av-space-4, 16px);
-  border: 1px solid var(--av-color-neutral-divider, #e5e7eb);
   border-radius: var(--av-radius-md, 8px);
-  background: var(--av-color-surface, #fff);
-  color: var(--av-color-text-heading, #0d343f);
   font-family: var(--av-font-base, "Poppins", sans-serif);
   font-size: var(--av-font-size-md, 14px);
   font-weight: var(--av-font-weight-semibold, 600);
@@ -108,15 +105,30 @@
 .customer-filter-trigger {
   min-width: 104px;
   height: 44px;
+  border: 1px solid var(--av-color-neutral-divider, #e5e7eb);
+  background: var(--av-color-surface, #fff);
+  color: var(--av-color-text-heading, #0d343f);
 }
 
-.customer-filter-trigger:hover,
-.customer-filter-clear:hover:not(:disabled) {
+.customer-filter-clear {
+  border: 1px solid var(--av-color-text-muted, #667085);
+  background: var(--av-color-text-muted, #667085);
+  color: #fff;
+}
+
+.customer-filter-trigger:hover {
   background: var(--av-color-surface-subtle, #f6f7f9);
 }
 
+.customer-filter-clear:hover:not(:disabled) {
+  filter: brightness(.94);
+}
+
 .customer-filter-clear:disabled {
-  opacity: .45;
+  border-color: var(--av-neutral-300, #d0d5dd);
+  background: var(--av-neutral-300, #d0d5dd);
+  color: #fff;
+  opacity: .68;
   cursor: default;
   box-shadow: none;
 }
@@ -165,9 +177,9 @@
 }
 
 .customer-filter-panel__clear {
-  border: 1px solid var(--av-color-neutral-divider, #e5e7eb);
-  background: var(--av-color-surface, #fff);
-  color: var(--av-color-text-heading, #0d343f);
+  border: 1px solid var(--av-color-text-muted, #667085);
+  background: var(--av-color-text-muted, #667085);
+  color: #fff;
   box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(16, 24, 40, .08));
 }
 
@@ -208,10 +220,10 @@
   }
 
   .customer-filter-bar__desktop .customer-filter-search {
-    flex: 0 1 300px;
-    width: min(300px, 100%);
-    min-width: 220px;
-    max-width: 300px;
+    flex: 0 1 220px;
+    width: min(220px, 100%);
+    min-width: 170px;
+    max-width: 220px;
   }
 
   .customer-filter-bar__desktop .customer-filter-select {
@@ -232,9 +244,10 @@
   }
 
   .customer-filter-bar__desktop .customer-filter-search {
-    flex: 1 1 260px;
+    flex: 1 1 210px;
     width: auto;
-    max-width: 300px;
+    min-width: 170px;
+    max-width: 220px;
   }
 
   .customer-filter-bar__desktop .customer-filter-select {
