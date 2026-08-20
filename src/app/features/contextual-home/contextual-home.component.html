@@ -15,7 +15,7 @@
     </section>
 
     <app-prototype-explainer tone="purpose" title="Every customer product uses the same simple Home pattern">
-      <p>Home answers three questions first: what financing is available, what remains outstanding, and what needs payment or settlement attention. The detailed financing periods sit immediately below those cards instead of being hidden behind a separate recent-activity experience.</p>
+      <p>Home answers three questions first: what financing is available, what remains outstanding, and what needs payment or settlement attention. The detailed financing records sit immediately below those cards.</p>
     </app-prototype-explainer>
 
     @if (product.id === 'invoice-financing') {
@@ -44,29 +44,26 @@
         <button
           type="button"
           class="baseline-button baseline-button--secondary customer-payments-due__action"
-          [attr.aria-label]="product.dueActionLabel + ' in Financing activity'"
+          [attr.aria-label]="product.dueActionLabel + ' in Financing'"
           (click)="filterPaymentsDue()"
         >{{ product.dueActionLabel }}</button>
       </article>
     </section>
 
     <app-prototype-explainer tone="decision" title="The payment card is a filter, not another repayment screen">
-      <p>The summary stays universal. Its outlined action filters Financing activity to the affected periods. Repayment or settlement instructions stay attached to the specific financing period so the customer always knows which obligation they are viewing.</p>
+      <p>The summary stays universal. Its outlined action filters Financing to the affected periods. Repayment or settlement instructions stay attached to the specific financing record so the customer always knows which obligation they are viewing.</p>
     </app-prototype-explainer>
 
     <section id="customer-financing-activity" class="baseline-section customer-financing-activity">
       <div class="customer-activity-toolbar">
         <div class="baseline-section-heading">
-          <div>
-            <h2>Financing Activity</h2>
-            <p>Open a {{ product.id === 'invoice-financing' ? 'Dynamic Period' : 'financing period' }} for its full financing and {{ product.id === 'invoice-financing' ? 'settlement' : 'repayment' }} details.</p>
-          </div>
+          <div><h2>Financing</h2></div>
         </div>
 
         <app-customer-filter-bar
           [searchValue]="searchQuery"
-          [searchPlaceholder]="product.id === 'invoice-financing' ? 'Search Buyer or Dynamic Period' : 'Search financing or relationship'"
-          [searchAriaLabel]="'Search ' + product.heading + ' financing activity'"
+          [searchPlaceholder]="searchPlaceholder"
+          [searchAriaLabel]="'Search ' + product.heading + ' financing'"
           [filters]="filterFields"
           [values]="filterValues"
           (searchValueChange)="onSearchValueChange($event)"
@@ -76,25 +73,25 @@
 
       @if (product.id === 'acl') {
         <app-prototype-explainer tone="handbook" title="Only source-backed financing identifiers and customer-visible statuses are shown">
-          <p>The financing row uses the Funds Request reference as its primary identifier rather than inventing a purchase or financing-period name. A submission date should only be shown when that field is available from the source. Customer-facing statuses remain Requested, Live, Overdue, Repaid, Cancelled, and Declined.</p>
+          <p>The financing row uses the Funds Request reference as its identifier rather than inventing a purchase or financing-period name. Customer-facing statuses are Requested, Live, Overdue, Repaid, Cancelled, and Declined.</p>
         </app-prototype-explainer>
       }
 
       @if (product.id === 'abf') {
-        <app-prototype-explainer tone="decision" title="ABF Home stays financing-first while Funds Requests stay Supplier-scoped">
-          <p>The Home view shows financing periods across approved Suppliers. Request funds takes the customer to the Suppliers page so the Supplier context and its sub-limit are established before entering the request journey.</p>
+        <app-prototype-explainer tone="decision" title="ABF stays financing-first while Funds Requests stay Supplier-scoped">
+          <p>Financing is shown across approved Suppliers. Request funds takes the customer to the Suppliers page so the Supplier context and its sub-limit are established before entering the request journey.</p>
         </app-prototype-explainer>
       }
 
       @if (product.id === 'stf') {
         <app-prototype-explainer tone="handbook" title="Stockist Financing keeps each period with its Partner Supplier">
-          <p>The Stockist is the Client Buyer and the approved Partner Supplier receives the financing disbursement. Request funds takes the customer to Partner Suppliers so the supplier context is selected before the request starts.</p>
+          <p>The Stockist is the Client Buyer and the approved Partner Supplier receives the financing disbursement. Request funds takes the customer to Partner Suppliers so the Supplier context is selected before the request starts.</p>
         </app-prototype-explainer>
       }
 
       @if (product.id === 'invoice-financing') {
         <app-prototype-explainer tone="handbook" title="Invoice Financing keeps Dynamic Periods with the relevant Buyer">
-          <p>A Dynamic Period groups one Client Supplier, one Buyer and one invoice Due Date. Multiple periods may therefore sit under the same Buyer relationship, and the Buyer relationship page keeps those periods together.</p>
+          <p>A Dynamic Period groups one Client Supplier, one Buyer and one invoice Due Date. Multiple Funds Requests may be submitted against an eligible period while Available to Withdraw remains and the request window is open.</p>
         </app-prototype-explainer>
       }
 
@@ -112,9 +109,15 @@
               <th>Disbursement Date</th>
               <th>{{ product.dueDateColumnLabel }}</th>
               <th>Amount Financed</th>
+              @if (product.id === 'invoice-financing') {
+                <th>Available to Withdraw</th>
+              }
               <th>Status</th>
               <th>{{ product.totalRepaidColumnLabel }}</th>
               <th>{{ product.outstandingColumnLabel }}</th>
+              @if (product.id === 'invoice-financing') {
+                <th class="is-right">Action</th>
+              }
             </tr>
           </thead>
           <tbody>
@@ -129,19 +132,40 @@
               >
                 <td>
                   <span class="baseline-financing-cell">
-                    <strong>{{ period.reference }}</strong>
-                    <span>{{ product.id === 'acl' ? 'Agri Credit Line' : period.relationshipName }}</span>
+                    @if (product.id === 'acl') {
+                      <strong>{{ period.reference }}</strong>
+                    } @else {
+                      <strong>{{ period.relationshipName }}</strong>
+                      <span>{{ period.reference }}</span>
+                    }
                   </span>
                 </td>
                 <td [class.baseline-muted]="!period.disbursementDate">{{ period.disbursementDate ? formatDate(period.disbursementDate, true) : 'Pending' }}</td>
                 <td>{{ formatDate(period.repaymentDueDate, true) }}</td>
                 <td>{{ formatKes(period.amountFinanced) }}</td>
+                @if (product.id === 'invoice-financing') {
+                  <td>
+                    <strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong>
+                    @if (canRequestFromPeriod(period)) {
+                      <span class="customer-period-availability">Available to request</span>
+                    }
+                  </td>
+                }
                 <td><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></td>
                 <td>{{ formatKes(period.totalRepaid) }}</td>
                 <td><strong>{{ formatKes(period.outstandingBalance) }}</strong></td>
+                @if (product.id === 'invoice-financing') {
+                  <td class="is-right">
+                    @if (canRequestFromPeriod(period)) {
+                      <button type="button" class="baseline-button baseline-button--secondary" (click)="requestFundsForPeriod(period, $event)">{{ periodRequestLabel(period) }}</button>
+                    } @else {
+                      <span class="baseline-muted">—</span>
+                    }
+                  </td>
+                }
               </tr>
             } @empty {
-              <tr><td colspan="7"><div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div></td></tr>
+              <tr><td [attr.colspan]="product.id === 'invoice-financing' ? 9 : 7"><div class="baseline-empty"><strong>No matching financing</strong><p>Try changing your search or filters.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -149,28 +173,41 @@
 
       <div class="baseline-cards customer-activity-cards">
         @for (period of pageItems; track period.id) {
-          <article class="baseline-record-card">
+          <article class="baseline-record-card customer-financing-card">
             <button type="button" class="customer-record-card-button" (click)="openPeriod(period)">
               <div class="baseline-record-card__head">
-                <span class="baseline-financing-cell"><strong>{{ period.reference }}</strong><span>{{ product.id === 'acl' ? 'Agri Credit Line' : period.relationshipName }}</span></span>
+                <span class="baseline-financing-cell">
+                  @if (product.id === 'acl') {
+                    <strong>{{ period.reference }}</strong>
+                  } @else {
+                    <strong>{{ period.relationshipName }}</strong>
+                    <span>{{ period.reference }}</span>
+                  }
+                </span>
                 <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
               </div>
               <div class="baseline-metrics">
                 <span class="baseline-metric"><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
                 <span class="baseline-metric"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                @if (product.id === 'invoice-financing') {
+                  <span class="baseline-metric"><small>Available to Withdraw</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span>
+                }
                 <span class="baseline-metric"><small>{{ product.totalRepaidColumnLabel }}</small><strong>{{ formatKes(period.totalRepaid) }}</strong></span>
                 <span class="baseline-metric"><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
               </div>
               <span class="customer-record-card-button__action">View details</span>
             </button>
+            @if (canRequestFromPeriod(period)) {
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block customer-period-request" (click)="requestFundsForPeriod(period, $event)">{{ periodRequestLabel(period) }}</button>
+            }
           </article>
         } @empty {
-          <div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div>
+          <div class="baseline-empty"><strong>No matching financing</strong><p>Try changing your search or filters.</p></div>
         }
       </div>
 
       @if (filteredPeriods.length) {
-        <div class="baseline-pagination customer-pagination" aria-label="Financing activity pagination">
+        <div class="baseline-pagination customer-pagination" aria-label="Financing pagination">
           <p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredPeriods.length }} {{ activityItemLabel }}</p>
           <div class="baseline-pagination__controls">
             <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">‹</button>
