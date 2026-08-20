@@ -75,8 +75,8 @@
       </div>
 
       @if (product.id === 'acl') {
-        <app-prototype-explainer tone="handbook" title="Only customer-visible financing statuses are shown">
-          <p>The customer-facing status set is Requested, Live, Overdue, Repaid, Cancelled, and Declined. Internal workflow, servicing, collections, and risk statuses are deliberately kept out of the customer portal. This review data includes one example of each customer-visible status.</p>
+        <app-prototype-explainer tone="handbook" title="Only source-backed financing identifiers and customer-visible statuses are shown">
+          <p>The financing row uses the Funds Request reference as its primary identifier rather than inventing a purchase or financing-period name. A submission date should only be shown when that field is available from the source. Customer-facing statuses remain Requested, Live, Overdue, Repaid, Cancelled, and Declined.</p>
         </app-prototype-explainer>
       }
 
@@ -129,11 +129,11 @@
               >
                 <td>
                   <span class="baseline-financing-cell">
-                    <strong>{{ period.relationshipName }}</strong>
-                    <span>{{ period.reference }}</span>
+                    <strong>{{ period.reference }}</strong>
+                    <span>{{ product.id === 'acl' ? 'Agri Credit Line' : period.relationshipName }}</span>
                   </span>
                 </td>
-                <td>{{ formatDate(period.disbursementDate, true) }}</td>
+                <td [class.baseline-muted]="!period.disbursementDate">{{ period.disbursementDate ? formatDate(period.disbursementDate, true) : 'Pending' }}</td>
                 <td>{{ formatDate(period.repaymentDueDate, true) }}</td>
                 <td>{{ formatKes(period.amountFinanced) }}</td>
                 <td><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></td>
@@ -152,7 +152,7 @@
           <article class="baseline-record-card">
             <button type="button" class="customer-record-card-button" (click)="openPeriod(period)">
               <div class="baseline-record-card__head">
-                <span class="baseline-financing-cell"><strong>{{ period.relationshipName }}</strong><span>{{ period.reference }}</span></span>
+                <span class="baseline-financing-cell"><strong>{{ period.reference }}</strong><span>{{ product.id === 'acl' ? 'Agri Credit Line' : period.relationshipName }}</span></span>
                 <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
               </div>
               <div class="baseline-metrics">
