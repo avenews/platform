@@ -140,10 +140,12 @@ export class ContextualHomeComponent implements OnDestroy {
       .filter(period => this.matchesDueFilter(period))
       .filter(period => {
         if (!query) return true
+        const relationshipSearch = this.workspace?.id === 'acl'
+          ? 'Avenews Agri Credit Line'
+          : `${period.relationshipName} ${period.relationshipType}`
         return [
           period.reference,
-          period.relationshipName,
-          period.relationshipType,
+          relationshipSearch,
           period.statusLabel,
           period.invoiceReference ?? '',
           period.invoiceType ?? '',
@@ -208,7 +210,9 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   openPeriod(period: CustomerFinancingPeriod): void {
-    this.selectedPeriod = period
+    this.selectedPeriod = this.workspace?.id === 'acl'
+      ? { ...period, relationshipName: 'Avenews', relationshipType: 'Agri Credit Line', note: undefined }
+      : period
   }
 
   closePeriod(): void {
