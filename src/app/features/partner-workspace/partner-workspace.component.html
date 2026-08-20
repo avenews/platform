@@ -5,22 +5,29 @@
         <div>
           <p class="page-eyebrow">Partner Buyer Portal</p>
           <h1>Invoice Uploads</h1>
-          <p>Upload invoices for participating Suppliers and review processing results.</p>
+          <p>Upload invoice or receivables information for participating Suppliers. Eligible rows update the matching Supplier period by due date.</p>
         </div>
         <button type="button" class="baseline-button baseline-button--primary" data-action="upload-invoices" (click)="openUpload()">Upload invoices</button>
       </section>
 
       <section class="baseline-section" aria-labelledby="upload-history-title">
-        <div class="baseline-section-heading"><div><h2 id="upload-history-title">Upload history</h2></div></div>
+        <div class="baseline-section-heading">
+          <div>
+            <h2 id="upload-history-title">Upload history</h2>
+            <p>Review which Suppliers and periods were updated by each upload.</p>
+          </div>
+        </div>
+
         <div class="baseline-table-wrap">
           <table class="baseline-table partner-upload-table">
             <thead>
               <tr>
-                <th title="The invoice file uploaded for participating Suppliers.">File</th>
-                <th title="When the invoice file was submitted.">Uploaded</th>
-                <th title="Invoices accepted from this upload.">Imported</th>
-                <th title="Invoices skipped because they did not need to be imported again.">Skipped</th>
-                <th title="Invoices that need correction before they can be processed.">Failed</th>
+                <th title="The invoice or receivables file uploaded for participating Suppliers.">File</th>
+                <th title="When the file was submitted.">Uploaded</th>
+                <th title="Suppliers represented in the upload.">Suppliers</th>
+                <th title="Supplier periods created or updated by eligible rows.">Periods Updated</th>
+                <th title="Invoice rows accepted from this upload.">Imported</th>
+                <th title="Rows that need correction before they can be processed.">Failed</th>
                 <th title="The current processing result for this upload.">Status</th>
                 <th title="Open the upload result.">Action</th>
               </tr>
@@ -30,8 +37,9 @@
                 <tr>
                   <td><strong>{{ batch.fileName }}</strong></td>
                   <td>{{ batch.uploadedAt }}</td>
+                  <td>{{ batch.supplierCount }}</td>
+                  <td>{{ batch.periodCount }}</td>
                   <td>{{ batch.imported }}</td>
-                  <td>{{ batch.skipped }}</td>
                   <td>{{ batch.failed }}</td>
                   <td><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></td>
                   <td><button type="button" class="baseline-button baseline-button--secondary" (click)="openBatch(batch)">View</button></td>
@@ -49,9 +57,10 @@
                 <span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span>
               </div>
               <div class="partner-result-grid">
-                <span title="Invoices accepted from this upload."><small>Imported</small><strong>{{ batch.imported }}</strong></span>
-                <span title="Invoices skipped because they did not need to be imported again."><small>Skipped</small><strong>{{ batch.skipped }}</strong></span>
-                <span title="Invoices that need correction before they can be processed."><small>Failed</small><strong>{{ batch.failed }}</strong></span>
+                <span title="Suppliers represented in the upload."><small>Suppliers</small><strong>{{ batch.supplierCount }}</strong></span>
+                <span title="Supplier periods created or updated."><small>Periods</small><strong>{{ batch.periodCount }}</strong></span>
+                <span title="Invoice rows accepted from this upload."><small>Imported</small><strong>{{ batch.imported }}</strong></span>
+                <span title="Rows that need correction."><small>Failed</small><strong>{{ batch.failed }}</strong></span>
               </div>
               <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openBatch(batch)">View</button>
             </article>
@@ -65,67 +74,118 @@
         <div>
           <p class="page-eyebrow">Partner Buyer Portal</p>
           <h1>Payments</h1>
-          <p>See the full invoice value due for each payment date and the Supplier invoices included.</p>
+          <p>Find payments by Supplier and Period. Every payment remains tied to the Supplier, period reference and due date it settles.</p>
         </div>
       </section>
 
       <section class="partner-summary-grid" aria-label="Payment summary">
         <article class="baseline-card partner-summary-card">
-          <span>Next payment</span><strong>KES 8,420,000</strong><small>Due 15 Sep 2026</small>
+          <span>Amount due</span><strong>{{ formatKes(paymentDueTotal) }}</strong><small>Across unpaid Supplier periods</small>
         </article>
         <article class="baseline-card partner-summary-card">
-          <span>Suppliers included</span><strong>18</strong><small>Across 46 invoices</small>
+          <span>Periods requiring payment</span><strong>{{ paymentDueCount }}</strong><small>Upcoming, processing or overdue</small>
         </article>
         <article class="baseline-card partner-summary-card">
-          <span>Financed against</span><strong>KES 5,920,000</strong><small>Within the next payment cycle</small>
+          <span>Overdue periods</span><strong>{{ overduePaymentCount }}</strong><small>Require payment attention</small>
         </article>
       </section>
 
-      <section class="baseline-section" aria-labelledby="partner-payments-title">
-        <div class="baseline-section-heading"><div><h2 id="partner-payments-title">Upcoming payments</h2></div></div>
+      <section class="baseline-section partner-list-section" aria-labelledby="partner-payments-title">
+        <div class="partner-list-toolbar">
+          <div class="baseline-section-heading">
+            <div>
+              <h2 id="partner-payments-title">Supplier period payments</h2>
+              <p>Search by Supplier, Period, payment reference, amount or due date.</p>
+            </div>
+          </div>
+
+          <app-customer-filter-bar
+            [searchValue]="paymentSearch"
+            [searchPlaceholder]="'Search'"
+            [searchAriaLabel]="'Search Partner Buyer payments by Supplier and Period'"
+            [filters]="paymentFilterFields"
+            [values]="paymentFilterValues"
+            (searchValueChange)="onPaymentSearchValueChange($event)"
+            (valuesChange)="onPaymentFilterValuesChange($event)"
+          />
+        </div>
+
         <div class="baseline-table-wrap">
-          <table class="baseline-table partner-obligations-table">
+          <table class="baseline-table partner-payments-table">
             <thead>
               <tr>
+                <th title="The Supplier whose receivables are included in this Period.">Supplier</th>
+                <th title="The Supplier Financing Period tied to this payment.">Period</th>
                 <th title="The date the Buyer payment is due.">Due Date</th>
-                <th title="The number of participating Suppliers included in this payment date.">Suppliers</th>
-                <th title="The number of invoices included in this payment date.">Invoices</th>
-                <th title="The full invoice value the Partner Buyer needs to pay for this date.">Amount to Pay</th>
-                <th title="The amount of Supplier financing currently associated with these receivables.">Financed Against</th>
-                <th title="The current payment status.">Status</th>
-                <th title="Open the payment details.">Action</th>
+                <th title="The full invoice or receivables value the Partner Buyer needs to pay.">Amount to Pay</th>
+                <th title="The number of invoices grouped into this Period.">Invoices</th>
+                <th title="The amount of Avenews financing currently associated with this Period.">Financing</th>
+                <th title="The current Period status.">Period Status</th>
+                <th title="The current Buyer payment status.">Payment Status</th>
+                <th title="Open payment and settlement details for this Period.">Action</th>
               </tr>
             </thead>
             <tbody>
-              @for (item of obligations; track item.id) {
+              @for (period of paymentPageItems; track period.id) {
                 <tr>
-                  <td><strong>{{ item.dueDate }}</strong></td>
-                  <td>{{ item.supplierCount }}</td>
-                  <td>{{ item.invoiceCount }}</td>
-                  <td><strong>{{ formatKes(item.invoiceValue) }}</strong></td>
-                  <td>{{ formatKes(item.financedAgainst) }}</td>
-                  <td><span class="baseline-status" [class]="'baseline-status ' + item.statusTone">{{ item.status }}</span></td>
-                  <td><button type="button" class="baseline-button baseline-button--primary" (click)="openObligation(item)">View payment</button></td>
+                  <td>
+                    @if (supplierForPeriod(period); as supplier) {
+                      <span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ supplier.identifier }}</span></span>
+                    }
+                  </td>
+                  <td><strong>{{ period.reference }}</strong></td>
+                  <td>{{ formatDate(period.dueDate, true) }}</td>
+                  <td><strong>{{ formatKes(period.amountToPay) }}</strong></td>
+                  <td>{{ period.invoiceCount }}</td>
+                  <td>{{ formatKes(period.financedAgainst) }}</td>
+                  <td><span class="baseline-status" [class]="'baseline-status ' + period.periodTone">{{ period.periodStatus }}</span></td>
+                  <td><span class="baseline-status" [class]="'baseline-status ' + period.paymentTone">{{ period.paymentStatus }}</span></td>
+                  <td><button type="button" class="baseline-button baseline-button--primary" (click)="openPaymentPeriod(period)">View payment</button></td>
                 </tr>
+              } @empty {
+                <tr><td colspan="9"><div class="baseline-empty"><strong>No matching payments</strong><p>Try changing your search or filters.</p></div></td></tr>
               }
             </tbody>
           </table>
         </div>
 
         <div class="baseline-cards partner-workspace-cards">
-          @for (item of obligations; track item.id) {
-            <article class="baseline-record-card">
-              <div class="baseline-record-card__head"><strong>{{ item.dueDate }}</strong><span class="baseline-status" [class]="'baseline-status ' + item.statusTone">{{ item.status }}</span></div>
-              <div class="baseline-metrics">
-                <span class="baseline-metric" title="The full invoice value the Partner Buyer needs to pay for this date."><small>Amount to Pay</small><strong>{{ formatKes(item.invoiceValue) }}</strong></span>
-                <span class="baseline-metric" title="The number of participating Suppliers included in this payment date."><small>Suppliers</small><strong>{{ item.supplierCount }}</strong></span>
-                <span class="baseline-metric" title="The number of invoices included in this payment date."><small>Invoices</small><strong>{{ item.invoiceCount }}</strong></span>
-                <span class="baseline-metric" title="The amount of Supplier financing associated with these receivables."><small>Financed Against</small><strong>{{ formatKes(item.financedAgainst) }}</strong></span>
+          @for (period of paymentPageItems; track period.id) {
+            <article class="baseline-record-card partner-payment-card">
+              <div class="baseline-record-card__head">
+                @if (supplierForPeriod(period); as supplier) {
+                  <span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ period.reference }}</span></span>
+                }
+                <span class="baseline-status" [class]="'baseline-status ' + period.paymentTone">{{ period.paymentStatus }}</span>
               </div>
-              <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openObligation(item)">View payment</button>
+              <div class="baseline-metrics">
+                <span class="baseline-metric"><small>Due Date</small><strong>{{ formatDate(period.dueDate, true) }}</strong></span>
+                <span class="baseline-metric"><small>Amount to Pay</small><strong>{{ formatKes(period.amountToPay) }}</strong></span>
+                <span class="baseline-metric"><small>Invoices</small><strong>{{ period.invoiceCount }}</strong></span>
+                <span class="baseline-metric"><small>Financing</small><strong>{{ formatKes(period.financedAgainst) }}</strong></span>
+              </div>
+              <div class="partner-card-statuses">
+                <span><small>Period</small><span class="baseline-status" [class]="'baseline-status ' + period.periodTone">{{ period.periodStatus }}</span></span>
+              </div>
+              <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openPaymentPeriod(period)">View payment</button>
             </article>
+          } @empty {
+            <div class="baseline-empty"><strong>No matching payments</strong><p>Try changing your search or filters.</p></div>
           }
         </div>
+
+        @if (filteredPaymentPeriods.length) {
+          <div class="baseline-pagination partner-pagination" aria-label="Payment pagination">
+            <p>Showing <strong>{{ paymentRangeStart }}-{{ paymentRangeEnd }}</strong> of {{ filteredPaymentPeriods.length }} periods</p>
+            <div class="baseline-pagination__controls">
+              <button type="button" [disabled]="paymentPage === 1" (click)="changePaymentPage(paymentPage - 1)" aria-label="Previous payment page">‹</button>
+              @for (pageNumber of paymentPageNumbers; track pageNumber) {
+                <button type="button" [class.is-active]="pageNumber === paymentPage" [attr.aria-current]="pageNumber === paymentPage ? 'page' : null" (click)="changePaymentPage(pageNumber)">{{ pageNumber }}</button>
+              }
+              <button type="button" [disabled]="paymentPage === paymentTotalPages" (click)="changePaymentPage(paymentPage + 1)" aria-label="Next payment page">›</button>
+            </div>
+          </div>
+        }
       </section>
     }
 
@@ -134,64 +194,97 @@
         <div>
           <p class="page-eyebrow">Partner Buyer Portal</p>
           <h1>Suppliers</h1>
-          <p>Review participating Suppliers and manage the financing limits available in your program.</p>
+          <p>Start with a Supplier, then review its periods, payment status and financing associated with each due date.</p>
         </div>
-        <button type="button" class="baseline-button baseline-button--secondary" (click)="openInviteSupplier()">Invite Supplier</button>
+        <button type="button" class="baseline-button baseline-button--secondary" (click)="openUpload()">Upload invoices</button>
       </section>
 
-      <section class="baseline-section" aria-labelledby="partner-suppliers-title">
-        <div class="baseline-section-heading"><div><h2 id="partner-suppliers-title">Supplier financing limits</h2></div></div>
+      <section class="baseline-section partner-list-section" aria-labelledby="partner-suppliers-title">
+        <div class="partner-list-toolbar">
+          <div class="baseline-section-heading">
+            <div>
+              <h2 id="partner-suppliers-title">Supplier financing</h2>
+              <p>Designed for large Supplier networks: search by Supplier, identifier or Period and filter the list by status.</p>
+            </div>
+          </div>
+
+          <app-customer-filter-bar
+            [searchValue]="supplierSearch"
+            [searchPlaceholder]="'Search'"
+            [searchAriaLabel]="'Search Partner Buyer Suppliers and periods'"
+            [filters]="supplierFilterFields"
+            [values]="supplierFilterValues"
+            (searchValueChange)="onSupplierSearchValueChange($event)"
+            (valuesChange)="onSupplierFilterValuesChange($event)"
+          />
+        </div>
+
         <div class="baseline-table-wrap">
           <table class="baseline-table partner-suppliers-table">
             <thead>
               <tr>
                 <th title="The Supplier participating in your Partner Buyer program.">Supplier</th>
-                <th title="The maximum Supplier financing currently configured for this relationship.">Max Financing</th>
-                <th title="The amount of the Supplier limit currently in use.">Financing Used</th>
-                <th title="The amount of the Supplier limit currently available.">Financing Available</th>
-                <th title="Whether financing is currently available for this Supplier.">Status</th>
-                <th title="View Supplier details or manage the Supplier financing limit.">Action</th>
+                <th title="The maximum Supplier financing configured for this relationship.">Max Financing</th>
+                <th title="The amount of the Supplier financing currently in use.">Financing Used</th>
+                <th title="The amount of Supplier financing currently available.">Financing Available</th>
+                <th title="Active Supplier periods that have not been settled or expired.">Active Periods</th>
+                <th title="The next amount and date the Buyer needs to pay for this Supplier.">Next Payment</th>
+                <th title="Whether Supplier financing is currently available.">Status</th>
+                <th title="Open the Supplier and its periods.">Action</th>
               </tr>
             </thead>
             <tbody>
-              @for (supplier of suppliers; track supplier.id) {
+              @for (supplier of supplierPageItems; track supplier.id) {
                 <tr>
                   <td><span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ supplier.identifier }}</span></span></td>
                   <td>{{ formatKes(supplier.maxFinancing) }}</td>
                   <td>{{ formatKes(supplier.used) }}</td>
                   <td><strong>{{ formatKes(supplier.available) }}</strong></td>
+                  <td>{{ activePeriodCount(supplier) }}</td>
+                  <td>{{ nextPaymentLabel(supplier) }}</td>
                   <td><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.status }}</span></td>
-                  <td>
-                    <div class="partner-table-actions">
-                      <button type="button" class="baseline-button baseline-button--secondary" (click)="openSupplier(supplier)">View</button>
-                      <button type="button" class="baseline-button baseline-button--primary" (click)="openSupplier(supplier, true)">Manage limit</button>
-                    </div>
-                  </td>
+                  <td><button type="button" class="baseline-button baseline-button--secondary partner-view-action" (click)="openSupplier(supplier)">View</button></td>
                 </tr>
+              } @empty {
+                <tr><td colspan="8"><div class="baseline-empty"><strong>No matching Suppliers</strong><p>Try changing your search or filters.</p></div></td></tr>
               }
             </tbody>
           </table>
         </div>
 
         <div class="baseline-cards partner-workspace-cards">
-          @for (supplier of suppliers; track supplier.id) {
-            <article class="baseline-record-card">
+          @for (supplier of supplierPageItems; track supplier.id) {
+            <article class="baseline-record-card partner-supplier-card">
               <div class="baseline-record-card__head">
                 <span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ supplier.identifier }}</span></span>
                 <span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.status }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric" title="The maximum Supplier financing configured for this relationship."><small>Max Financing</small><strong>{{ formatKes(supplier.maxFinancing) }}</strong></span>
-                <span class="baseline-metric" title="The amount of the Supplier limit currently in use."><small>Financing Used</small><strong>{{ formatKes(supplier.used) }}</strong></span>
-                <span class="baseline-metric" title="The amount of the Supplier limit currently available."><small>Financing Available</small><strong>{{ formatKes(supplier.available) }}</strong></span>
+                <span class="baseline-metric"><small>Max Financing</small><strong>{{ formatKes(supplier.maxFinancing) }}</strong></span>
+                <span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(supplier.used) }}</strong></span>
+                <span class="baseline-metric"><small>Financing Available</small><strong>{{ formatKes(supplier.available) }}</strong></span>
+                <span class="baseline-metric"><small>Active Periods</small><strong>{{ activePeriodCount(supplier) }}</strong></span>
               </div>
-              <div class="partner-card-actions">
-                <button type="button" class="baseline-button baseline-button--secondary" (click)="openSupplier(supplier)">View</button>
-                <button type="button" class="baseline-button baseline-button--primary" (click)="openSupplier(supplier, true)">Manage limit</button>
-              </div>
+              <div class="partner-next-payment"><span>Next Payment</span><strong>{{ nextPaymentLabel(supplier) }}</strong></div>
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openSupplier(supplier)">View</button>
             </article>
+          } @empty {
+            <div class="baseline-empty"><strong>No matching Suppliers</strong><p>Try changing your search or filters.</p></div>
           }
         </div>
+
+        @if (filteredSuppliers.length) {
+          <div class="baseline-pagination partner-pagination" aria-label="Supplier pagination">
+            <p>Showing <strong>{{ supplierRangeStart }}-{{ supplierRangeEnd }}</strong> of {{ filteredSuppliers.length }} Suppliers</p>
+            <div class="baseline-pagination__controls">
+              <button type="button" [disabled]="supplierPage === 1" (click)="changeSupplierPage(supplierPage - 1)" aria-label="Previous Supplier page">‹</button>
+              @for (pageNumber of supplierPageNumbers; track pageNumber) {
+                <button type="button" [class.is-active]="pageNumber === supplierPage" [attr.aria-current]="pageNumber === supplierPage ? 'page' : null" (click)="changeSupplierPage(pageNumber)">{{ pageNumber }}</button>
+              }
+              <button type="button" [disabled]="supplierPage === supplierTotalPages" (click)="changeSupplierPage(supplierPage + 1)" aria-label="Next Supplier page">›</button>
+            </div>
+          </div>
+        }
       </section>
     }
   }
@@ -200,11 +293,13 @@
 @if (uploadOpen) {
   <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeUpload()">
     <section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-upload-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head"><h2 id="partner-upload-title">Upload invoices</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeUpload()">&times;</button></header>
+      <header class="baseline-modal__head">
+        <div><p class="page-eyebrow">Partner Buyer Portal</p><h2 id="partner-upload-title">Upload invoices</h2></div>
+        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeUpload()">&times;</button>
+      </header>
       <div class="baseline-modal__body partner-modal__body">
-        <div class="baseline-field"><label for="partner-upload-supplier">Supplier</label><select id="partner-upload-supplier" class="baseline-control"><option>Kioko Agri Supplies Ltd</option><option>Nairobi Fresh Traders Ltd</option><option>Makueni Produce Company</option><option>Highlands Food Processors</option></select></div>
-        <div class="baseline-field"><label for="partner-invoice-file">Invoice file</label><input id="partner-invoice-file" class="baseline-control" type="file"></div>
-        <div class="baseline-field"><label for="partner-due-date">Invoice due date</label><input id="partner-due-date" class="baseline-control" type="date"></div>
+        <p class="partner-modal-intro">Bulk files can contain multiple Suppliers and due dates. Include the Supplier identifier and invoice due date on each row so eligible receivables can update the matching Supplier period.</p>
+        <div class="baseline-field"><label for="partner-invoice-file">Invoice or receivables file</label><input id="partner-invoice-file" class="baseline-control" type="file" accept=".xlsx,.xls,.csv"></div>
         <div class="baseline-field"><label for="partner-upload-notes">Notes</label><textarea id="partner-upload-notes" class="baseline-textarea" placeholder="Optional notes"></textarea></div>
         <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeUpload()">Upload invoices</button>
       </div>
@@ -215,36 +310,23 @@
 @if (selectedBatch; as batch) {
   <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeBatch()">
     <section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-batch-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head"><div><p class="page-eyebrow">Upload result</p><h2 id="partner-batch-title">{{ batch.fileName }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeBatch()">&times;</button></header>
+      <header class="baseline-modal__head">
+        <div><p class="page-eyebrow">Upload result</p><h2 id="partner-batch-title">{{ batch.fileName }}</h2></div>
+        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeBatch()">&times;</button>
+      </header>
       <div class="baseline-modal__body partner-modal__body">
         <div class="partner-modal-status"><span>Uploaded {{ batch.uploadedAt }}</span><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></div>
         <dl class="partner-detail-grid">
+          <div><dt>Suppliers</dt><dd>{{ batch.supplierCount }}</dd></div>
+          <div><dt>Periods Updated</dt><dd>{{ batch.periodCount }}</dd></div>
           <div><dt>Imported</dt><dd>{{ batch.imported }}</dd></div>
           <div><dt>Skipped</dt><dd>{{ batch.skipped }}</dd></div>
           <div><dt>Failed</dt><dd>{{ batch.failed }}</dd></div>
-          <div><dt>Total rows</dt><dd>{{ batch.imported + batch.skipped + batch.failed }}</dd></div>
+          <div><dt>Total Rows</dt><dd>{{ batch.imported + batch.skipped + batch.failed }}</dd></div>
         </dl>
         @if (batch.failed > 0) {
-          <div class="partner-attention-note">{{ batch.failed }} invoice rows need correction before they can be processed.</div>
+          <div class="partner-attention-note">{{ batch.failed }} invoice rows need correction before they can update Supplier periods.</div>
         }
-      </div>
-    </section>
-  </div>
-}
-
-@if (selectedObligation; as item) {
-  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeObligation()">
-    <section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-payment-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head"><div><p class="page-eyebrow">Payment details</p><h2 id="partner-payment-title">Due {{ item.dueDate }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeObligation()">&times;</button></header>
-      <div class="baseline-modal__body partner-modal__body">
-        <div class="partner-payment-total"><span>Amount to pay</span><strong>{{ formatKes(item.invoiceValue) }}</strong><small>{{ item.supplierCount }} Suppliers · {{ item.invoiceCount }} invoices</small></div>
-        <dl class="partner-detail-grid">
-          <div><dt>Due Date</dt><dd>{{ item.dueDate }}</dd></div>
-          <div><dt>Status</dt><dd>{{ item.status }}</dd></div>
-          <div><dt>Financed Against</dt><dd>{{ formatKes(item.financedAgainst) }}</dd></div>
-          <div><dt>Payment Destination</dt><dd>Client Clearing Account (Managed by Avenews)</dd></div>
-        </dl>
-        <div class="partner-attention-note">Use the payment instructions and reference provided by Avenews for this payment date.</div>
       </div>
     </section>
   </div>
@@ -253,35 +335,96 @@
 @if (selectedSupplier; as supplier) {
   <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeSupplier()">
     <section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-supplier-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head"><div><p class="page-eyebrow">{{ supplierLimitMode ? 'Manage Supplier limit' : 'Supplier details' }}</p><h2 id="partner-supplier-title">{{ supplier.business }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeSupplier()">&times;</button></header>
+      <header class="baseline-modal__head">
+        <div><p class="page-eyebrow">Supplier</p><h2 id="partner-supplier-title">{{ supplier.business }}</h2></div>
+        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeSupplier()">&times;</button>
+      </header>
       <div class="baseline-modal__body partner-modal__body">
         <div class="partner-modal-status"><span>{{ supplier.identifier }} · Last invoice upload {{ supplier.lastUpload }}</span><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.status }}</span></div>
         <dl class="partner-detail-grid">
           <div><dt>Max Financing</dt><dd>{{ formatKes(supplier.maxFinancing) }}</dd></div>
           <div><dt>Financing Used</dt><dd>{{ formatKes(supplier.used) }}</dd></div>
           <div><dt>Financing Available</dt><dd>{{ formatKes(supplier.available) }}</dd></div>
-          <div><dt>Status</dt><dd>{{ supplier.status }}</dd></div>
+          <div><dt>Payments Due</dt><dd>{{ formatKes(supplierPaymentDue(supplier)) }}</dd></div>
         </dl>
-        @if (supplierLimitMode) {
-          <div class="baseline-field"><label for="partner-supplier-limit">New Max Financing</label><input id="partner-supplier-limit" class="baseline-control" type="number" min="0" [value]="supplier.maxFinancing"></div>
-          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="saveSupplierLimit()">Save limit</button>
+
+        <section class="partner-periods" aria-labelledby="partner-supplier-periods-title">
+          <div class="partner-periods__heading">
+            <p class="page-eyebrow">Periods</p>
+            <h3 id="partner-supplier-periods-title">Supplier periods</h3>
+            <p>Each period groups eligible receivables for this Supplier and one due date.</p>
+          </div>
+
+          <div class="partner-period-list">
+            @for (period of periodsForSupplier(supplier); track period.id) {
+              <button type="button" class="partner-period-row" (click)="openSupplierPeriod(period)">
+                <div class="partner-period-row__head">
+                  <span class="baseline-financing-cell"><strong>{{ period.reference }}</strong><span>Due {{ formatDate(period.dueDate, true) }}</span></span>
+                  <span class="partner-period-row__badges">
+                    <span class="baseline-status" [class]="'baseline-status ' + period.periodTone">{{ period.periodStatus }}</span>
+                    <span class="baseline-status" [class]="'baseline-status ' + period.paymentTone">{{ period.paymentStatus }}</span>
+                  </span>
+                </div>
+                <div class="partner-period-row__metrics">
+                  <span><small>Amount to Pay</small><strong>{{ formatKes(period.amountToPay) }}</strong></span>
+                  <span><small>Invoices</small><strong>{{ period.invoiceCount }}</strong></span>
+                  <span><small>Financing</small><strong>{{ formatKes(period.financedAgainst) }}</strong></span>
+                </div>
+                <span class="partner-period-row__action">View payment details</span>
+              </button>
+            } @empty {
+              <div class="baseline-empty"><strong>No Supplier periods</strong><p>Eligible invoice information will create periods for this Supplier.</p></div>
+            }
+          </div>
+        </section>
+      </div>
+    </section>
+  </div>
+}
+
+@if (selectedPeriod; as period) {
+  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closePeriod()">
+    <section class="baseline-modal partner-modal partner-period-modal" role="dialog" aria-modal="true" aria-labelledby="partner-period-title" (click)="$event.stopPropagation()">
+      <header class="baseline-modal__head">
+        <div class="partner-modal-heading">
+          @if (returnSupplier) {
+            <button type="button" class="baseline-button baseline-button--secondary partner-modal-back" (click)="backToSupplier()"><span aria-hidden="true">←</span><span>Back to Supplier</span></button>
+          }
+          <div><p class="page-eyebrow">Payment details</p><h2 id="partner-period-title">{{ period.reference }}</h2></div>
+        </div>
+        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closePeriod()">&times;</button>
+      </header>
+      <div class="baseline-modal__body partner-modal__body">
+        @if (supplierForPeriod(period); as supplier) {
+          <div class="partner-payment-total">
+            <span>Amount to pay</span>
+            <strong>{{ formatKes(period.amountToPay) }}</strong>
+            <small>{{ supplier.business }} · Due {{ formatDate(period.dueDate, true) }}</small>
+          </div>
+
+          <dl class="partner-detail-grid">
+            <div><dt>Supplier</dt><dd>{{ supplier.business }}</dd></div>
+            <div><dt>Due Date</dt><dd>{{ formatDate(period.dueDate) }}</dd></div>
+            <div><dt>Period Status</dt><dd>{{ period.periodStatus }}</dd></div>
+            <div><dt>Payment Status</dt><dd>{{ period.paymentStatus }}</dd></div>
+            <div><dt>Invoices</dt><dd>{{ period.invoiceCount }}</dd></div>
+            <div><dt>Invoice Value</dt><dd>{{ formatKes(period.invoiceValue) }}</dd></div>
+            <div><dt>Financing Associated</dt><dd>{{ formatKes(period.financedAgainst) }}</dd></div>
+            <div><dt>Payment Destination</dt><dd>Your Avenews Clearing Account</dd></div>
+            <div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div>
+          </dl>
+
+          @if (period.paymentStatusKey !== 'paid') {
+            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="copyPaymentReference(period.paymentReference)">Copy payment reference</button>
+          }
+
+          <div class="partner-attention-note">Your payment is applied to this Period. Avenews settles the financing and transfers any remaining proceeds according to the Supplier's financing arrangement.</div>
         }
       </div>
     </section>
   </div>
 }
 
-@if (inviteSupplierOpen) {
-  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeInviteSupplier()">
-    <section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-invite-title" (click)="$event.stopPropagation()">
-      <header class="baseline-modal__head"><h2 id="partner-invite-title">Invite Supplier</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeInviteSupplier()">&times;</button></header>
-      <div class="baseline-modal__body partner-modal__body">
-        <div class="baseline-field"><label for="partner-supplier-name">Supplier business name</label><input id="partner-supplier-name" class="baseline-control" type="text"></div>
-        <div class="baseline-field"><label for="partner-supplier-email">Contact email</label><input id="partner-supplier-email" class="baseline-control" type="email"></div>
-        <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeInviteSupplier()">Send invitation</button>
-      </div>
-    </section>
-  </div>
+@if (toast) {
+  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
 }
-
-@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
