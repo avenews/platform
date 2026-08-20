@@ -1,189 +1,100 @@
-.acl-summary .contextual-metric {
+.customer-product-summary .contextual-metric {
   align-content: start;
   grid-auto-rows: max-content;
   gap: 10px;
-  min-height: 164px;
+  min-height: 170px;
 }
 
-.acl-summary .contextual-metric > strong {
+.customer-product-summary .contextual-metric > strong {
   margin-top: 2px;
   line-height: 1.15;
 }
 
-.acl-summary .contextual-metric > small {
+.customer-product-summary .contextual-metric > small {
   line-height: 1.45;
 }
 
-.acl-payments-due strong {
+.customer-payments-due strong {
   line-height: 1.2;
 }
 
-.acl-payments-due__periods {
-  color: var(--av-color-text-heading, #0d343f) !important;
-  font-weight: 700;
-}
-
-.acl-summary-repayment-action {
+.customer-payments-due__action {
   width: fit-content;
   justify-self: start;
-  margin-top: 2px;
-  margin-left: 0;
+  margin-top: 4px;
 }
 
-.acl-record-actions {
-  display: flex;
-  width: 100%;
-  padding-top: 4px;
-}
-
-.acl-repayment-modal__heading {
-  min-width: 0;
-  display: grid;
-  align-items: start;
-  gap: 6px;
-}
-
-.acl-repayment-modal__title {
-  min-width: 0;
-  display: grid;
-  gap: 4px;
-}
-
-.acl-repayment-modal__title p,
-.acl-repayment-modal__title h2 {
-  margin: 0;
-}
-
-.acl-modal-back {
-  width: fit-content;
-  justify-self: start;
-  margin-left: -10px;
-}
-
-.acl-modal-back av-icon {
-  display: inline-flex;
-  flex: 0 0 auto;
-}
-
-.acl-repayment-summary__statuses {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.acl-repayment-periods {
-  overflow: hidden;
-  border: 1px solid var(--av-color-surface-border, #e1e7eb);
-  border-radius: 10px;
-  background: var(--av-color-surface, #fff);
-}
-
-.acl-repayment-periods__heading,
-.acl-repayment-period {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.customer-financing-activity {
   gap: 16px;
-  padding: 13px 16px;
 }
 
-.acl-repayment-periods__heading {
-  background: var(--av-color-surface-subtle, #f6f7f9);
+.customer-activity-toolbar {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
 }
 
-.acl-repayment-periods__heading span {
-  color: var(--av-color-text-heading, #0d343f);
+.customer-activity-toolbar .baseline-section-heading,
+.customer-activity-toolbar app-customer-filter-bar {
+  min-width: 0;
+}
+
+.customer-activity-table {
+  min-width: 1160px;
+}
+
+.customer-activity-row {
+  cursor: pointer;
+}
+
+.customer-activity-row:hover,
+.customer-activity-row:focus-visible {
+  background: var(--av-color-primary-subtle, #eefbfc);
+  outline: none;
+}
+
+.customer-record-card-button {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.customer-record-card-button__action {
+  color: var(--av-color-action, #16b3c4);
   font-size: 12px;
   font-weight: 700;
 }
 
-.acl-repayment-periods__heading small {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 11px;
-}
-
-.acl-repayment-period {
-  border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
-}
-
-.acl-repayment-period > div {
-  min-width: 0;
-  display: grid;
-  gap: 3px;
-}
-
-.acl-repayment-period strong {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 13px;
-}
-
-.acl-repayment-period small {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 11px;
-}
-
-.acl-payment-allocation-note {
-  display: grid;
-  gap: 4px;
-  padding: 14px 16px;
-  border: 1px solid var(--av-color-surface-border, #e1e7eb);
-  border-radius: 10px;
-  background: var(--av-color-surface, #fff);
-}
-
-.acl-payment-allocation-note strong,
-.acl-payment-allocation-note p {
-  margin: 0;
-}
-
-.acl-payment-allocation-note strong {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 13px;
-}
-
-.acl-payment-allocation-note p {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
-  line-height: 1.55;
+.customer-pagination {
+  margin-top: 0;
 }
 
 @media (min-width: 1024px) {
-  .acl-activity-toolbar {
-    grid-template-columns: minmax(220px, .6fr) minmax(0, 1.6fr);
+  .customer-activity-toolbar {
+    grid-template-columns: minmax(240px, .65fr) minmax(0, 1.65fr);
     align-items: start;
     column-gap: 24px;
   }
 
-  .acl-activity-toolbar .baseline-section-heading,
-  .acl-activity-toolbar app-customer-filter-bar {
+  .customer-activity-toolbar .baseline-section-heading,
+  .customer-activity-toolbar app-customer-filter-bar {
     align-self: start;
   }
 }
 
 @media (max-width: 767px) {
-  .acl-summary .contextual-metric {
+  .customer-product-summary .contextual-metric {
     min-height: 0;
   }
 
-  .acl-summary-repayment-action {
-    margin-left: 0;
-  }
-
-  .acl-modal-back {
-    margin-left: -8px;
-  }
-
-  .acl-repayment-summary {
-    display: grid;
-  }
-
-  .acl-repayment-summary__statuses {
-    justify-content: flex-start;
-  }
-
-  .acl-repayment-periods__heading,
-  .acl-repayment-period {
-    align-items: flex-start;
+  .customer-payments-due__action {
+    width: 100%;
   }
 }
