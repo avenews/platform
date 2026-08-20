@@ -19,7 +19,7 @@ interface NavItem {
 const CUSTOMER_DESKTOP_NAV_ITEMS: ReadonlyArray<NavItem> = [
   { path: '/', label: 'Home', icon: 'home', exact: true },
   { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
-  { path: '/financing-activity', label: 'Financing', icon: 'bar-chart', exact: false },
+  { path: '/financing-activity', label: 'Financing Activity', icon: 'bar-chart', exact: false },
   { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
   { path: '/support', label: 'Support', icon: 'help-circle', exact: false },
 ]
@@ -27,7 +27,7 @@ const CUSTOMER_DESKTOP_NAV_ITEMS: ReadonlyArray<NavItem> = [
 const CUSTOMER_MOBILE_NAV_ITEMS: ReadonlyArray<NavItem> = [
   { path: '/', label: 'Home', icon: 'home', exact: true },
   { path: '/available-financing', label: 'Available Financing', icon: 'wallet', exact: false },
-  { path: '/financing-activity', label: 'Financing', icon: 'bar-chart', exact: false },
+  { path: '/financing-activity', label: 'Financing Activity', icon: 'bar-chart', exact: false },
   { path: '/invoices', label: 'Invoices & Documents', icon: 'receipt', exact: false },
 ]
 
