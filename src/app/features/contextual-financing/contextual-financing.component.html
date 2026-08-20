@@ -44,12 +44,13 @@
                       <span>View</span>
                     </button>
                     @if (canUploadInvoices(relationship)) {
-                      <button type="button" class="baseline-button baseline-button--primary" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
+                      <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
                     }
                     @if (relationship.fundsRequestLabel) {
                       <button
                         type="button"
                         class="baseline-button baseline-button--primary"
+                        data-action="request-financing"
                         [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0"
                         [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
                         (click)="startFundsRequest(relationship, $event)"
@@ -87,12 +88,13 @@
                 <span>View</span>
               </button>
               @if (canUploadInvoices(relationship)) {
-                <button type="button" class="baseline-button baseline-button--primary" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
+                <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
               }
               @if (relationship.fundsRequestLabel) {
                 <button
                   type="button"
                   class="baseline-button baseline-button--primary"
+                  data-action="request-financing"
                   [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0"
                   [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
                   (click)="startFundsRequest(relationship, $event)"
@@ -128,13 +130,14 @@
           </dl>
 
           @if (canUploadInvoices(relationship)) {
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
+            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
           }
 
           @if (relationship.fundsRequestLabel) {
             <button
               type="button"
               class="baseline-button baseline-button--primary baseline-button--block"
+              data-action="request-financing"
               [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0"
               [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
               (click)="startFundsRequest(relationship, $event)"
@@ -163,7 +166,7 @@
                 </button>
 
                 @if (canRequestFromPeriod(period)) {
-                  <button type="button" class="baseline-button baseline-button--primary relationship-period-row__action" (click)="requestFundsForPeriod(period, $event)">Request funds</button>
+                  <button type="button" class="baseline-button baseline-button--primary relationship-period-row__action" data-action="request-financing" (click)="requestFundsForPeriod(period, $event)">Request funds</button>
                 }
               </article>
             } @empty {
@@ -208,7 +211,7 @@
             <label for="client-invoice-value">Invoice value</label>
             <input id="client-invoice-value" class="baseline-control" type="number" min="0" placeholder="KES">
           </div>
-          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="completeInvoiceUpload()">Submit invoice</button>
+          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="completeInvoiceUpload()">Submit invoice</button>
         </div>
       </section>
     </div>
