@@ -106,14 +106,16 @@
 }
 
 .contextual-financing .baseline-button--primary {
-  border-color: var(--av-color-success, #16865b);
-  background: var(--av-color-success, #16865b);
-  color: #fff;
+  border-color: var(--av-color-action, #16b3c4);
+  background: var(--av-color-action, #16b3c4);
+  color: var(--av-color-on-action, #fff);
 }
 
 .contextual-financing .baseline-button--primary:hover:not(:disabled),
 .contextual-financing .baseline-button--primary:focus-visible:not(:disabled) {
-  filter: brightness(.95);
+  border-color: var(--av-color-action-hover, #1691a4);
+  background: var(--av-color-action-hover, #1691a4);
+  filter: none;
 }
 
 .contextual-financing .baseline-button--primary:disabled {
