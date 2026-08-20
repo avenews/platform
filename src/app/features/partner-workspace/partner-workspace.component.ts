@@ -51,7 +51,7 @@ export class PartnerWorkspaceComponent {
   readonly section = (this.route.snapshot.data['section'] ?? 'invoice-uploads') as PartnerSection
   readonly formatKes = formatKes
 
-  uploadOpen = false
+  uploadOpen = this.section === 'invoice-uploads' && this.route.snapshot.queryParamMap.get('action') === 'upload'
   inviteSupplierOpen = false
   selectedBatch: UploadBatch | null = null
   selectedObligation: Obligation | null = null
