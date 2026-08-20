@@ -53,6 +53,13 @@ export class CustomerFilterBarComponent implements OnChanges {
     }
   }
 
+  get hasActiveFilters(): boolean {
+    return Boolean(
+      this.searchValue.trim()
+      || this.filters.some(filter => Boolean(this.values[filter.key])),
+    )
+  }
+
   valueFor(key: string): string {
     return this.values[key] ?? ''
   }
@@ -83,10 +90,13 @@ export class CustomerFilterBarComponent implements OnChanges {
     this.draftValues = { ...this.draftValues, [key]: value }
   }
 
-  clearDraftValues(): void {
+  clearAllFilters(): void {
     const nextValues: Record<string, string> = {}
     for (const filter of this.filters) nextValues[filter.key] = ''
     this.draftValues = nextValues
+    this.searchValueChange.emit('')
+    this.valuesChange.emit(nextValues)
+    this.mobileOpen = false
   }
 
   applyDraftValues(): void {
