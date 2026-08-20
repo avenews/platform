@@ -96,7 +96,7 @@ async function assertRelationshipListCount(page: Page, testInfo: TestInfo, count
 }
 
 async function assertModalBodyScrollable(dialog: Locator): Promise<void> {
-  const body = dialog.locator('.customer-period-modal__body, .relationship-modal__body').first()
+  const body = dialog.locator('.customer-period-modal__body, .relationship-modal__body, .partner-modal__body').first()
   await expect(body).toBeVisible()
   await expect(body).toHaveCSS('overflow-y', 'auto')
 }
@@ -116,7 +116,7 @@ test.describe('post-OTP access resolution', () => {
     for (const destination of CUSTOMER_DESTINATIONS) {
       await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.label)
     }
-    await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Invoice Financing - Partner Buyer')
+    await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Partner Buyer Portal')
     await expect(page.locator('.access-card__action')).toHaveText(['View', 'View', 'View', 'View', 'View', 'View'])
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
   })
@@ -130,7 +130,7 @@ test.describe('post-OTP access resolution', () => {
   test('single Partner Buyer access routes straight to its workspace', async ({ page }) => {
     await completePrototypeLogin(page, 'partner-only')
     await expect(page).toHaveURL(/\/experience\/invoice-partner\/home$/)
-    await expect(page.getByRole('heading', { name: 'Invoice Financing - Partner Buyer', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Partner Buyer Portal', level: 1 })).toBeVisible()
   })
 })
 
@@ -194,13 +194,29 @@ test.describe('shared customer financing pattern', () => {
       const desktopSearch = page.locator('.customer-filter-bar__desktop .customer-filter-search')
       const width = await desktopSearch.evaluate(element => element.getBoundingClientRect().width)
       expect(width).toBeLessThanOrEqual(222)
-      await page.locator('.customer-filter-bar__desktop').getByRole('button', { name: 'Clear filters' }).click()
+      const clear = page.locator('.customer-filter-bar__desktop').getByRole('button', { name: 'Clear filters' })
+      await expect(clear).toHaveCSS('background-color', 'rgb(26, 46, 68)')
+      await clear.click()
     }
 
     await expect(search).toHaveValue('')
     if (!isMobile(testInfo)) {
       await expect(page.getByRole('combobox', { name: 'Status' })).toHaveValue('')
     }
+  })
+
+  test('product switcher uses compact product-only rows', async ({ page }, testInfo) => {
+    await page.goto('/experience/acl/home')
+    const trigger = isMobile(testInfo)
+      ? page.locator('.experience-mobile-context')
+      : page.locator('.experience-context-trigger')
+    await trigger.click()
+    const firstProduct = page.locator('.experience-context-menu__product').first()
+    await expect(firstProduct).toBeVisible()
+    await expect(firstProduct).toHaveCSS('display', 'flex')
+    await expect(firstProduct).toHaveCSS('min-height', '48px')
+    await expect(page.locator('.experience-context-menu')).not.toContainText('Kioko Agri Supplies Ltd')
+    await expect(page.locator('.experience-context-menu')).not.toContainText('Twiga Foods Ltd')
   })
 
   test('Payments Due remains outlined and filters Financing', async ({ page }, testInfo) => {
@@ -434,14 +450,77 @@ test.describe('relationship-first request flows', () => {
   })
 })
 
-test.describe('Partner Buyer boundary', () => {
+test.describe('Partner Buyer Portal', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
-  test('Partner Buyer remains a distinct non-borrower workspace', async ({ page }) => {
+  test('uses the same concise framework around Partner Buyer priorities', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/home')
-    await expect(page.getByRole('heading', { name: 'Invoice Financing - Partner Buyer', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Partner Buyer Portal', level: 1 })).toBeVisible()
     await expect(page.getByRole('button', { name: /upload invoices/i })).toBeVisible()
+    await expect(page.locator('.contextual-metrics .contextual-metric')).toHaveCount(3)
+    await expect(page.locator('.contextual-metrics')).toContainText('Invoices Uploaded')
+    await expect(page.locator('.contextual-metrics')).toContainText('Payments Due')
+    await expect(page.locator('.contextual-metrics')).toContainText('Supplier Financing Available')
     await expect(page.locator('.customer-product-summary')).toHaveCount(0)
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
+
+    const navigation = isMobile(testInfo)
+      ? page.locator('.experience-bottom-nav')
+      : page.locator('.experience-sidebar-nav')
+    await expect(navigation.locator('a')).toHaveText(['Home', 'Invoice Uploads', 'Payments', 'Suppliers', 'Manage Users'])
+    await assertNoOverflow(page)
+  })
+
+  test('invoice upload actions use modals and remove Funds Request boundary copy', async ({ page }) => {
+    await page.goto('/experience/invoice-partner/invoice-uploads')
+    await expect(page.locator('.partner-workspace-page')).not.toContainText('No Funds Request action exists in this workspace.')
+    await expect(page.locator('.partner-workspace-page')).not.toContainText('After eligible invoices form a Dynamic Period')
+
+    await page.getByRole('button', { name: 'Upload invoices' }).click()
+    const uploadDialog = page.locator('.partner-modal')
+    await expect(uploadDialog).toBeVisible()
+    await expect(uploadDialog.getByRole('heading', { name: 'Upload invoices' })).toBeVisible()
+    await assertModalBodyScrollable(uploadDialog)
+    await uploadDialog.getByRole('button', { name: 'Close' }).click()
+
+    const firstView = page.getByRole('button', { name: 'View', exact: true }).first()
+    await firstView.click()
+    const resultDialog = page.locator('.partner-modal')
+    await expect(resultDialog).toContainText('Upload result')
+    await expect(resultDialog).toContainText('Imported')
+    await expect(resultDialog).toContainText('Failed')
+  })
+
+  test('payment actions open Partner Buyer payment details', async ({ page }) => {
+    await page.goto('/experience/invoice-partner/obligations')
+    await expect(page.getByRole('heading', { name: 'Payments', level: 1 })).toBeVisible()
+    const action = page.getByRole('button', { name: 'View payment' }).first()
+    await expect(action).toHaveClass(/baseline-button--primary/)
+    await action.click()
+    const dialog = page.locator('.partner-modal')
+    await expect(dialog).toContainText('Amount to pay')
+    await expect(dialog).toContainText('Client Clearing Account (Managed by Avenews)')
+    await assertModalBodyScrollable(dialog)
+  })
+
+  test('Supplier limits show available, unavailable and max-used states with modal actions', async ({ page }) => {
+    await page.goto('/experience/invoice-partner/suppliers')
+    await expect(page.getByRole('heading', { name: 'Suppliers', level: 1 })).toBeVisible()
+    await expect(page.locator('.partner-workspace-page')).toContainText('Available')
+    await expect(page.locator('.partner-workspace-page')).toContainText('Unavailable')
+    await expect(page.locator('.partner-workspace-page')).toContainText('Max financing used')
+
+    const manage = page.getByRole('button', { name: 'Manage limit' }).first()
+    await expect(manage).toHaveClass(/baseline-button--primary/)
+    await manage.click()
+    const manageDialog = page.locator('.partner-modal')
+    await expect(manageDialog).toContainText('Max Financing')
+    await expect(manageDialog.getByRole('button', { name: 'Save limit' })).toHaveClass(/baseline-button--primary/)
+    await manageDialog.getByRole('button', { name: 'Close' }).click()
+
+    await page.getByRole('button', { name: 'Invite Supplier' }).click()
+    const inviteDialog = page.locator('.partner-modal')
+    await expect(inviteDialog.getByRole('heading', { name: 'Invite Supplier' })).toBeVisible()
+    await expect(inviteDialog.getByRole('button', { name: 'Send invitation' })).toHaveClass(/baseline-button--primary/)
   })
 })
