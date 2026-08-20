@@ -31,18 +31,6 @@
       <p>Choose the business, role, and financing experience you need for this session. This selection is not remembered after you log out.</p>
     </section>
 
-    <app-prototype-explainer tone="purpose" title="Product selection appears only when there is a choice">
-      <p>After verification, a user with more than one available product or workspace lands on this selection page. If exactly one product or workspace is available, the portal opens it directly instead of asking the user to make an unnecessary selection.</p>
-    </app-prototype-explainer>
-
-    <app-prototype-explainer tone="decision" title="The portal asks again on every new login">
-      <p>The product or workspace choice is kept only for the current authenticated session. It is cleared on logout so the next login starts from the user's currently available access.</p>
-    </app-prototype-explainer>
-
-    <app-prototype-explainer tone="terminology" title="Internal financing-party labels are hidden from customer product cards">
-      <p>The customer selects a business and product by the names they recognise. Client Buyer, Client Supplier, and similar role taxonomy remains useful for Product review and access rules, but it does not need to be a customer-facing tag on every card.</p>
-    </app-prototype-explainer>
-
     @if (customerDestinations.length) {
       <section class="access-group" aria-labelledby="available-products-title">
         <div class="access-group__heading">
@@ -79,10 +67,6 @@
     }
 
     @if (partnerDestinations.length) {
-      <app-prototype-explainer tone="role" title="Partner workspace access is operationally separate from customer financing">
-        <p>A Partner Buyer can have operational tasks such as invoice uploads and payment obligations without being the borrowing customer in that workspace. Partner-only access therefore continues directly to its workspace; mixed access remains visible here so the user can switch deliberately.</p>
-      </app-prototype-explainer>
-
       <section class="access-group" aria-labelledby="partner-workspace-title">
         <div class="access-group__heading">
           <h2 id="partner-workspace-title">Partner workspace</h2>
