@@ -132,10 +132,10 @@
   justify-content: center;
   justify-self: end;
   padding: 0 16px;
-  border: 1px solid var(--av-color-success, #16865b);
+  border: 1px solid var(--av-color-action, #16b3c4);
   border-radius: 6px;
-  background: var(--av-color-success, #16865b);
-  color: #fff;
+  background: var(--av-color-action, #16b3c4);
+  color: var(--av-color-on-primary, #fff);
   font-size: 13px;
   font-weight: 700;
 }
