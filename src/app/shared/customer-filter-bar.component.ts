@@ -96,7 +96,6 @@ export class CustomerFilterBarComponent implements OnChanges {
     this.draftValues = nextValues
     this.searchValueChange.emit('')
     this.valuesChange.emit(nextValues)
-    this.mobileOpen = false
   }
 
   applyDraftValues(): void {
