@@ -15,7 +15,7 @@
             <button type="button" role="menuitem" (click)="openDestination('stf')">Stockist Financing</button>
             <button type="button" role="menuitem" (click)="openDestination('invoice-financing')">Invoice Financing</button>
             <button type="button" role="menuitem" (click)="openDestination('infx')">Invoice Financing Express</button>
-            <button type="button" role="menuitem" (click)="openDestination('invoice-partner')">Invoice Financing - Partner Buyer</button>
+            <button type="button" role="menuitem" (click)="openDestination('invoice-partner')">Partner Buyer Portal</button>
           </div>
         }
       </div>
@@ -83,7 +83,7 @@
             >
               <strong>{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
-              <p>{{ destination.description }}</p>
+              <p>{{ destination.id === 'invoice-partner' ? 'Upload invoices, review Supplier periods, and manage Buyer payments by Supplier and due date.' : destination.description }}</p>
               <span class="access-card__action">View</span>
             </button>
           }
