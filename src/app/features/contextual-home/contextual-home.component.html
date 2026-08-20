@@ -1,4 +1,4 @@
-<div class="portal-page contextual-home">
+<div class="portal-page contextual-home" [attr.data-product-context]="workspace?.id ?? null">
   @if (workspace; as product) {
     <section class="contextual-home__hero">
       <div>
@@ -10,19 +10,10 @@
         class="baseline-button baseline-button--primary contextual-home__primary"
         [attr.data-action-kind]="product.primaryActionKind"
         [attr.data-external-url]="product.id === 'acl' ? aclFundsRequestDemoUrl : null"
+        [attr.title]="product.id === 'invoice-financing' ? 'Upload invoices to create or update an eligible Dynamic Period' : primaryActionLabel"
         (click)="primaryAction()"
-      >{{ product.primaryActionLabel }}</button>
+      >{{ primaryActionLabel }}</button>
     </section>
-
-    <app-prototype-explainer tone="purpose" title="Every customer product uses the same simple Home pattern">
-      <p>Home answers three questions first: what financing is available, what remains outstanding, and what needs payment or settlement attention. The detailed financing records sit immediately below those cards.</p>
-    </app-prototype-explainer>
-
-    @if (product.id === 'invoice-financing') {
-      <app-prototype-explainer tone="handbook" title="Invoice Financing settlement stays Buyer-funded">
-        <p>The Client Supplier sees its Buyer and Dynamic Period context, but settlement is driven by the Buyer payment into the Client Clearing Account managed by Avenews. This product therefore shows settlement details rather than asking the Client Supplier to make a manual bank or M-Pesa repayment.</p>
-      </app-prototype-explainer>
-    }
 
     <section class="contextual-metrics customer-product-summary" [attr.aria-label]="product.heading + ' summary'">
       <article class="contextual-metric baseline-card">
@@ -45,14 +36,11 @@
           type="button"
           class="baseline-button baseline-button--secondary customer-payments-due__action"
           [attr.aria-label]="product.dueActionLabel + ' in Financing'"
+          [attr.title]="product.dueActionLabel"
           (click)="filterPaymentsDue()"
         >{{ product.dueActionLabel }}</button>
       </article>
     </section>
-
-    <app-prototype-explainer tone="decision" title="The payment card is a filter, not another repayment screen">
-      <p>The summary stays universal. Its outlined action filters Financing to the affected periods. Repayment or settlement instructions stay attached to the specific financing record so the customer always knows which obligation they are viewing.</p>
-    </app-prototype-explainer>
 
     <section id="customer-financing-activity" class="baseline-section customer-financing-activity">
       <div class="customer-activity-toolbar">
@@ -63,7 +51,7 @@
         <app-customer-filter-bar
           [searchValue]="searchQuery"
           [searchPlaceholder]="searchPlaceholder"
-          [searchAriaLabel]="'Search ' + product.heading + ' financing'"
+          [searchAriaLabel]="'Search all values in ' + product.heading + ' financing'"
           [filters]="filterFields"
           [values]="filterValues"
           (searchValueChange)="onSearchValueChange($event)"
@@ -71,52 +59,26 @@
         />
       </div>
 
-      @if (product.id === 'acl') {
-        <app-prototype-explainer tone="handbook" title="Only source-backed financing identifiers and customer-visible statuses are shown">
-          <p>The financing row uses the Funds Request reference as its identifier rather than inventing a purchase or financing-period name. Customer-facing statuses are Requested, Live, Overdue, Repaid, Cancelled, and Declined.</p>
-        </app-prototype-explainer>
-      }
-
-      @if (product.id === 'abf') {
-        <app-prototype-explainer tone="decision" title="ABF stays financing-first while Funds Requests stay Supplier-scoped">
-          <p>Financing is shown across approved Suppliers. Request funds takes the customer to the Suppliers page so the Supplier context and its sub-limit are established before entering the request journey.</p>
-        </app-prototype-explainer>
-      }
-
-      @if (product.id === 'stf') {
-        <app-prototype-explainer tone="handbook" title="Stockist Financing keeps each period with its Partner Supplier">
-          <p>The Stockist is the Client Buyer and the approved Partner Supplier receives the financing disbursement. Request funds takes the customer to Partner Suppliers so the Supplier context is selected before the request starts.</p>
-        </app-prototype-explainer>
-      }
-
-      @if (product.id === 'invoice-financing') {
-        <app-prototype-explainer tone="handbook" title="Invoice Financing keeps Dynamic Periods with the relevant Buyer">
-          <p>A Dynamic Period groups one Client Supplier, one Buyer and one invoice Due Date. Multiple Funds Requests may be submitted against an eligible period while Available to Withdraw remains and the request window is open.</p>
-        </app-prototype-explainer>
-      }
-
-      @if (product.id === 'infx') {
-        <app-prototype-explainer tone="handbook" title="Invoice Financing Express keeps one invoice in each Funds Request">
-          <p>Each approved Buyer can have a Buyer sub-limit, but each Funds Request finances one invoice and creates its own Financing Period. The Client Supplier manually repays Avenews at the end of that period.</p>
-        </app-prototype-explainer>
-      }
-
       <div class="baseline-table-wrap">
         <table class="baseline-table customer-activity-table">
           <thead>
             <tr>
-              <th>Financing</th>
-              <th>Disbursement Date</th>
-              <th>{{ product.dueDateColumnLabel }}</th>
-              <th>Amount Financed</th>
-              @if (product.id === 'invoice-financing') {
-                <th>Available to Withdraw</th>
+              <th title="The reference for this Funds Request or Dynamic Period.">Reference</th>
+              @if (product.id !== 'invoice-financing') {
+                <th title="The date Avenews disbursed the approved financing. Pending means it has not been disbursed yet.">Disbursement Date</th>
               }
-              <th>Status</th>
-              <th>{{ product.totalRepaidColumnLabel }}</th>
-              <th>{{ product.outstandingColumnLabel }}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? 'The date this Dynamic Period is due based on the underlying receivables.' : 'The date this financing is due for repayment.'">{{ product.dueDateColumnLabel }}</th>
+              <th title="The principal amount Avenews has financed for this record.">Amount Financed</th>
               @if (product.id === 'invoice-financing') {
-                <th class="is-right">Action</th>
+                <th title="The additional amount you can currently request from this Dynamic Period, subject to the request window.">Available to Withdraw</th>
+              }
+              <th title="The current customer-facing status of this financing record.">Status</th>
+              @if (product.id !== 'invoice-financing') {
+                <th [attr.title]="'The amount already repaid against this financing record.'">{{ product.totalRepaidColumnLabel }}</th>
+              }
+              <th [attr.title]="product.id === 'invoice-financing' ? 'The financed principal still outstanding on this Dynamic Period.' : 'The financed principal still outstanding on this financing record.'">{{ product.outstandingColumnLabel }}</th>
+              @if (product.id === 'invoice-financing') {
+                <th title="Request additional funds while the Dynamic Period is eligible and the request window is open.">Action</th>
               }
             </tr>
           </thead>
@@ -132,15 +94,15 @@
               >
                 <td>
                   <span class="baseline-financing-cell">
-                    @if (product.id === 'acl') {
-                      <strong>{{ period.reference }}</strong>
-                    } @else {
-                      <strong>{{ period.relationshipName }}</strong>
-                      <span>{{ period.reference }}</span>
+                    <strong>{{ period.reference }}</strong>
+                    @if (product.id !== 'acl') {
+                      <span>{{ period.relationshipName }}</span>
                     }
                   </span>
                 </td>
-                <td [class.baseline-muted]="!period.disbursementDate">{{ period.disbursementDate ? formatDate(period.disbursementDate, true) : 'Pending' }}</td>
+                @if (product.id !== 'invoice-financing') {
+                  <td [class.baseline-muted]="!period.disbursementDate">{{ period.disbursementDate ? formatDate(period.disbursementDate, true) : 'Pending' }}</td>
+                }
                 <td>{{ formatDate(period.repaymentDueDate, true) }}</td>
                 <td>{{ formatKes(period.amountFinanced) }}</td>
                 @if (product.id === 'invoice-financing') {
@@ -152,20 +114,27 @@
                   </td>
                 }
                 <td><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></td>
-                <td>{{ formatKes(period.totalRepaid) }}</td>
+                @if (product.id !== 'invoice-financing') {
+                  <td>{{ formatKes(period.totalRepaid) }}</td>
+                }
                 <td><strong>{{ formatKes(period.outstandingBalance) }}</strong></td>
                 @if (product.id === 'invoice-financing') {
-                  <td class="is-right">
+                  <td>
                     @if (canRequestFromPeriod(period)) {
-                      <button type="button" class="baseline-button baseline-button--secondary" (click)="requestFundsForPeriod(period, $event)">{{ periodRequestLabel(period) }}</button>
+                      <button
+                        type="button"
+                        class="baseline-button baseline-button--primary customer-period-request"
+                        title="Request funds from this Dynamic Period"
+                        (click)="requestFundsForPeriod(period, $event)"
+                      >Request funds</button>
                     } @else {
-                      <span class="baseline-muted">—</span>
+                      <span class="baseline-muted" title="No additional funding can currently be requested from this Dynamic Period.">—</span>
                     }
                   </td>
                 }
               </tr>
             } @empty {
-              <tr><td [attr.colspan]="product.id === 'invoice-financing' ? 9 : 7"><div class="baseline-empty"><strong>No matching financing</strong><p>Try changing your search or filters.</p></div></td></tr>
+              <tr><td [attr.colspan]="product.id === 'invoice-financing' ? 7 : 7"><div class="baseline-empty"><strong>No matching financing</strong><p>Try changing your search or filters.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -174,31 +143,40 @@
       <div class="baseline-cards customer-activity-cards">
         @for (period of pageItems; track period.id) {
           <article class="baseline-record-card customer-financing-card">
-            <button type="button" class="customer-record-card-button" (click)="openPeriod(period)">
+            <button
+              type="button"
+              class="customer-record-card-button"
+              [attr.title]="'View details for ' + period.reference"
+              (click)="openPeriod(period)"
+            >
               <div class="baseline-record-card__head">
                 <span class="baseline-financing-cell">
-                  @if (product.id === 'acl') {
-                    <strong>{{ period.reference }}</strong>
-                  } @else {
-                    <strong>{{ period.relationshipName }}</strong>
-                    <span>{{ period.reference }}</span>
+                  <strong>{{ period.reference }}</strong>
+                  @if (product.id !== 'acl') {
+                    <span>{{ period.relationshipName }}</span>
                   }
                 </span>
                 <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric"><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
-                <span class="baseline-metric"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                <span class="baseline-metric" title="The principal amount Avenews has financed for this record."><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
+                <span class="baseline-metric" [attr.title]="product.id === 'invoice-financing' ? 'The date this Dynamic Period is due.' : 'The date this financing is due for repayment.'"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
                 @if (product.id === 'invoice-financing') {
-                  <span class="baseline-metric"><small>Available to Withdraw</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span>
+                  <span class="baseline-metric" title="The additional amount you can currently request from this Dynamic Period."><small>Available to Withdraw</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span>
+                } @else {
+                  <span class="baseline-metric" title="The amount already repaid against this financing record."><small>{{ product.totalRepaidColumnLabel }}</small><strong>{{ formatKes(period.totalRepaid) }}</strong></span>
                 }
-                <span class="baseline-metric"><small>{{ product.totalRepaidColumnLabel }}</small><strong>{{ formatKes(period.totalRepaid) }}</strong></span>
-                <span class="baseline-metric"><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
+                <span class="baseline-metric" title="The financed principal still outstanding on this record."><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
               </div>
               <span class="customer-record-card-button__action">View details</span>
             </button>
             @if (canRequestFromPeriod(period)) {
-              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block customer-period-request" (click)="requestFundsForPeriod(period, $event)">{{ periodRequestLabel(period) }}</button>
+              <button
+                type="button"
+                class="baseline-button baseline-button--primary baseline-button--block customer-period-request"
+                title="Request funds from this Dynamic Period"
+                (click)="requestFundsForPeriod(period, $event)"
+              >Request funds</button>
             }
           </article>
         } @empty {
@@ -232,10 +210,6 @@
         (click)="takePartnerAction(experience.primaryActionKind)"
       >{{ experience.primaryActionLabel }}</button>
     </section>
-
-    <app-prototype-explainer tone="role" title="The Partner Buyer workspace remains operationally distinct">
-      <p>The Partner Buyer is not the financing Client in this workspace. Its Home continues to focus on invoice uploads, obligations and participating Suppliers rather than reusing the customer repayment experience.</p>
-    </app-prototype-explainer>
 
     <section class="contextual-metrics" aria-label="Partner summary">
       @for (metric of experience.metrics; track metric.label) {
@@ -273,9 +247,11 @@
 @if (workspace; as product) {
   <app-customer-financing-period-modal
     [period]="selectedPeriod"
+    [productId]="product.id"
     [dueDateLabel]="product.dueDateColumnLabel"
     [totalRepaidLabel]="product.totalRepaidColumnLabel"
     [outstandingLabel]="product.outstandingColumnLabel"
+    (requestFunds)="requestFundsForPeriod($event)"
     (close)="closePeriod()"
   />
 }
