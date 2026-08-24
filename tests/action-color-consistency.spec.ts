@@ -56,7 +56,7 @@ test.describe('action colour consistency', () => {
   })
 
   test('invoice upload actions use the same green in customer and Partner Buyer flows', async ({ page }) => {
-    await page.goto('/experience/invoice-financing/home')
+    await page.goto('/experience/invoice-financing/invoices')
     const customerUpload = page.locator('[data-action="invoice-upload"]:visible').first()
     await expect(customerUpload).toHaveText('Upload invoices')
     await expectActionColor(customerUpload, INVOICE_UPLOAD_GREEN)
