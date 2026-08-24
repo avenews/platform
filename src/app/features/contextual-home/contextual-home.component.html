@@ -3,7 +3,7 @@
     <section class="contextual-home__hero">
       <div>
         <h1>{{ product.heading }}</h1>
-        <p>{{ product.intro }}</p>
+        <p>{{ homeIntro }}</p>
       </div>
       <button
         type="button"
@@ -11,7 +11,7 @@
         [attr.data-action]="product.id === 'invoice-financing' ? 'invoice-upload' : 'request-financing'"
         [attr.data-action-kind]="product.primaryActionKind"
         [attr.data-external-url]="product.id === 'acl' ? aclFundsRequestDemoUrl : null"
-        [attr.title]="product.id === 'invoice-financing' ? 'Upload invoices to create or update an eligible Dynamic Period' : primaryActionLabel"
+        [attr.title]="product.id === 'invoice-financing' ? 'Upload invoices for a buyer' : primaryActionLabel"
         (click)="primaryAction()"
       >{{ primaryActionLabel }}</button>
     </section>
@@ -20,13 +20,13 @@
       <article class="contextual-metric baseline-card customer-summary-card customer-available-financing">
         <span>Available Financing</span>
         <strong>{{ formatKes(product.availableMetricValue) }}</strong>
-        <small>{{ product.id === 'invoice-financing' ? 'Across eligible periods' : product.availableMetricHelper }}</small>
+        <small>{{ availableMetricHelper }}</small>
         @if (product.id === 'invoice-financing') {
           <button
             type="button"
             class="baseline-button baseline-button--secondary customer-available-financing__action"
-            aria-label="Show periods with Available to Withdraw"
-            title="Filter Financing to periods with Available to Withdraw and a Request funds action"
+            aria-label="Show financing periods with funds available"
+            title="Show financing periods where you can request funds"
             (click)="filterAvailableFinancing()"
           >View available periods</button>
         }
@@ -35,20 +35,20 @@
       <article class="contextual-metric baseline-card customer-summary-card">
         <span>Outstanding Amount</span>
         <strong>{{ formatKes(product.outstandingMetricValue) }}</strong>
-        <small>{{ product.outstandingMetricHelper }}</small>
+        <small>{{ outstandingMetricHelper }}</small>
       </article>
 
       <article class="contextual-metric baseline-card customer-summary-card customer-payments-due">
-        <span>{{ product.dueMetricLabel }}</span>
+        <span>{{ dueMetricLabel }}</span>
         <strong>{{ dueCountLabel }}</strong>
         <small>{{ dueSplitLabel }}</small>
         <button
           type="button"
           class="baseline-button baseline-button--secondary customer-payments-due__action"
-          [attr.aria-label]="product.dueActionLabel + ' in Financing'"
-          [attr.title]="product.dueActionLabel"
+          [attr.aria-label]="dueActionLabel + ' in Financing'"
+          [attr.title]="dueActionLabel"
           (click)="filterPaymentsDue()"
-        >{{ product.dueActionLabel }}</button>
+        >{{ dueActionLabel }}</button>
       </article>
     </section>
 
@@ -73,22 +73,22 @@
         <table class="baseline-table customer-activity-table">
           <thead>
             <tr>
-              <th title="The reference for this Funds Request or Dynamic Period.">Reference</th>
+              <th title="Financing reference.">Reference</th>
               @if (product.id !== 'invoice-financing') {
-                <th title="The date Avenews disbursed the approved financing. Pending means it has not been disbursed yet.">Disbursement Date</th>
+                <th title="Date the financing was paid out. Pending means it has not been disbursed yet.">Disbursement Date</th>
               }
-              <th [attr.title]="product.id === 'invoice-financing' ? 'The date this Dynamic Period is due based on the underlying receivables.' : 'The date this financing is due for repayment.'">{{ product.dueDateColumnLabel }}</th>
-              <th title="The principal amount Avenews has financed for this record.">Amount Financed</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'">{{ product.dueDateColumnLabel }}</th>
+              <th title="Amount financed by Avenews.">Amount Financed</th>
               @if (product.id === 'invoice-financing') {
-                <th title="The additional amount you can currently request from this Dynamic Period, subject to the request window.">Available to Withdraw</th>
+                <th title="Additional amount you can request from this financing period.">Available to Withdraw</th>
               }
-              <th title="The current customer-facing status of this financing record.">Status</th>
+              <th title="Current financing status.">Status</th>
               @if (product.id !== 'invoice-financing') {
-                <th [attr.title]="'The amount already repaid against this financing record.'">{{ product.totalRepaidColumnLabel }}</th>
+                <th title="Amount already repaid.">{{ product.totalRepaidColumnLabel }}</th>
               }
-              <th [attr.title]="product.id === 'invoice-financing' ? 'The financed principal still outstanding on this Dynamic Period.' : 'The financed principal still outstanding on this financing record.'">{{ product.outstandingColumnLabel }}</th>
+              <th title="Amount still outstanding.">{{ product.outstandingColumnLabel }}</th>
               @if (product.id === 'invoice-financing') {
-                <th title="Request additional funds while the Dynamic Period is eligible and the request window is open.">Action</th>
+                <th title="Request more funds while this financing period is eligible.">Action</th>
               }
             </tr>
           </thead>
@@ -137,11 +137,11 @@
                         type="button"
                         class="baseline-button baseline-button--primary customer-period-request"
                         data-action="request-financing"
-                        title="Request funds from this Dynamic Period"
+                        title="Request funds from this financing period"
                         (click)="requestFundsForPeriod(period, $event)"
                       >Request funds</button>
                     } @else {
-                      <span class="baseline-muted" title="No additional funding can currently be requested from this Dynamic Period.">—</span>
+                      <span class="baseline-muted" title="No additional funds can currently be requested from this financing period.">—</span>
                     }
                   </td>
                 }
@@ -174,14 +174,14 @@
                 <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric" title="The principal amount Avenews has financed for this record."><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
-                <span class="baseline-metric" [attr.title]="product.id === 'invoice-financing' ? 'The date this Dynamic Period is due.' : 'The date this financing is due for repayment.'"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                <span class="baseline-metric" title="Amount financed by Avenews."><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
+                <span class="baseline-metric" [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
                 @if (product.id === 'invoice-financing') {
-                  <span class="baseline-metric" title="The additional amount you can currently request from this Dynamic Period."><small>Available to Withdraw</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span>
+                  <span class="baseline-metric" title="Additional amount you can request from this financing period."><small>Available to Withdraw</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span>
                 } @else {
-                  <span class="baseline-metric" title="The amount already repaid against this financing record."><small>{{ product.totalRepaidColumnLabel }}</small><strong>{{ formatKes(period.totalRepaid) }}</strong></span>
+                  <span class="baseline-metric" title="Amount already repaid."><small>{{ product.totalRepaidColumnLabel }}</small><strong>{{ formatKes(period.totalRepaid) }}</strong></span>
                 }
-                <span class="baseline-metric" title="The financed principal still outstanding on this record."><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
+                <span class="baseline-metric" title="Amount still outstanding."><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
               </div>
               <span class="customer-record-card-button__action">View details</span>
             </button>
@@ -190,7 +190,7 @@
                 type="button"
                 class="baseline-button baseline-button--primary baseline-button--block customer-period-request"
                 data-action="request-financing"
-                title="Request funds from this Dynamic Period"
+                title="Request funds from this financing period"
                 (click)="requestFundsForPeriod(period, $event)"
               >Request funds</button>
             }
@@ -217,7 +217,7 @@
     <section class="contextual-home__hero partner-home-hero">
       <div>
         <h1>{{ experience.homeHeading }}</h1>
-        <p>Manage Supplier periods, payments and invoice uploads from one Partner Buyer workspace.</p>
+        <p>{{ experience.homeIntro }}</p>
       </div>
       <div class="partner-home-hero__actions">
         <button
@@ -247,8 +247,8 @@
     <section class="baseline-section partner-home-workspaces" aria-labelledby="partner-workspaces-title">
       <div class="baseline-section-heading">
         <div>
-          <h2 id="partner-workspaces-title">Manage Supplier financing</h2>
-          <p>Start with a Supplier, then move into the periods and payments connected to that relationship.</p>
+          <h2 id="partner-workspaces-title">Supplier financing</h2>
+          <p>Choose a supplier to view its financing periods and payments.</p>
         </div>
       </div>
 
@@ -256,8 +256,8 @@
         <article class="baseline-card partner-home-workspace-card">
           <div>
             <p class="page-eyebrow">Suppliers</p>
-            <h3>Supplier periods</h3>
-            <p>Find a Supplier, review its periods, and see what needs to be paid.</p>
+            <h3>Financing periods</h3>
+            <p>View a supplier's financing periods and payments.</p>
           </div>
           <button type="button" class="baseline-button baseline-button--primary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
         </article>
@@ -265,8 +265,8 @@
         <article class="baseline-card partner-home-workspace-card">
           <div>
             <p class="page-eyebrow">Payments</p>
-            <h3>Payments by period</h3>
-            <p>Search upcoming, overdue and completed payments with the Supplier and Period always visible.</p>
+            <h3>Supplier payments</h3>
+            <p>Track upcoming, overdue and completed supplier payments.</p>
           </div>
           <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View payments</button>
         </article>
@@ -274,8 +274,8 @@
         <article class="baseline-card partner-home-workspace-card">
           <div>
             <p class="page-eyebrow">Invoice Uploads</p>
-            <h3>Supplier invoice information</h3>
-            <p>Upload receivables information and review how processing updates Supplier periods.</p>
+            <h3>Supplier invoices</h3>
+            <p>Upload supplier invoices and see which financing periods were updated.</p>
           </div>
           <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-invoice-uploads')">View uploads</button>
         </article>
