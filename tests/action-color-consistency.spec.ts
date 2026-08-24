@@ -49,7 +49,9 @@ test.describe('action colour consistency', () => {
     await expectActionColor(periodRequest, PRIMARY_ACTION_BLUE)
 
     await page.goto('/experience/abf/financing')
-    const relationshipRequest = page.locator('[data-action="request-financing"]:visible').filter({ hasText: 'Request funds' }).first()
+    const relationshipRequest = page.locator('[data-action="request-financing"]:visible:not(:disabled)')
+      .filter({ hasText: 'Request funds' })
+      .first()
     await expectActionColor(relationshipRequest, PRIMARY_ACTION_BLUE)
   })
 
