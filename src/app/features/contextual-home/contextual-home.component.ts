@@ -24,6 +24,7 @@ import { PortalExperienceService } from '../../core/experience/portal-experience
 import {
   CustomerFilterBarComponent,
   type CustomerFilterField,
+  type CustomerSortOption,
 } from '../../shared/customer-filter-bar.component'
 import { CustomerFinancingPeriodModalComponent } from '../../shared/customer-financing-period-modal.component'
 import { formatDate, formatKes } from '../../shared/customer-portal.data'
@@ -121,6 +122,7 @@ export class ContextualHomeComponent implements OnDestroy {
   statusFilter = ''
   dueDateFilter = ''
   availabilityFilter = ''
+  sort = ''
   page = 1
   readonly pageSize = 10
   selectedPeriod: CustomerFinancingPeriod | null = null
@@ -194,121 +196,85 @@ export class ContextualHomeComponent implements OnDestroy {
     }
   }
 
-  get searchPlaceholder(): string {
-    return 'Search'
+  get sortOptions(): readonly CustomerSortOption[] {
+    if (!this.workspace) return []
+    const nameLabel = this.workspace.id === 'acl' ? 'Reference' : this.workspace.relationshipNoun
+    const amountLabel = this.workspace.id === 'invoice-financing' ? 'Available financing' : 'Amount financed'
+    return [
+      { value: 'name-asc', label: `${nameLabel}: A-Z` },
+      { value: 'due-asc', label: 'Due date: earliest' },
+      { value: 'due-desc', label: 'Due date: latest' },
+      { value: 'amount-desc', label: `${amountLabel}: high to low` },
+      { value: 'amount-asc', label: `${amountLabel}: low to high` },
+      { value: 'outstanding-desc', label: 'Outstanding: high to low' },
+      { value: 'outstanding-asc', label: 'Outstanding: low to high' },
+      { value: 'status-asc', label: 'Status: A-Z' },
+    ]
   }
 
-  get primaryActionLabel(): string {
-    return this.workspace?.id === 'invoice-financing' ? 'Upload invoices' : (this.workspace?.primaryActionLabel ?? '')
-  }
-
-  get homeIntro(): string {
-    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].intro : this.experience.homeIntro
-  }
-
-  get availableMetricHelper(): string {
-    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].availableHelper : ''
-  }
-
-  get outstandingMetricHelper(): string {
-    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].outstandingHelper : ''
-  }
-
-  get dueMetricLabel(): string {
-    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].dueMetricLabel : 'Payments Due'
-  }
-
-  get dueActionLabel(): string {
-    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].dueActionLabel : 'View payments due'
-  }
-
-  get dueCounts(): { overdue: number; upcoming: number; total: number } {
-    return this.workspace ? paymentAttentionCounts(this.workspace) : { overdue: 0, upcoming: 0, total: 0 }
-  }
-
-  get dueCountLabel(): string {
-    const total = this.dueCounts.total
-    return `${total} ${total === 1 ? 'payment' : 'payments'} due`
-  }
-
-  get dueSplitLabel(): string {
-    return `${this.dueCounts.overdue} overdue · ${this.dueCounts.upcoming} upcoming`
-  }
-
-  get activityItemLabel(): string {
-    return 'financing periods'
-  }
+  get searchPlaceholder(): string { return 'Search' }
+  get primaryActionLabel(): string { return this.workspace?.id === 'invoice-financing' ? 'Upload invoices' : (this.workspace?.primaryActionLabel ?? '') }
+  get homeIntro(): string { return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].intro : this.experience.homeIntro }
+  get availableMetricHelper(): string { return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].availableHelper : '' }
+  get outstandingMetricHelper(): string { return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].outstandingHelper : '' }
+  get dueMetricLabel(): string { return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].dueMetricLabel : 'Payments Due' }
+  get dueActionLabel(): string { return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].dueActionLabel : 'View payments due' }
+  get dueCounts(): { overdue: number; upcoming: number; total: number } { return this.workspace ? paymentAttentionCounts(this.workspace) : { overdue: 0, upcoming: 0, total: 0 } }
+  get dueCountLabel(): string { const total = this.dueCounts.total; return `${total} ${total === 1 ? 'payment' : 'payments'} due` }
+  get dueSplitLabel(): string { return `${this.dueCounts.overdue} overdue · ${this.dueCounts.upcoming} upcoming` }
+  get activityItemLabel(): string { return 'financing periods' }
 
   get filteredPeriods(): readonly CustomerFinancingPeriod[] {
     if (!this.workspace) return []
     const query = this.searchQuery.trim().toLowerCase()
+    const product = this.workspace
 
-    return this.workspace.periods
+    const items = product.periods
       .filter(period => !this.statusFilter || period.statusKey === this.statusFilter)
       .filter(period => this.matchesDueFilter(period))
       .filter(period => !this.availabilityFilter || this.canRequestFromPeriod(period))
       .filter(period => {
         if (!query) return true
-        const relationshipSearch = this.workspace?.id === 'acl'
-          ? 'Avenews Agri Credit Line'
-          : `${period.relationshipName} ${this.customerRelationshipType(period.relationshipType)}`
-        const searchableValues = [
-          period.reference,
-          relationshipSearch,
-          period.statusLabel,
-          period.disbursementDate ? formatDate(period.disbursementDate, true) : 'Pending',
+        const displayedName = product.id === 'acl' ? period.reference : period.relationshipName
+        const displayedAmount = product.id === 'invoice-financing' ? (period.availableToWithdraw ?? 0) : period.amountFinanced
+        return [
+          displayedName,
+          product.id === 'acl' ? '' : period.reference,
           formatDate(period.repaymentDueDate, true),
-          formatKes(period.amountFinanced),
-          period.availableToWithdraw !== undefined ? formatKes(period.availableToWithdraw) : '',
-          formatKes(period.totalRepaid),
+          formatKes(displayedAmount),
+          period.statusLabel,
           formatKes(period.outstandingBalance),
-          period.invoiceReference ?? '',
-          period.invoiceType ?? '',
-        ]
-        return searchableValues.join(' ').toLowerCase().includes(query)
+        ].join(' ').toLowerCase().includes(query)
       })
       .map((period, index) => ({ period, index }))
-      .sort((a, b) => {
-        const aOverdue = a.period.statusKey === 'overdue' || a.period.paymentAttention === 'overdue'
-        const bOverdue = b.period.statusKey === 'overdue' || b.period.paymentAttention === 'overdue'
-        if (aOverdue !== bOverdue) return aOverdue ? -1 : 1
-        return a.index - b.index
-      })
-      .map(item => item.period)
+
+    return items.sort((a, b) => {
+      if (this.sort === 'name-asc') return this.periodSortName(a.period).localeCompare(this.periodSortName(b.period))
+      if (this.sort === 'due-asc') return a.period.repaymentDueDate.localeCompare(b.period.repaymentDueDate)
+      if (this.sort === 'due-desc') return b.period.repaymentDueDate.localeCompare(a.period.repaymentDueDate)
+      if (this.sort === 'amount-desc') return this.periodSortAmount(b.period) - this.periodSortAmount(a.period)
+      if (this.sort === 'amount-asc') return this.periodSortAmount(a.period) - this.periodSortAmount(b.period)
+      if (this.sort === 'outstanding-desc') return b.period.outstandingBalance - a.period.outstandingBalance
+      if (this.sort === 'outstanding-asc') return a.period.outstandingBalance - b.period.outstandingBalance
+      if (this.sort === 'status-asc') return a.period.statusLabel.localeCompare(b.period.statusLabel)
+      const aOverdue = a.period.statusKey === 'overdue' || a.period.paymentAttention === 'overdue'
+      const bOverdue = b.period.statusKey === 'overdue' || b.period.paymentAttention === 'overdue'
+      if (aOverdue !== bOverdue) return aOverdue ? -1 : 1
+      return a.index - b.index
+    }).map(item => item.period)
   }
 
-  get pageItems(): readonly CustomerFinancingPeriod[] {
-    const start = (this.page - 1) * this.pageSize
-    return this.filteredPeriods.slice(start, start + this.pageSize)
-  }
-
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.filteredPeriods.length / this.pageSize))
-  }
-
-  get pageNumbers(): readonly number[] {
-    return Array.from({ length: this.totalPages }, (_, index) => index + 1)
-  }
-
-  get rangeStart(): number {
-    return this.filteredPeriods.length ? (this.page - 1) * this.pageSize + 1 : 0
-  }
-
-  get rangeEnd(): number {
-    return Math.min(this.page * this.pageSize, this.filteredPeriods.length)
-  }
+  get pageItems(): readonly CustomerFinancingPeriod[] { const start = (this.page - 1) * this.pageSize; return this.filteredPeriods.slice(start, start + this.pageSize) }
+  get totalPages(): number { return Math.max(1, Math.ceil(this.filteredPeriods.length / this.pageSize)) }
+  get pageNumbers(): readonly number[] { return Array.from({ length: this.totalPages }, (_, index) => index + 1) }
+  get rangeStart(): number { return this.filteredPeriods.length ? (this.page - 1) * this.pageSize + 1 : 0 }
+  get rangeEnd(): number { return Math.min(this.page * this.pageSize, this.filteredPeriods.length) }
 
   primaryAction(): void {
     if (!this.workspace) return
-    if (this.workspace.id === 'acl') {
-      this.openAclFundsRequest()
-      return
-    }
+    if (this.workspace.id === 'acl') { this.openAclFundsRequest(); return }
     if (this.workspace.id === 'invoice-financing') {
-      void this.router.navigate(
-        this.experienceService.routeFor(this.workspace.id, 'invoices'),
-        { queryParams: { action: 'upload' } },
-      )
+      void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'invoices'), { queryParams: { action: 'upload' } })
       return
     }
     void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'request-funds'))
@@ -316,44 +282,26 @@ export class ContextualHomeComponent implements OnDestroy {
 
   openFundsRequest(): void {
     if (!this.workspace) return
-    if (this.workspace.id === 'acl') {
-      this.openAclFundsRequest()
-      return
-    }
+    if (this.workspace.id === 'acl') { this.openAclFundsRequest(); return }
     void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'request-funds'))
   }
 
   openAclFundsRequest(): void {
     const opened = window.open(this.aclFundsRequestDemoUrl, '_blank', 'noopener,noreferrer')
-    if (opened) {
-      opened.opener = null
-      return
-    }
+    if (opened) { opened.opener = null; return }
     this.toast = 'Your browser blocked the Funds Request tab. Allow pop-ups and try again.'
     this.cdr.markForCheck()
   }
 
   filterAvailableFinancing(): void {
     if (this.workspace?.id !== 'invoice-financing') return
-    this.searchQuery = ''
-    this.statusFilter = ''
-    this.dueDateFilter = ''
-    this.availabilityFilter = 'available-to-withdraw'
-    this.page = 1
-    this.selectedPeriod = null
-    this.cdr.markForCheck()
-    this.scrollToFinancing()
+    this.searchQuery = ''; this.statusFilter = ''; this.dueDateFilter = ''; this.availabilityFilter = 'available-to-withdraw'; this.sort = ''; this.page = 1; this.selectedPeriod = null
+    this.cdr.markForCheck(); this.scrollToFinancing()
   }
 
   filterPaymentsDue(): void {
-    this.searchQuery = ''
-    this.statusFilter = ''
-    this.dueDateFilter = 'payments-due'
-    this.availabilityFilter = ''
-    this.page = 1
-    this.selectedPeriod = null
-    this.cdr.markForCheck()
-    this.scrollToFinancing()
+    this.searchQuery = ''; this.statusFilter = ''; this.dueDateFilter = 'payments-due'; this.availabilityFilter = ''; this.sort = ''; this.page = 1; this.selectedPeriod = null
+    this.cdr.markForCheck(); this.scrollToFinancing()
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
@@ -363,9 +311,7 @@ export class ContextualHomeComponent implements OnDestroy {
     return this.isWithinInvoiceFundingWindow(period)
   }
 
-  periodRequestLabel(_period: CustomerFinancingPeriod): string {
-    return 'Request funds'
-  }
+  periodRequestLabel(_period: CustomerFinancingPeriod): string { return 'Request funds' }
 
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
@@ -380,9 +326,7 @@ export class ContextualHomeComponent implements OnDestroy {
       : period
   }
 
-  closePeriod(): void {
-    this.selectedPeriod = null
-  }
+  closePeriod(): void { this.selectedPeriod = null }
 
   onFilterValuesChange(values: Record<string, string>): void {
     this.statusFilter = values['status'] ?? ''
@@ -390,44 +334,20 @@ export class ContextualHomeComponent implements OnDestroy {
     this.availabilityFilter = values['availability'] ?? ''
     this.page = 1
   }
-
-  onSearchValueChange(value: string): void {
-    this.searchQuery = value
-    this.page = 1
-  }
-
-  changePage(page: number): void {
-    this.page = Math.min(Math.max(1, page), this.totalPages)
-  }
+  onSearchValueChange(value: string): void { this.searchQuery = value; this.page = 1 }
+  onSortValueChange(value: string): void { this.sort = value; this.page = 1 }
+  changePage(page: number): void { this.page = Math.min(Math.max(1, page), this.totalPages) }
 
   takePartnerAction(kind: ExperienceActionKind): void {
-    if (kind === 'upload-invoices') {
-      void this.router.navigate(
-        this.experienceService.routeFor(this.experience.id, 'invoice-uploads'),
-        { queryParams: { action: 'upload' } },
-      )
-      return
-    }
-    if (kind === 'view-invoice-uploads') {
-      void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads'))
-      return
-    }
-    if (kind === 'view-obligations') {
-      void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'obligations'))
-      return
-    }
-    if (kind === 'view-suppliers') {
-      void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'suppliers'))
-      return
-    }
+    if (kind === 'upload-invoices') { void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads'), { queryParams: { action: 'upload' } }); return }
+    if (kind === 'view-invoice-uploads') { void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads')); return }
+    if (kind === 'view-obligations') { void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'obligations')); return }
+    if (kind === 'view-suppliers') { void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'suppliers')); return }
     void this.router.navigate(this.experienceService.routeFor(this.experience.id, 'invoice-uploads'))
   }
 
-  private customerRelationshipType(type: string): string {
-    if (type.includes('Supplier')) return 'Supplier'
-    if (type.includes('Buyer')) return 'Buyer'
-    return type
-  }
+  private periodSortName(period: CustomerFinancingPeriod): string { return this.workspace?.id === 'acl' ? period.reference : period.relationshipName }
+  private periodSortAmount(period: CustomerFinancingPeriod): number { return this.workspace?.id === 'invoice-financing' ? (period.availableToWithdraw ?? 0) : period.amountFinanced }
 
   private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean {
     const dueDate = new Date(`${period.repaymentDueDate}T00:00:00`)
@@ -447,10 +367,7 @@ export class ContextualHomeComponent implements OnDestroy {
 
   private scrollToFinancing(): void {
     requestAnimationFrame(() => {
-      document.getElementById('customer-financing-activity')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
+      document.getElementById('customer-financing-activity')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
     })
   }
 
@@ -459,6 +376,7 @@ export class ContextualHomeComponent implements OnDestroy {
     this.statusFilter = ''
     this.dueDateFilter = ''
     this.availabilityFilter = ''
+    this.sort = ''
     this.page = 1
   }
 
