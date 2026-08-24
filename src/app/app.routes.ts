@@ -30,6 +30,18 @@ export const routes: Routes = [
             .then(module => module.ContextualHomeComponent),
       },
       {
+        path: 'request-funds',
+        loadComponent: () =>
+          import('./features/funds-request-hub/funds-request-hub.component')
+            .then(module => module.FundsRequestHubComponent),
+      },
+      {
+        path: 'invoices',
+        loadComponent: () =>
+          import('./features/customer-invoices/customer-invoices.component')
+            .then(module => module.CustomerInvoicesComponent),
+      },
+      {
         path: 'financing/period/:periodId',
         loadComponent: () =>
           import('./features/invoice-period/invoice-period.component')
