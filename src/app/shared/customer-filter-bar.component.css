@@ -1,6 +1,7 @@
 :host {
   display: block;
   min-width: 0;
+  width: 100%;
 }
 
 .customer-filter-bar,
@@ -220,7 +221,7 @@
   .customer-filter-bar__desktop {
     display: flex;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: var(--av-space-3, 12px);
     min-width: 0;
   }
