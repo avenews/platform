@@ -126,7 +126,7 @@
     <section class="baseline-section" aria-labelledby="dynamic-period-advances-title">
       <div class="baseline-section-heading">
         <div>
-          <p class="page-eyebrow">Funds Requests</p>
+          <p class="page-eyebrow">Requests</p>
           <h2 id="dynamic-period-advances-title">Funds requested from this financing period</h2>
         </div>
         <span class="invoice-period-count">{{ advances.length }} {{ advances.length === 1 ? 'request' : 'requests' }}</span>
@@ -195,7 +195,7 @@
           <div class="invoice-period-request__summary"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
           <div class="baseline-field"><label for="period-request-amount">Requested amount</label><input id="period-request-amount" class="baseline-control" type="text" [value]="formatKes(currentPeriod.availableToWithdraw)"></div>
           <p class="baseline-muted">This request applies to {{ currentPeriod.buyerName }} invoices due {{ formatDate(currentPeriod.dueDate) }}.</p>
-          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="request-financing" (click)="completeRequest()">Continue Funds Request</button>
+          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="request-financing" (click)="completeRequest()">Continue request</button>
         </div>
       </section>
     </div>
