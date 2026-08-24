@@ -77,7 +77,7 @@
               @if (product.id !== 'invoice-financing') {
                 <th title="Date the financing was paid out. Pending means it has not been disbursed yet.">Disbursement Date</th>
               }
-              <th [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'">{{ product.dueDateColumnLabel }}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'">{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}</th>
               <th title="Amount financed by Avenews.">Amount Financed</th>
               @if (product.id === 'invoice-financing') {
                 <th title="Additional amount you can request from this financing period.">Available to Withdraw</th>
@@ -175,7 +175,7 @@
               </div>
               <div class="baseline-metrics">
                 <span class="baseline-metric" title="Amount financed by Avenews."><small>Amount Financed</small><strong>{{ formatKes(period.amountFinanced) }}</strong></span>
-                <span class="baseline-metric" [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'"><small>{{ product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                <span class="baseline-metric" [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'"><small>{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
                 @if (product.id === 'invoice-financing') {
                   <span class="baseline-metric" title="Additional amount you can request from this financing period."><small>Available to Withdraw</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span>
                 } @else {
@@ -288,7 +288,7 @@
   <app-customer-financing-period-modal
     [period]="selectedPeriod"
     [productId]="product.id"
-    [dueDateLabel]="product.dueDateColumnLabel"
+    [dueDateLabel]="product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel"
     [totalRepaidLabel]="product.totalRepaidColumnLabel"
     [outstandingLabel]="product.outstandingColumnLabel"
     (requestFunds)="requestFundsForPeriod($event)"
