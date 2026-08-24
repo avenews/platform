@@ -79,13 +79,26 @@ select.baseline-control {
   letter-spacing: 0;
 }
 
-/* One spacing contract around the shared list-page filter bar. */
+/*
+ * One intro-to-filter spacing contract across customer list surfaces.
+ *
+ * The contextual Supplier page already establishes the intended 24px desktop /
+ * 20px mobile separation with its page grid. Invoice and Funds Request declared
+ * the same gaps but were not grid containers, so their gap values had no effect.
+ * Legacy customer-list pages keep their 16px internal list rhythm and add only
+ * the missing top offset above the filter bar, avoiding wider table/card gaps.
+ */
+.invoice-workspace,
+.request-hub {
+  display: grid;
+}
+
 .customer-list-page {
   gap: var(--av-space-4, 16px);
 }
 
 .customer-list-page > app-customer-filter-bar {
-  margin: 0;
+  margin: var(--av-space-2, 8px) 0 0;
 }
 
 .customer-filter-context {
@@ -126,5 +139,10 @@ select.baseline-control {
 @media (max-width: 767px) {
   .baseline-hero h1 {
     font-size: 26px;
+  }
+
+  /* 16px list gap + 4px filter offset = the 20px mobile intro spacing contract. */
+  .customer-list-page > app-customer-filter-bar {
+    margin-top: var(--av-space-1, 4px);
   }
 }
