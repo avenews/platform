@@ -37,7 +37,11 @@
 }
 
 .relationship-section {
-  gap: 14px;
+  gap: 16px;
+}
+
+.relationship-section app-customer-filter-bar {
+  width: 100%;
 }
 
 .relationship-table,
@@ -127,7 +131,7 @@
 }
 
 .relationship-card__metrics {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .relationship-modal-backdrop {
@@ -305,6 +309,10 @@
     font-size: 26px;
   }
 
+  .relationship-section {
+    gap: 14px;
+  }
+
   .relationship-table-wrap {
     display: none;
   }
@@ -315,7 +323,7 @@
   }
 
   .relationship-card__metrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: 1fr;
   }
 
   .relationship-card__actions .baseline-button {
