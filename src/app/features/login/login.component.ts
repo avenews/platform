@@ -136,8 +136,8 @@ export class LoginComponent implements OnDestroy {
     const requestedScenario = this.route.snapshot.queryParamMap.get('access')
     const scenario = isExperienceScenario(requestedScenario) ? requestedScenario : 'multiple'
 
-    // Resolve access again for every login. Multiple destinations open the
-    // product selector; exactly one destination opens directly.
+    // Resolve access again for every login, then always enter the prototype via
+    // product selection before a financing product or Partner workspace opens.
     this.experiences.resetForLogin(scenario)
     const target = this.experiences.resolvePostLoginRoute()
 
