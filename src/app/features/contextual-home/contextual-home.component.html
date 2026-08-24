@@ -17,19 +17,28 @@
     </section>
 
     <section class="contextual-metrics customer-product-summary" [attr.aria-label]="product.heading + ' summary'">
-      <article class="contextual-metric baseline-card">
-        <span>{{ product.availableMetricLabel }}</span>
+      <article class="contextual-metric baseline-card customer-summary-card customer-available-financing">
+        <span>Available Financing</span>
         <strong>{{ formatKes(product.availableMetricValue) }}</strong>
-        <small>{{ product.id === 'invoice-financing' ? 'Across eligible periods' : product.availableMetricHelper }}</small>
+        <small>{{ product.id === 'invoice-financing' ? 'Available to Withdraw across eligible periods' : product.availableMetricHelper }}</small>
+        @if (product.id === 'invoice-financing') {
+          <button
+            type="button"
+            class="baseline-button baseline-button--secondary customer-available-financing__action"
+            aria-label="Show periods with Available to Withdraw"
+            title="Filter Financing to periods with Available to Withdraw and a Request funds action"
+            (click)="filterAvailableFinancing()"
+          >View available periods</button>
+        }
       </article>
 
-      <article class="contextual-metric baseline-card">
-        <span>{{ product.outstandingMetricLabel }}</span>
+      <article class="contextual-metric baseline-card customer-summary-card">
+        <span>Outstanding Amount</span>
         <strong>{{ formatKes(product.outstandingMetricValue) }}</strong>
         <small>{{ product.outstandingMetricHelper }}</small>
       </article>
 
-      <article class="contextual-metric baseline-card customer-payments-due">
+      <article class="contextual-metric baseline-card customer-summary-card customer-payments-due">
         <span>{{ product.dueMetricLabel }}</span>
         <strong>{{ dueCountLabel }}</strong>
         <small>{{ dueSplitLabel }}</small>
