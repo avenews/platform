@@ -28,7 +28,6 @@
       <p class="page-eyebrow">Avenews portal</p>
       <h1>{{ welcomeMessage }}</h1>
       <h2>What would you like to manage?</h2>
-      <p>Choose the business, role, and financing experience you need for this session. This selection is not remembered after you log out.</p>
     </section>
 
     @if (customerDestinations.length) {
@@ -46,7 +45,7 @@
               [attr.data-experience-id]="destination.id"
               (click)="openDestination(destination.id)"
             >
-              <strong>{{ displayProductName(destination) }}</strong>
+              <strong class="access-card__title">{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
               <p>{{ destination.description }}</p>
 
@@ -81,7 +80,7 @@
               [attr.data-experience-id]="destination.id"
               (click)="openDestination(destination.id)"
             >
-              <strong>{{ displayProductName(destination) }}</strong>
+              <strong class="access-card__title">{{ displayProductName(destination) }}</strong>
               <span class="access-card__business">{{ destination.businessName }}</span>
               <p>{{ destination.id === 'invoice-partner' ? 'Upload invoices, review Supplier periods, and manage Buyer payments by Supplier and due date.' : destination.description }}</p>
               <span class="access-card__action">View</span>
