@@ -70,8 +70,11 @@
           [searchAriaLabel]="'Search all values in ' + product.heading + ' financing'"
           [filters]="filterFields"
           [values]="filterValues"
+          [sortOptions]="sortOptions"
+          [sortValue]="sort"
           (searchValueChange)="onSearchValueChange($event)"
           (valuesChange)="onFilterValuesChange($event)"
+          (sortValueChange)="onSortValueChange($event)"
         />
       </div>
 
