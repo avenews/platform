@@ -37,6 +37,16 @@ interface CustomerHomeCopy {
   dueActionLabel: string
 }
 
+interface PartnerHomePayment {
+  id: string
+  supplier: string
+  reference: string
+  dueDate: string
+  amount: number
+  status: 'Overdue' | 'Upcoming'
+  tone: 'status-danger' | 'status-info'
+}
+
 const CUSTOMER_HOME_COPY: Record<CustomerProductId, CustomerHomeCopy> = {
   acl: {
     intro: 'View available financing, repayments and financing periods.',
@@ -75,6 +85,13 @@ const CUSTOMER_HOME_COPY: Record<CustomerProductId, CustomerHomeCopy> = {
   },
 }
 
+const PARTNER_HOME_PAYMENTS: readonly PartnerHomePayment[] = [
+  { id: 'coast-aug15', supplier: 'Coastline Produce Ltd', reference: 'PER-2026-08-15-COAST', dueDate: '2026-08-15', amount: 1040000, status: 'Overdue', tone: 'status-danger' },
+  { id: 'kericho-sep10', supplier: 'Kericho Fresh Foods', reference: 'PER-2026-09-10-KERICHO', dueDate: '2026-09-10', amount: 720000, status: 'Upcoming', tone: 'status-info' },
+  { id: 'kioko-sep15', supplier: 'Kioko Agri Supplies Ltd', reference: 'PER-2026-09-15-KIOKO', dueDate: '2026-09-15', amount: 1280000, status: 'Upcoming', tone: 'status-info' },
+  { id: 'highlands-sep15', supplier: 'Highlands Food Processors', reference: 'PER-2026-09-15-HIGHLANDS', dueDate: '2026-09-15', amount: 1320000, status: 'Upcoming', tone: 'status-info' },
+]
+
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
@@ -110,6 +127,7 @@ export class ContextualHomeComponent implements OnDestroy {
   toast = ''
 
   readonly aclFundsRequestDemoUrl = ACL_FUNDS_REQUEST_DEMO_URL
+  readonly partnerHomePayments = PARTNER_HOME_PAYMENTS
   readonly formatDate = formatDate
   readonly formatKes = formatKes
 
@@ -249,6 +267,14 @@ export class ContextualHomeComponent implements OnDestroy {
         ]
         return searchableValues.join(' ').toLowerCase().includes(query)
       })
+      .map((period, index) => ({ period, index }))
+      .sort((a, b) => {
+        const aOverdue = a.period.statusKey === 'overdue' || a.period.paymentAttention === 'overdue'
+        const bOverdue = b.period.statusKey === 'overdue' || b.period.paymentAttention === 'overdue'
+        if (aOverdue !== bOverdue) return aOverdue ? -1 : 1
+        return a.index - b.index
+      })
+      .map(item => item.period)
   }
 
   get pageItems(): readonly CustomerFinancingPeriod[] {
@@ -278,7 +304,23 @@ export class ContextualHomeComponent implements OnDestroy {
       this.openAclFundsRequest()
       return
     }
-    void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'financing'))
+    if (this.workspace.id === 'invoice-financing') {
+      void this.router.navigate(
+        this.experienceService.routeFor(this.workspace.id, 'invoices'),
+        { queryParams: { action: 'upload' } },
+      )
+      return
+    }
+    void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'request-funds'))
+  }
+
+  openFundsRequest(): void {
+    if (!this.workspace) return
+    if (this.workspace.id === 'acl') {
+      this.openAclFundsRequest()
+      return
+    }
+    void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'request-funds'))
   }
 
   openAclFundsRequest(): void {
