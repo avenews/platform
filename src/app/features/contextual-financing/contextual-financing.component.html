@@ -1,178 +1,67 @@
 @if (workspace; as product) {
   <div class="portal-page contextual-financing" [attr.data-product-context]="product.id">
     <section class="contextual-financing__hero">
-      <div>
-        <p class="page-eyebrow">{{ product.relationshipNoun }} workspace</p>
-        <h1>{{ relationshipHeading }}</h1>
-        <p>{{ relationshipIntro }}</p>
-      </div>
+      <div><p class="page-eyebrow">{{ product.relationshipNoun }} workspace</p><h1>{{ relationshipHeading }}</h1><p>{{ relationshipIntro }}</p></div>
     </section>
 
     <section class="baseline-section relationship-section" [attr.aria-label]="relationshipHeading">
+      <app-customer-filter-bar
+        [searchValue]="search"
+        [searchPlaceholder]="'Search'"
+        [searchAriaLabel]="'Search ' + relationshipHeading.toLowerCase()"
+        [filters]="filterFields"
+        [values]="filterValues"
+        [sortOptions]="sortOptions"
+        [sortValue]="sort"
+        (searchValueChange)="onSearch($event)"
+        (valuesChange)="onFilters($event)"
+        (sortValueChange)="onSort($event)"
+      />
+
       <div class="baseline-table-wrap relationship-table-wrap">
         <table class="baseline-table relationship-table">
-          <thead>
-            <tr>
-              <th title="Supplier or buyer for this financing.">{{ product.relationshipNoun }}</th>
-              <th title="Financing currently available.">Financing Available</th>
-              <th title="Current financing availability.">Status</th>
-              <th title="Available actions.">Action</th>
-            </tr>
-          </thead>
+          <thead><tr><th>{{ product.relationshipNoun }}</th><th>Financing Available</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
-            @for (relationship of product.relationships; track relationship.id) {
+            @for (relationship of relationshipPageItems; track relationship.id) {
               <tr>
-                <td>
-                  <button type="button" class="relationship-name-button" (click)="openRelationship(relationship)">
-                    <strong>{{ relationship.name }}</strong>
-                  </button>
-                </td>
+                <td><button type="button" class="relationship-name-button" (click)="openRelationship(relationship)"><strong>{{ relationship.name }}</strong></button></td>
                 <td><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></td>
-                <td>
-                  <span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)" [attr.title]="relationshipAvailabilityTooltip(relationship)">
-                    {{ relationshipAvailabilityLabel(relationship) }}
-                  </span>
-                </td>
-                <td>
-                  <div class="relationship-table__actions">
-                    <button type="button" class="baseline-button baseline-button--secondary relationship-view-action" (click)="openRelationship(relationship)">
-                      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg>
-                      <span>View</span>
-                    </button>
-                    @if (canUploadInvoices(relationship)) {
-                      <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
-                    }
-                    @if (relationship.fundsRequestLabel) {
-                      <button
-                        type="button"
-                        class="baseline-button baseline-button--primary"
-                        data-action="request-financing"
-                        [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0"
-                        [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
-                        (click)="startFundsRequest(relationship, $event)"
-                      >Request funds</button>
-                    }
-                  </div>
-                </td>
+                <td><span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)" [attr.title]="relationshipAvailabilityTooltip(relationship)">{{ relationshipAvailabilityLabel(relationship) }}</span></td>
+                <td><div class="relationship-table__actions"><button type="button" class="baseline-button baseline-button--secondary relationship-view-action" (click)="openRelationship(relationship)"><span>View</span></button>@if (canUploadInvoices(relationship)) { <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button> }@if (relationship.fundsRequestLabel) { <button type="button" class="baseline-button baseline-button--primary" data-action="request-financing" [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0" (click)="startFundsRequest(relationship, $event)">Request funds</button> }</div></td>
               </tr>
-            } @empty {
-              <tr><td colspan="4"><div class="baseline-empty"><strong>Nothing to show yet</strong><p>No approved suppliers or buyers are available yet.</p></div></td></tr>
-            }
+            } @empty { <tr><td colspan="4"><div class="baseline-empty"><strong>No matching {{ relationshipHeading.toLowerCase() }}</strong><p>Try changing your search or filters.</p></div></td></tr> }
           </tbody>
         </table>
       </div>
 
       <div class="baseline-cards relationship-cards">
-        @for (relationship of product.relationships; track relationship.id) {
+        @for (relationship of relationshipPageItems; track relationship.id) {
           <article class="baseline-record-card relationship-card">
-            <div class="baseline-record-card__head">
-              <strong>{{ relationship.name }}</strong>
-              <span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)" [attr.title]="relationshipAvailabilityTooltip(relationship)">
-                {{ relationshipAvailabilityLabel(relationship) }}
-              </span>
-            </div>
-
-            <div class="baseline-metrics relationship-card__metrics">
-              <span class="baseline-metric" title="Financing currently available."><small>Financing Available</small><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></span>
-              <span class="baseline-metric" title="Financing currently in use."><small>Financing Used</small><strong>{{ formatKes(relationshipUsed(relationship)) }}</strong></span>
-            </div>
-
-            <div class="baseline-card-actions relationship-card__actions">
-              <button type="button" class="baseline-button baseline-button--secondary relationship-view-action" (click)="openRelationship(relationship)">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path><circle cx="12" cy="12" r="2.7"></circle></svg>
-                <span>View</span>
-              </button>
-              @if (canUploadInvoices(relationship)) {
-                <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
-              }
-              @if (relationship.fundsRequestLabel) {
-                <button
-                  type="button"
-                  class="baseline-button baseline-button--primary"
-                  data-action="request-financing"
-                  [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0"
-                  [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
-                  (click)="startFundsRequest(relationship, $event)"
-                >Request funds</button>
-              }
-            </div>
+            <div class="baseline-record-card__head"><strong>{{ relationship.name }}</strong><span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)">{{ relationshipAvailabilityLabel(relationship) }}</span></div>
+            <div class="baseline-metrics relationship-card__metrics"><span class="baseline-metric"><small>Financing Available</small><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></span><span class="baseline-metric"><small>Financing Used</small><strong>{{ formatKes(relationshipUsed(relationship)) }}</strong></span></div>
+            <div class="baseline-card-actions relationship-card__actions"><button type="button" class="baseline-button baseline-button--secondary relationship-view-action" (click)="openRelationship(relationship)">View</button>@if (canUploadInvoices(relationship)) { <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button> }@if (relationship.fundsRequestLabel) { <button type="button" class="baseline-button baseline-button--primary" data-action="request-financing" [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0" (click)="startFundsRequest(relationship, $event)">Request funds</button> }</div>
           </article>
-        }
+        } @empty { <div class="baseline-empty"><strong>No matching {{ relationshipHeading.toLowerCase() }}</strong><p>Try changing your search or filters.</p></div> }
       </div>
+
+      @if (filteredRelationships.length) {
+        <div class="baseline-pagination"><p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredRelationships.length }}</p><div class="baseline-pagination__controls"><button type="button" [disabled]="page===1" (click)="changePage(page-1)">‹</button>@for (n of pageNumbers; track n) { <button type="button" [class.is-active]="n===page" (click)="changePage(n)">{{ n }}</button> }<button type="button" [disabled]="page===totalPages" (click)="changePage(page+1)">›</button></div></div>
+      }
     </section>
   </div>
 
   @if (selectedRelationship; as relationship) {
     <div class="baseline-modal-backdrop relationship-modal-backdrop" role="presentation" (click)="closeRelationship()">
       <section class="baseline-modal relationship-modal" role="dialog" aria-modal="true" aria-labelledby="relationship-modal-title" (click)="$event.stopPropagation()">
-        <header class="baseline-modal__head relationship-modal__head">
-          <div>
-            <p class="page-eyebrow">{{ relationshipCustomerType(relationship) }}</p>
-            <h2 id="relationship-modal-title">{{ relationship.name }}</h2>
-          </div>
-          <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRelationship()">&times;</button>
-        </header>
-
+        <header class="baseline-modal__head relationship-modal__head"><div><p class="page-eyebrow">{{ relationshipCustomerType(relationship) }}</p><h2 id="relationship-modal-title">{{ relationship.name }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRelationship()">&times;</button></header>
         <div class="baseline-modal__body relationship-modal__body">
-          <dl class="relationship-detail-grid">
-            <div><dt>Max Financing</dt><dd>{{ formatKes(relationship.limit) }}</dd></div>
-            <div><dt>Financing Used</dt><dd>{{ formatKes(relationshipUsed(relationship)) }}</dd></div>
-            <div><dt>Financing Available</dt><dd>{{ formatKes(relationshipAvailable(relationship)) }}</dd></div>
-            <div><dt>Status</dt><dd>{{ relationshipAvailabilityLabel(relationship) }}</dd></div>
-            @if (product.id === 'invoice-financing') {
-              <div><dt>Invoice uploads</dt><dd>{{ invoiceUploadSourceLabel(relationship) }}</dd></div>
-            }
-          </dl>
-
-          @if (canUploadInvoices(relationship)) {
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button>
-          }
-
-          @if (relationship.fundsRequestLabel) {
-            <button
-              type="button"
-              class="baseline-button baseline-button--primary baseline-button--block"
-              data-action="request-financing"
-              [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0"
-              [attr.data-external-url]="relationship.fundsRequestUrl ?? null"
-              (click)="startFundsRequest(relationship, $event)"
-            >Request funds</button>
-          }
-
-          <section class="relationship-periods" aria-label="Financing periods">
-            <div class="relationship-periods__heading">
-              <div><p class="page-eyebrow">Financing</p><h3>Financing periods</h3></div>
-            </div>
-
+          <dl class="relationship-detail-grid"><div><dt>Max Financing</dt><dd>{{ formatKes(relationship.limit) }}</dd></div><div><dt>Financing Used</dt><dd>{{ formatKes(relationshipUsed(relationship)) }}</dd></div><div><dt>Financing Available</dt><dd>{{ formatKes(relationshipAvailable(relationship)) }}</dd></div><div><dt>Status</dt><dd>{{ relationshipAvailabilityLabel(relationship) }}</dd></div>@if (product.id === 'invoice-financing') { <div><dt>Invoice uploads</dt><dd>{{ invoiceUploadSourceLabel(relationship) }}</dd></div> }</dl>
+          @if (canUploadInvoices(relationship)) { <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button> }
+          @if (relationship.fundsRequestLabel) { <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="request-financing" [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0" (click)="startFundsRequest(relationship, $event)">Request funds</button> }
+          <section class="relationship-periods" aria-label="Financing periods"><div class="relationship-periods__heading"><div><p class="page-eyebrow">Financing</p><h3>Financing periods</h3></div></div>
             @for (period of relationshipPeriods(relationship); track period.id) {
-              <article class="relationship-period-row" [class.is-overdue]="period.statusKey === 'overdue' || period.paymentAttention === 'overdue'">
-                <button type="button" class="relationship-period-row__main" (click)="openPeriod(period)">
-                  <div>
-                    <strong>{{ period.reference }}</strong>
-                    <span>Due {{ formatDate(period.repaymentDueDate) }} · {{ formatKes(period.outstandingBalance) }} outstanding</span>
-                    @if (product.id === 'invoice-financing' && canRequestFromPeriod(period)) {
-                      <span class="relationship-period-row__available">{{ formatKes(period.availableToWithdraw ?? 0) }} available to request</span>
-                    }
-                  </div>
-                  <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
-                </button>
-
-                @if (canRequestFromPeriod(period)) {
-                  <button type="button" class="baseline-button baseline-button--primary relationship-period-row__action" data-action="request-financing" (click)="requestFundsForPeriod(period, $event)">Request funds</button>
-                }
-              </article>
-            } @empty {
-              <div class="baseline-empty">
-                <strong>No financing periods yet</strong>
-                @if (canUploadInvoices(relationship)) {
-                  <p>Upload an eligible invoice to create or update this buyer's financing period.</p>
-                } @else if (product.id === 'invoice-financing') {
-                  <p>Financing periods will appear when eligible buyer invoices are available.</p>
-                } @else {
-                  <p>No current financing periods are available for this {{ relationshipCustomerType(relationship).toLowerCase() }}.</p>
-                }
-              </div>
-            }
+              <article class="relationship-period-row" [class.is-overdue]="period.statusKey === 'overdue' || period.paymentAttention === 'overdue'"><button type="button" class="relationship-period-row__main" (click)="openPeriod(period)"><div><strong>{{ period.reference }}</strong><span>Due {{ formatDate(period.repaymentDueDate) }} · {{ formatKes(period.outstandingBalance) }} outstanding</span>@if (product.id === 'invoice-financing' && canRequestFromPeriod(period)) { <span class="relationship-period-row__available">{{ formatKes(period.availableToWithdraw ?? 0) }} available to request</span> }</div><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></button>@if (canRequestFromPeriod(period)) { <button type="button" class="baseline-button baseline-button--primary relationship-period-row__action" data-action="request-financing" (click)="requestFundsForPeriod(period, $event)">Request funds</button> }</article>
+            } @empty { <div class="baseline-empty"><strong>No financing periods yet</strong><p>No current financing periods are available.</p></div> }
           </section>
         </div>
       </section>
@@ -180,36 +69,10 @@
   }
 
   @if (invoiceUploadRelationship; as relationship) {
-    <div class="baseline-modal-backdrop relationship-modal-backdrop" role="presentation" (click)="closeInvoiceUpload()">
-      <section class="baseline-modal relationship-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" (click)="$event.stopPropagation()">
-        <header class="baseline-modal__head relationship-modal__head">
-          <div><p class="page-eyebrow">Invoice Financing</p><h2 id="invoice-upload-title">Upload invoices</h2></div>
-          <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeInvoiceUpload()">&times;</button>
-        </header>
-        <div class="baseline-modal__body relationship-modal__body invoice-upload-modal__body">
-          <p class="invoice-upload-modal__intro">Upload invoices for {{ relationship.name }}. Eligible invoices are grouped into financing periods by buyer and due date.</p>
-          <div class="baseline-field"><label for="client-invoice-file">Invoice</label><input id="client-invoice-file" class="baseline-control" type="file"></div>
-          <div class="baseline-field"><label for="client-invoice-due-date">Invoice due date</label><input id="client-invoice-due-date" class="baseline-control" type="date"></div>
-          <div class="baseline-field"><label for="client-invoice-value">Invoice value</label><input id="client-invoice-value" class="baseline-control" type="number" min="0" placeholder="KES"></div>
-          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="completeInvoiceUpload()">Submit invoice</button>
-        </div>
-      </section>
-    </div>
+    <div class="baseline-modal-backdrop relationship-modal-backdrop" role="presentation" (click)="closeInvoiceUpload()"><section class="baseline-modal relationship-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head relationship-modal__head"><div><p class="page-eyebrow">Invoice Financing</p><h2 id="invoice-upload-title">Upload invoices</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeInvoiceUpload()">&times;</button></header><div class="baseline-modal__body relationship-modal__body invoice-upload-modal__body"><p class="invoice-upload-modal__intro">Upload invoices for {{ relationship.name }}. Eligible invoices are grouped into financing periods by buyer and due date.</p><div class="baseline-field"><label for="client-invoice-file">Invoice</label><input id="client-invoice-file" class="baseline-control" type="file"></div><div class="baseline-field"><label for="client-invoice-due-date">Invoice due date</label><input id="client-invoice-due-date" class="baseline-control" type="date"></div><div class="baseline-field"><label for="client-invoice-value">Invoice value</label><input id="client-invoice-value" class="baseline-control" type="number" min="0" placeholder="KES"></div><button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="completeInvoiceUpload()">Submit invoice</button></div></section></div>
   }
 
-  <app-customer-financing-period-modal
-    [period]="selectedPeriod"
-    [productId]="product.id"
-    [dueDateLabel]="product.dueDateColumnLabel"
-    [totalRepaidLabel]="product.totalRepaidColumnLabel"
-    [outstandingLabel]="product.outstandingColumnLabel"
-    [backLabel]="periodBackLabel"
-    (requestFunds)="requestFundsForPeriod($event)"
-    (back)="backToRelationship()"
-    (close)="closePeriod()"
-  />
+  <app-customer-financing-period-modal [period]="selectedPeriod" [productId]="product.id" [dueDateLabel]="product.dueDateColumnLabel" [totalRepaidLabel]="product.totalRepaidColumnLabel" [outstandingLabel]="product.outstandingColumnLabel" [backLabel]="periodBackLabel" (requestFunds)="requestFundsForPeriod($event)" (back)="backToRelationship()" (close)="closePeriod()" />
 }
 
-@if (toast) {
-  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
-}
+@if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
