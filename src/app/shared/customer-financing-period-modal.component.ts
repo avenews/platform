@@ -12,6 +12,10 @@ import type {
   CustomerFinancingPeriod,
   InstalmentStatus,
 } from '../core/experience/customer-product-workspace.data'
+import {
+  documentsForPeriod,
+  type FinancingDocument,
+} from '../core/experience/financing-documents.data'
 
 type RepaymentMethod = 'bank' | 'mpesa'
 
@@ -98,6 +102,26 @@ const MPESA_DETAILS = [
                 <div><dt>Financing Period</dt><dd>{{ period.financedDays }} days</dd></div>
               }
             </dl>
+
+            @if (periodDocuments.length) {
+              <section class="customer-documents" aria-label="Transaction documents">
+                <div class="customer-documents__heading">
+                  <p class="page-eyebrow">Documents</p>
+                  <h3>Transaction files</h3>
+                </div>
+                <div class="customer-document-list">
+                  @for (document of periodDocuments; track document.id) {
+                    <div class="customer-document-row">
+                      <span>
+                        <strong>{{ document.type }}</strong>
+                        <small>{{ document.reference }} · {{ document.fileName }}</small>
+                      </span>
+                      <a class="baseline-button baseline-button--secondary" [href]="document.fileUrl" target="_blank" rel="noopener noreferrer">View</a>
+                    </div>
+                  }
+                </div>
+              </section>
+            }
 
             @if (canRequestFunds) {
               <button
@@ -297,6 +321,19 @@ const MPESA_DETAILS = [
     .customer-period-details dt { color: var(--av-color-text-muted, #66788a); font-size: 11px; }
     .customer-period-details dd { color: var(--av-color-text-heading, #0d343f); font-size: 13px; font-weight: 700; overflow-wrap: anywhere; }
 
+    .customer-documents,
+    .customer-documents__heading { display: grid; gap: 10px; }
+    .customer-documents__heading p,
+    .customer-documents__heading h3 { margin: 0; }
+    .customer-documents__heading h3 { color: var(--av-color-text-heading, #0d343f); font-size: 16px; }
+    .customer-document-list { overflow: hidden; border: 1px solid var(--av-color-surface-border, #e1e7eb); border-radius: 10px; background: #fff; }
+    .customer-document-row { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 12px 14px; border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb); }
+    .customer-document-row:last-child { border-bottom: 0; }
+    .customer-document-row > span { min-width: 0; display: grid; gap: 3px; }
+    .customer-document-row strong { color: var(--av-color-text-heading, #0d343f); font-size: 13px; }
+    .customer-document-row small { color: var(--av-color-text-muted, #66788a); font-size: 11px; overflow-wrap: anywhere; }
+    .customer-document-row .baseline-button { flex: 0 0 auto; }
+
     .customer-period-request {
       border-color: var(--av-color-action, #16b3c4) !important;
       background: var(--av-color-action, #16b3c4) !important;
@@ -440,6 +477,7 @@ const MPESA_DETAILS = [
       .customer-period-details { grid-template-columns: 1fr; }
       .customer-period-details > div { border-right: 0; }
       .customer-instalment-row,
+      .customer-document-row,
       .customer-settlement-card > div,
       .customer-payment-details > div { align-items: flex-start; }
     }
@@ -484,6 +522,11 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     if (type.includes('Supplier')) return 'Supplier'
     if (type.includes('Buyer')) return 'Buyer'
     return type
+  }
+
+  get periodDocuments(): readonly FinancingDocument[] {
+    if (!this.period || this.productId === 'invoice-financing') return []
+    return documentsForPeriod(this.period.id)
   }
 
   get canRequestFunds(): boolean {
