@@ -113,29 +113,32 @@ h4 {
  * - financing requests use the Avenews primary/action blue
  * - invoice uploads use the Avenews success green
  * - view/navigation controls remain neutral secondary actions
+ *
+ * The semantic action rules are deliberately important because Angular's
+ * component-scoped selectors can otherwise out-rank this global contract.
  */
 body .baseline-button[data-action="request-financing"] {
-  border-color: var(--av-color-action, #16b3c4);
-  background: var(--av-color-action, #16b3c4);
-  color: var(--av-color-on-action, #ffffff);
-  filter: none;
+  border-color: var(--av-color-action, #16b3c4) !important;
+  background: var(--av-color-action, #16b3c4) !important;
+  color: var(--av-color-on-action, #ffffff) !important;
+  filter: none !important;
 }
 
 body .baseline-button[data-action="request-financing"]:hover:not(:disabled),
 body .baseline-button[data-action="request-financing"]:focus-visible:not(:disabled) {
-  border-color: var(--av-color-action-hover, #0f96a6);
-  background: var(--av-color-action-hover, #0f96a6);
-  filter: none;
+  border-color: var(--av-color-action-hover, #0f96a6) !important;
+  background: var(--av-color-action-hover, #0f96a6) !important;
+  filter: none !important;
 }
 
 body .baseline-button[data-action="invoice-upload"],
 body .baseline-button[data-action="upload-invoices"],
 body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button,
 body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary {
-  border-color: var(--av-color-success, #39c173);
-  background: var(--av-color-success, #39c173);
-  color: var(--av-color-on-success, #ffffff);
-  filter: none;
+  border-color: var(--av-color-success, #39c173) !important;
+  background: var(--av-color-success, #39c173) !important;
+  color: var(--av-color-on-success, #ffffff) !important;
+  filter: none !important;
 }
 
 body .baseline-button[data-action="invoice-upload"]:hover:not(:disabled),
@@ -146,17 +149,17 @@ body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-butt
 body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button:focus-visible:not(:disabled),
 body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary:hover:not(:disabled),
 body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary:focus-visible:not(:disabled) {
-  border-color: var(--av-color-success-hover, #269354);
-  background: var(--av-color-success-hover, #269354);
-  filter: none;
+  border-color: var(--av-color-success-hover, #269354) !important;
+  background: var(--av-color-success-hover, #269354) !important;
+  filter: none !important;
 }
 
 body .baseline-button[data-action="request-financing"]:disabled,
 body .baseline-button[data-action="invoice-upload"]:disabled,
 body .baseline-button[data-action="upload-invoices"]:disabled {
-  border-color: var(--av-color-surface-border, #d0d5dd);
-  background: var(--av-color-surface-disabled, #e4e7ec);
-  color: var(--av-color-text-disabled, #98a2b3);
+  border-color: var(--av-color-surface-border, #d0d5dd) !important;
+  background: var(--av-color-surface-disabled, #e4e7ec) !important;
+  color: var(--av-color-text-disabled, #98a2b3) !important;
   opacity: 1;
 }
 
