@@ -11,6 +11,7 @@ import {
   customerWorkspaceById,
   paymentAttentionCounts,
   type CustomerFinancingPeriod,
+  type CustomerProductId,
   type CustomerWorkspace,
 } from '../../core/experience/customer-product-workspace.data'
 import {
@@ -27,6 +28,52 @@ import {
 import { CustomerFinancingPeriodModalComponent } from '../../shared/customer-financing-period-modal.component'
 import { formatDate, formatKes } from '../../shared/customer-portal.data'
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
+
+interface CustomerHomeCopy {
+  intro: string
+  availableHelper: string
+  outstandingHelper: string
+  dueMetricLabel: string
+  dueActionLabel: string
+}
+
+const CUSTOMER_HOME_COPY: Record<CustomerProductId, CustomerHomeCopy> = {
+  acl: {
+    intro: 'View available financing, repayments and financing periods.',
+    availableHelper: 'Available for approved purchases',
+    outstandingHelper: 'Across active financing',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  abf: {
+    intro: 'View financing by supplier, track repayments and request funds.',
+    availableHelper: 'Across your approved suppliers',
+    outstandingHelper: 'Across active financing periods',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  stf: {
+    intro: 'View financing by Partner Supplier, track repayments and request funds.',
+    availableHelper: 'Across your Partner Suppliers',
+    outstandingHelper: 'Across active financing periods',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  'invoice-financing': {
+    intro: 'View financing by buyer and invoice due date, upload invoices and request funds.',
+    availableHelper: 'Across eligible financing periods',
+    outstandingHelper: 'To be settled from buyer payments',
+    dueMetricLabel: 'Buyer Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  infx: {
+    intro: 'Finance one invoice at a time, track repayments and request funds by buyer.',
+    availableHelper: 'Across your approved buyers',
+    outstandingHelper: 'Across active financing periods',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+}
 
 @Component({
   selector: 'app-contextual-home',
@@ -100,7 +147,7 @@ export class ContextualHomeComponent implements OnDestroy {
         label: 'Due date',
         allLabel: 'Any due date',
         options: [
-          { value: 'payments-due', label: this.workspace.id === 'invoice-financing' ? 'Settlements due' : 'Payments due' },
+          { value: 'payments-due', label: 'Payments due' },
           { value: 'overdue', label: 'Overdue' },
           { value: 'upcoming', label: 'Upcoming' },
         ],
@@ -137,15 +184,32 @@ export class ContextualHomeComponent implements OnDestroy {
     return this.workspace?.id === 'invoice-financing' ? 'Upload invoices' : (this.workspace?.primaryActionLabel ?? '')
   }
 
+  get homeIntro(): string {
+    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].intro : this.experience.homeIntro
+  }
+
+  get availableMetricHelper(): string {
+    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].availableHelper : ''
+  }
+
+  get outstandingMetricHelper(): string {
+    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].outstandingHelper : ''
+  }
+
+  get dueMetricLabel(): string {
+    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].dueMetricLabel : 'Payments Due'
+  }
+
+  get dueActionLabel(): string {
+    return this.workspace ? CUSTOMER_HOME_COPY[this.workspace.id].dueActionLabel : 'View payments due'
+  }
+
   get dueCounts(): { overdue: number; upcoming: number; total: number } {
     return this.workspace ? paymentAttentionCounts(this.workspace) : { overdue: 0, upcoming: 0, total: 0 }
   }
 
   get dueCountLabel(): string {
     const total = this.dueCounts.total
-    if (this.workspace?.id === 'invoice-financing') {
-      return `${total} ${total === 1 ? 'settlement' : 'settlements'} due`
-    }
     return `${total} ${total === 1 ? 'payment' : 'payments'} due`
   }
 
@@ -154,7 +218,7 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   get activityItemLabel(): string {
-    return this.workspace?.id === 'invoice-financing' ? 'Dynamic Periods' : 'financing periods'
+    return 'financing periods'
   }
 
   get filteredPeriods(): readonly CustomerFinancingPeriod[] {
@@ -264,7 +328,7 @@ export class ContextualHomeComponent implements OnDestroy {
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
     if (!this.canRequestFromPeriod(period)) return
-    this.toast = `Request funds from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
+    this.toast = `You can request up to ${formatKes(period.availableToWithdraw ?? 0)} from this financing period.`
     this.cdr.markForCheck()
   }
 
