@@ -20,7 +20,7 @@
       <article class="contextual-metric baseline-card customer-summary-card customer-available-financing">
         <span>Available Financing</span>
         <strong>{{ formatKes(product.availableMetricValue) }}</strong>
-        <small>{{ product.id === 'invoice-financing' ? 'Available to Withdraw across eligible periods' : product.availableMetricHelper }}</small>
+        <small>{{ product.id === 'invoice-financing' ? 'Across eligible periods' : product.availableMetricHelper }}</small>
         @if (product.id === 'invoice-financing') {
           <button
             type="button"
