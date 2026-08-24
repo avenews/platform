@@ -182,6 +182,9 @@
     <div class="experience-profile-menu" role="menu" aria-label="Profile menu">
       <div class="experience-profile-menu__header">{{ fullName }}</div>
       <a [routerLink]="routeFor('profile')" (click)="closeOverlays()" role="menuitem">View Profile</a>
+      @if (session?.role === 'admin') {
+        <a [routerLink]="routeFor('manage-users')" (click)="closeOverlays()" role="menuitem">Manage Users</a>
+      }
       <a [routerLink]="routeFor('support')" (click)="closeOverlays()" role="menuitem">Support</a>
       @if (availableExperiences.length > 1) {
         <button type="button" (click)="openChooser()" role="menuitem">Switch product or access</button>
