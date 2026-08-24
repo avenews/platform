@@ -8,12 +8,14 @@ import {
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import { AuthService } from '../../core/auth/auth.service'
+import { customerWorkspaceById } from '../../core/experience/customer-product-workspace.data'
 import {
   isExperienceScenario,
   type ExperienceId,
   type PortalExperience,
 } from '../../core/experience/contextual-experience.data'
 import { PortalExperienceService } from '../../core/experience/portal-experience.service'
+import { formatKes } from '../../shared/customer-portal.data'
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
 import { PrototypeExplainerService } from '../../shared/prototype-explainer.service'
 
@@ -21,14 +23,6 @@ interface AccessSummary {
   label: string
   value: string
 }
-
-const WELCOME_MESSAGES = [
-  'Welcome back',
-  'Good to see you again',
-  'Ready when you are',
-  'Welcome to Avenews',
-  "Let's get started",
-] as const
 
 @Component({
   selector: 'app-access-chooser',
@@ -46,7 +40,7 @@ export class AccessChooserComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef)
 
   readonly explainers = inject(PrototypeExplainerService)
-  readonly welcomeMessage = WELCOME_MESSAGES[new Date().getMinutes() % WELCOME_MESSAGES.length]
+  readonly welcomeMessage = this.buildWelcomeMessage()
   destinations: readonly PortalExperience[] = []
   developerOpen = false
 
@@ -62,15 +56,9 @@ export class AccessChooserComponent implements OnInit {
     const requestedScenario = this.route.snapshot.queryParamMap.get('scenario')
     if (isExperienceScenario(requestedScenario)) this.experiences.setScenario(requestedScenario)
 
+    // The product selection screen is the prototype landing surface after login,
+    // even when the current review scenario contains only one destination.
     this.destinations = this.experiences.availableExperiences()
-
-    // The selector is only useful when there is a real choice. If exactly one
-    // product or workspace is available, continue directly into that experience.
-    if (this.destinations.length === 1) {
-      this.openDestination(this.destinations[0].id)
-      return
-    }
-
     this.cdr.markForCheck()
   }
 
@@ -85,21 +73,21 @@ export class AccessChooserComponent implements OnInit {
   }
 
   availabilitySummary(destination: PortalExperience): AccessSummary | null {
-    const metric = destination.metrics.find(item => /available/i.test(item.label))
-    return metric ? { label: metric.label, value: metric.value } : null
+    const workspace = customerWorkspaceById(destination.id)
+    if (!workspace) return null
+    return {
+      label: 'Available Financing',
+      value: formatKes(workspace.availableMetricValue),
+    }
   }
 
   outstandingSummary(destination: PortalExperience): AccessSummary | null {
-    const metric = destination.metrics.find(item => /outstanding/i.test(item.label))
-    if (metric) {
-      return {
-        label: destination.id === 'acl' ? 'Outstanding Amount' : metric.label,
-        value: metric.value,
-      }
+    const workspace = customerWorkspaceById(destination.id)
+    if (!workspace) return null
+    return {
+      label: 'Outstanding Amount',
+      value: formatKes(workspace.outstandingMetricValue),
     }
-
-    const record = destination.records.find(item => item.amountLabel.toLowerCase() === 'outstanding')
-    return record ? { label: 'Outstanding Amount', value: record.amount } : null
   }
 
   openDestination(id: ExperienceId): void {
@@ -127,5 +115,10 @@ export class AccessChooserComponent implements OnInit {
   @HostListener('document:keydown.escape')
   onEscape(): void {
     this.developerOpen = false
+  }
+
+  private buildWelcomeMessage(): string {
+    const firstName = this.auth.getSession()?.contactFirstName?.trim()
+    return firstName ? `Welcome back, ${firstName}` : 'Welcome back'
   }
 }
