@@ -40,22 +40,19 @@
   gap: 14px;
 }
 
-.relationship-table {
-  min-width: 920px;
-}
-
+.relationship-table,
 [data-product-context="invoice-financing"] .relationship-table {
-  min-width: 920px;
+  min-width: 720px;
 }
 
 .relationship-table th:first-child,
 .relationship-table td:first-child {
-  width: 24%;
+  width: 34%;
 }
 
 .relationship-table th:last-child,
 .relationship-table td:last-child {
-  width: 270px;
+  width: 300px;
 }
 
 .relationship-name-button {
@@ -130,7 +127,7 @@
 }
 
 .relationship-card__metrics {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .relationship-modal-backdrop {
@@ -235,6 +232,11 @@
   border: 1px solid var(--av-color-surface-border, #e1e7eb);
   border-radius: 10px;
   background: #fff;
+}
+
+.relationship-period-row.is-overdue {
+  border-color: #efb4b4;
+  background: #fff4f4;
 }
 
 .relationship-period-row__main {
