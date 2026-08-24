@@ -68,8 +68,8 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
         <section class="baseline-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" (click)="$event.stopPropagation()">
           <header class="baseline-modal__head"><h2 id="invoice-upload-title">Upload invoices</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="uploadOpen = false">&times;</button></header>
           <div class="baseline-modal__body invoice-upload-modal__body">
-            <p>Upload an invoice for one of your buyers. Once approved, it will be added to the matching financing period.</p>
-            <div class="baseline-field"><label for="invoice-buyer">Buyer</label><select id="invoice-buyer" class="baseline-control"><option>FreshProduce Kenya Ltd</option><option>Twiga Foods Ltd</option></select></div>
+            <p>Upload an invoice for a buyer where you provide the invoice information. Once approved, it will be added to the matching financing period.</p>
+            <div class="baseline-field"><label for="invoice-buyer">Buyer</label><select id="invoice-buyer" class="baseline-control"><option>FreshProduce Kenya Ltd</option></select></div>
             <div class="baseline-field"><label for="invoice-file">Invoice file</label><input id="invoice-file" class="baseline-control" type="file" accept=".pdf,.png,.jpg,.jpeg,.xlsx,.csv"></div>
             <div class="baseline-field"><label for="invoice-due">Invoice due date</label><input id="invoice-due" class="baseline-control" type="date"></div>
             <div class="baseline-field"><label for="invoice-amount">Invoice amount</label><input id="invoice-amount" class="baseline-control" type="number" min="0" placeholder="KES"></div>
