@@ -3,22 +3,22 @@
     <section class="contextual-financing__hero">
       <div>
         <p class="page-eyebrow">{{ product.relationshipNoun }} workspace</p>
-        <h1>{{ product.relationshipHeading }}</h1>
-        <p>{{ product.relationshipIntro }}</p>
+        <h1>{{ relationshipHeading }}</h1>
+        <p>{{ relationshipIntro }}</p>
       </div>
     </section>
 
-    <section class="baseline-section relationship-section" [attr.aria-label]="product.relationshipHeading">
+    <section class="baseline-section relationship-section" [attr.aria-label]="relationshipHeading">
       <div class="baseline-table-wrap relationship-table-wrap">
         <table class="baseline-table relationship-table">
           <thead>
             <tr>
-              <th title="The Supplier or Buyer this financing applies to.">{{ product.relationshipNoun }}</th>
-              <th title="Maximum financing approved for this relationship.">Max Financing</th>
+              <th title="Supplier or buyer for this financing.">{{ product.relationshipNoun }}</th>
+              <th title="Maximum financing approved.">Max Financing</th>
               <th title="Financing currently in use.">Financing Used</th>
               <th title="Financing currently available.">Financing Available</th>
-              <th title="Whether financing is currently available.">Status</th>
-              <th title="Available actions for this relationship.">Action</th>
+              <th title="Current financing availability.">Status</th>
+              <th title="Available actions.">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -60,7 +60,7 @@
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="6"><div class="baseline-empty"><strong>No relationships available</strong><p>No approved Supplier or Buyer relationships are available yet.</p></div></td></tr>
+              <tr><td colspan="6"><div class="baseline-empty"><strong>Nothing to show yet</strong><p>No approved suppliers or buyers are available yet.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -77,7 +77,7 @@
             </div>
 
             <div class="baseline-metrics relationship-card__metrics">
-              <span class="baseline-metric" title="Maximum financing approved for this relationship."><small>Max Financing</small><strong>{{ formatKes(relationship.limit) }}</strong></span>
+              <span class="baseline-metric" title="Maximum financing approved."><small>Max Financing</small><strong>{{ formatKes(relationship.limit) }}</strong></span>
               <span class="baseline-metric" title="Financing currently in use."><small>Financing Used</small><strong>{{ formatKes(relationshipUsed(relationship)) }}</strong></span>
               <span class="baseline-metric" title="Financing currently available."><small>Financing Available</small><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></span>
             </div>
@@ -148,7 +148,7 @@
             <div class="relationship-periods__heading">
               <div>
                 <p class="page-eyebrow">Financing</p>
-                <h3>{{ product.id === 'invoice-financing' ? 'Dynamic Periods' : 'Financing periods' }}</h3>
+                <h3>Financing periods</h3>
               </div>
             </div>
 
@@ -171,13 +171,13 @@
               </article>
             } @empty {
               <div class="baseline-empty">
-                <strong>No financing periods</strong>
+                <strong>No financing periods yet</strong>
                 @if (canUploadInvoices(relationship)) {
-                  <p>Upload an eligible invoice to create or update a Dynamic Period for this Buyer.</p>
+                  <p>Upload an eligible invoice to create or update this buyer's financing period.</p>
                 } @else if (product.id === 'invoice-financing') {
-                  <p>Dynamic Periods will appear when eligible Buyer-uploaded invoices are available.</p>
+                  <p>Financing periods will appear when eligible buyer invoices are available.</p>
                 } @else {
-                  <p>No current financing periods are associated with this relationship.</p>
+                  <p>No current financing periods are available for this {{ relationshipCustomerType(relationship).toLowerCase() }}.</p>
                 }
               </div>
             }
@@ -198,7 +198,7 @@
           <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeInvoiceUpload()">&times;</button>
         </header>
         <div class="baseline-modal__body relationship-modal__body invoice-upload-modal__body">
-          <p class="invoice-upload-modal__intro">Upload invoices for {{ relationship.name }}. Once an invoice is eligible, it is grouped into the matching Dynamic Period by Buyer and invoice due date.</p>
+          <p class="invoice-upload-modal__intro">Upload invoices for {{ relationship.name }}. Eligible invoices are grouped into financing periods by buyer and due date.</p>
           <div class="baseline-field">
             <label for="client-invoice-file">Invoice</label>
             <input id="client-invoice-file" class="baseline-control" type="file">
