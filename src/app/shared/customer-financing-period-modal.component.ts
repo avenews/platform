@@ -13,10 +13,7 @@ import type {
   CustomerInstalment,
   InstalmentStatus,
 } from '../core/experience/customer-product-workspace.data'
-import {
-  documentsForPeriod,
-  type FinancingDocument,
-} from '../core/experience/financing-documents.data'
+import { documentsForPeriod } from '../core/experience/financing-documents.data'
 
 type RepaymentMethod = 'bank' | 'mpesa'
 
@@ -82,41 +79,34 @@ const MPESA_DETAILS = [
               <div><dt>Amount Financed</dt><dd>{{ formatKes(period.amountFinanced) }}</dd></div>
               <div><dt>{{ totalRepaidLabel }}</dt><dd>{{ formatKes(period.totalRepaid) }}</dd></div>
               <div><dt>{{ outstandingLabel }}</dt><dd>{{ formatKes(period.outstandingBalance) }}</dd></div>
-              @if (period.invoiceType) { <div><dt>Invoice type</dt><dd>{{ period.invoiceType }}</dd></div> }
-              @if (period.eligibleReceivables !== undefined) { <div><dt>Eligible Invoice Value</dt><dd>{{ formatKes(period.eligibleReceivables) }}</dd></div> }
-              @if (period.availableToWithdraw !== undefined) { <div><dt>Available to Withdraw</dt><dd>{{ formatKes(period.availableToWithdraw) }}</dd></div> }
-              @if (period.financedDays) { <div><dt>Financing Period</dt><dd>{{ period.financedDays }} days</dd></div> }
             </dl>
 
-            <div class="customer-period-actions">
-              <a class="baseline-button baseline-button--secondary baseline-button--block" [href]="fundsRequestSnapshotUrl" target="_blank" rel="noopener noreferrer">View Funds Request PDF</a>
-              @if (firstInvoice; as invoice) {
-                <a class="baseline-button baseline-button--secondary baseline-button--block" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a>
-              }
-              @if (periodDocuments.length) {
-                <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openDocuments()">Transaction files ({{ periodDocuments.length }})</button>
-              }
-              @if (canRequestFunds) {
-                <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
-              }
-            </div>
+            @if (canRequestFunds) {
+              <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
+            }
 
-            <section class="customer-instalments" aria-label="Repayment schedule">
-              <div class="customer-instalments__heading"><div><p class="page-eyebrow">{{ period.settlementMode === 'buyer-payment' ? 'Buyer payment' : 'Repayment schedule' }}</p><h3>{{ period.instalments.length ? 'Instalments' : singleRepaymentHeading }}</h3></div></div>
-              @if (period.instalments.length) {
+            @if (period.instalments.length) {
+              <section class="customer-instalments" aria-label="Repayment schedule">
+                <div class="customer-instalments__heading"><div><p class="page-eyebrow">Repayment schedule</p><h3>Instalments</h3></div></div>
                 <div class="customer-instalment-list">
                   @for (instalment of period.instalments; track instalment.label + instalment.dueDate) {
                     <div class="customer-instalment-row"><div><strong>{{ instalment.label }}</strong><span>{{ formatKes(instalment.amount) }} · Due {{ formatDate(instalment.dueDate) }}</span></div><span class="baseline-status" [class]="'baseline-status ' + instalmentTone(instalment.status)">{{ instalmentLabel(instalment.status) }}</span></div>
                   }
                 </div>
-              } @else {
-                <div class="customer-single-repayment"><span>{{ singleRepaymentLabel }}</span><strong>{{ formatKes(period.amountDue) }}</strong><small>Due {{ formatDate(period.repaymentDueDate) }}</small></div>
-              }
-            </section>
-
-            @if (period.outstandingBalance > 0) {
-              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openRepayment()">{{ repaymentActionLabel }}</button>
+              </section>
+            } @else if (period.settlementMode !== 'buyer-payment' && period.amountDue > 0) {
+              <section class="customer-instalments" aria-label="Repayment schedule">
+                <div class="customer-instalments__heading"><div><p class="page-eyebrow">Repayment schedule</p><h3>Single repayment</h3></div></div>
+                <div class="customer-single-repayment"><span>Amount due</span><strong>{{ formatKes(period.amountDue) }}</strong><small>Due {{ formatDate(period.repaymentDueDate) }}</small></div>
+              </section>
             }
+
+            <div class="customer-period-footer-actions" [class.is-single]="period.outstandingBalance <= 0">
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openDocuments()">Files</button>
+              @if (period.outstandingBalance > 0) {
+                <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openRepayment()">{{ repaymentActionLabel }}</button>
+              }
+            </div>
           </div>
         </section>
       </div>
@@ -128,7 +118,7 @@ const MPESA_DETAILS = [
           <header class="baseline-modal__head customer-period-modal__head">
             <div class="customer-period-modal__heading">
               <button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="closeDocuments()"><span aria-hidden="true">←</span><span>Back</span></button>
-              <div><p class="page-eyebrow">Documents</p><h2 [id]="period.id + '-documents-title'">Transaction files</h2><small>{{ period.reference }}</small></div>
+              <div><p class="page-eyebrow">Documents</p><h2 [id]="period.id + '-documents-title'">Files</h2><small>{{ period.reference }}</small></div>
             </div>
             <button type="button" class="baseline-modal__close" aria-label="Close" (click)="close.emit()">&times;</button>
           </header>
@@ -180,15 +170,20 @@ const MPESA_DETAILS = [
     .customer-period-modal__heading p, .customer-period-modal__heading h2, .customer-period-modal__heading small { margin:0; }
     .customer-period-modal__heading small { color:var(--av-color-text-muted,#66788a); }
     .customer-modal-back { width:fit-content; min-height:36px; justify-self:start; padding-inline:12px; }
-    .customer-period-modal__body { min-height:0; flex:1 1 auto; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; display:grid; gap:16px; }
+    .customer-period-modal__body { min-height:0; flex:1 1 auto; overflow-y:auto; overscroll-behavior:contain; -webkit-overflow-scrolling:touch; display:grid; align-content:start; gap:16px; }
     .customer-period-modal__summary { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; }
-    .customer-period-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); margin:0; overflow:hidden; border:1px solid var(--av-color-surface-border,#e1e7eb); border-radius:10px; background:#fff; }
-    .customer-period-details > div { display:grid; gap:4px; padding:13px 15px; border-right:1px solid var(--av-color-surface-border,#e1e7eb); border-bottom:1px solid var(--av-color-surface-border,#e1e7eb); }
+    .customer-period-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); grid-auto-rows:minmax(66px,auto); margin:0; overflow:visible; border:1px solid var(--av-color-surface-border,#e1e7eb); border-radius:10px; background:#fff; }
+    .customer-period-details > div { min-width:0; display:grid; align-content:center; gap:4px; padding:13px 15px; border-right:1px solid var(--av-color-surface-border,#e1e7eb); border-bottom:1px solid var(--av-color-surface-border,#e1e7eb); }
     .customer-period-details > div:nth-child(2n) { border-right:0; }
+    .customer-period-details > div:last-child:nth-child(odd) { grid-column:1/-1; border-right:0; }
+    .customer-period-details > div:last-child { border-bottom:0; }
+    .customer-period-details > div:nth-last-child(2):nth-child(odd) { border-bottom:0; }
     .customer-period-details dt,.customer-period-details dd { margin:0; }
     .customer-period-details dt { color:var(--av-color-text-muted,#66788a); font-size:11px; }
     .customer-period-details dd { color:var(--av-color-text-heading,#0d343f); font-size:13px; font-weight:700; overflow-wrap:anywhere; }
-    .customer-period-actions { display:grid; gap:8px; }
+    .customer-period-footer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .customer-period-footer-actions.is-single { grid-template-columns:1fr; }
+    .customer-period-request { margin:0; }
     .customer-overdue { display:grid; gap:10px; padding:14px; border:1px solid #efb4b4; border-radius:10px; background:#fff4f4; }
     .customer-overdue p,.customer-overdue h3 { margin:0; }
     .customer-overdue h3 { color:var(--av-color-text-heading,#0d343f); font-size:16px; }
@@ -215,7 +210,16 @@ const MPESA_DETAILS = [
     .customer-payment-methods button { min-height:42px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--av-color-text,#25384a); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
     .customer-payment-methods button.is-active { border-color:var(--av-color-primary-border,#bdeff3); background:#fff; color:var(--av-color-action,#16b3c4); }
     .customer-payment-details button { flex:0 0 auto; min-height:34px; padding:0 12px; border:1px solid var(--av-color-surface-border,#dfe4e8); border-radius:6px; background:#fff; color:var(--av-color-text-heading,#0d343f); font:inherit; font-size:11px; font-weight:700; cursor:pointer; }
-    @media (max-width:767px) { .customer-period-backdrop { align-items:flex-end; padding:0; } .customer-period-modal { width:100%; max-height:92dvh; border-radius:18px 18px 0 0; border-bottom:0; } .customer-period-details { grid-template-columns:1fr; } .customer-period-details > div { border-right:0; } .customer-instalment-row,.customer-document-row,.customer-payment-details > div,.customer-settlement-card > div { align-items:flex-start; } }
+    @media (max-width:767px) {
+      .customer-period-backdrop { align-items:flex-end; padding:0; }
+      .customer-period-modal { width:100%; max-height:92dvh; border-radius:18px 18px 0 0; border-bottom:0; }
+      .customer-period-modal__body { gap:14px; }
+      .customer-period-details { grid-template-columns:1fr; grid-auto-rows:minmax(62px,auto); }
+      .customer-period-details > div,.customer-period-details > div:last-child:nth-child(odd) { grid-column:auto; border-right:0; }
+      .customer-period-details > div { border-bottom:1px solid var(--av-color-surface-border,#e1e7eb); }
+      .customer-period-details > div:last-child { border-bottom:0; }
+      .customer-instalment-row,.customer-document-row,.customer-payment-details > div,.customer-settlement-card > div { align-items:flex-start; }
+    }
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -258,12 +262,8 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     return type
   }
 
-  get periodDocuments(): readonly FinancingDocument[] {
+  get periodDocuments() {
     return this.period ? documentsForPeriod(this.period.id) : []
-  }
-
-  get firstInvoice(): FinancingDocument | null {
-    return this.periodDocuments.find(document => document.type === 'Invoice') ?? null
   }
 
   get overdueInstalments(): readonly CustomerInstalment[] {
@@ -281,9 +281,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     return daysToDue >= 7 && daysToDue <= 60
   }
 
-  get singleRepaymentHeading(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Payment' : 'Single repayment' }
-  get singleRepaymentLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Outstanding amount' : 'Amount due' }
-  get repaymentActionLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'View payment details' : 'View repayment details' }
+  get repaymentActionLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Payment details' : 'Repayment details' }
   get repaymentEyebrow(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Payment details' : 'Repayment details' }
   get amountDueLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Outstanding amount' : 'Amount due' }
 
