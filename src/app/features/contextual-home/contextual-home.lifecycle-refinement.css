@@ -40,6 +40,10 @@
   margin-top: auto;
 }
 
+.customer-available-financing__mobile-action {
+  display: none;
+}
+
 .customer-financing-activity {
   gap: 16px;
 }
@@ -60,11 +64,11 @@
 }
 
 .customer-activity-table {
-  min-width: 1160px;
+  min-width: 880px;
 }
 
 [data-product-context="invoice-financing"] .customer-activity-table {
-  min-width: 1040px;
+  min-width: 860px;
 }
 
 .customer-activity-row {
@@ -75,6 +79,23 @@
 .customer-activity-row:focus-visible {
   background: var(--av-color-primary-subtle, #eefbfc);
   outline: none;
+}
+
+.customer-activity-row.is-overdue,
+.customer-financing-card.is-overdue,
+.partner-home-payments-table tbody tr.is-overdue,
+.partner-home-payment-card.is-overdue {
+  background: #fff4f4;
+}
+
+.customer-financing-card.is-overdue,
+.partner-home-payment-card.is-overdue {
+  border-color: #efb4b4;
+}
+
+.customer-activity-row.is-overdue:hover,
+.customer-activity-row.is-overdue:focus-visible {
+  background: #ffeaea;
 }
 
 .customer-period-availability {
@@ -118,6 +139,22 @@
   margin-top: 0;
 }
 
+.partner-home-payments {
+  gap: 14px;
+}
+
+.partner-home-payments .baseline-section-heading {
+  align-items: flex-end;
+}
+
+.partner-home-payments-table {
+  min-width: 780px;
+}
+
+.partner-home-payment-cards {
+  display: none;
+}
+
 @media (min-width: 1024px) {
   .customer-activity-toolbar {
     grid-template-columns: minmax(140px, .35fr) minmax(0, 1.65fr);
@@ -141,9 +178,28 @@
     min-height: 0;
   }
 
+  .contextual-home__primary--hero {
+    display: none;
+  }
+
+  .customer-available-financing__mobile-action {
+    display: inline-flex;
+    width: 100%;
+    margin-top: 4px;
+  }
+
   .customer-available-financing__action,
   .customer-payments-due__action {
     width: 100%;
     margin-top: 4px;
+  }
+
+  .partner-home-payments .baseline-table-wrap {
+    display: none;
+  }
+
+  .partner-home-payment-cards {
+    display: grid;
+    gap: 12px;
   }
 }
