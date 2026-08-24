@@ -16,7 +16,7 @@ export class SupportComponent {
     { value: 'business-info-wrong', label: 'My business information is wrong' },
     { value: 'contact-info-wrong', label: 'My contact information is wrong' },
     { value: 'repayment-question', label: 'Repayment question' },
-    { value: 'funds-request-issue', label: 'Funds Request issue' },
+    { value: 'funds-request-issue', label: 'Problem requesting funds' },
     { value: 'invoice-question', label: 'Invoice question' },
     { value: 'other', label: 'Something else' },
   ]
