@@ -4,23 +4,23 @@
 
     <section class="invoice-period-hero baseline-card">
       <div class="invoice-period-hero__copy">
-        <p class="page-eyebrow">Dynamic Period</p>
+        <p class="page-eyebrow">Financing period</p>
         <h1>{{ currentPeriod.buyerName }}</h1>
-        <p>{{ relationshipModelLabel(currentPeriod.relationshipModel) }} - Invoices due {{ formatDate(currentPeriod.dueDate) }} - {{ currentPeriod.daysRemaining }} days remaining</p>
+        <p>Invoices due {{ formatDate(currentPeriod.dueDate) }} · {{ currentPeriod.daysRemaining }} days remaining</p>
         <span class="baseline-status" [class]="'baseline-status ' + periodStatusTone(currentPeriod.status)">{{ currentPeriod.statusLabel }}</span>
       </div>
       <div class="invoice-period-availability">
         <small>Available to Withdraw</small>
         <strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong>
-        <span>Last recalculated {{ formatDate(currentPeriod.lastRecalculatedAt) }}</span>
+        <span>Updated {{ formatDate(currentPeriod.lastRecalculatedAt) }}</span>
       </div>
     </section>
 
-    <app-prototype-explainer tone="handbook" title="A Dynamic Period groups one Client Supplier, one Buyer, and one invoice Due Date">
-      <p>Invoices with the same Buyer and Due Date join the same period when eligible. Invoices for another Buyer must stay in another period even when the Due Date is identical.</p>
+    <app-prototype-explainer tone="handbook" title="Invoices are grouped by buyer and due date">
+      <p>Eligible invoices from the same buyer with the same due date are shown in one financing period.</p>
     </app-prototype-explainer>
 
-    <section class="invoice-period-actions" aria-label="Dynamic Period actions">
+    <section class="invoice-period-actions" aria-label="Financing period actions">
       <button type="button" class="baseline-button baseline-button--secondary" (click)="scrollToInvoices()">View invoices</button>
       <button
         type="button"
@@ -31,68 +31,68 @@
       >{{ canRequestFunds ? 'Request funds' : 'Requests unavailable' }}</button>
     </section>
 
-    <app-prototype-explainer tone="action" title="This is the correct level for the Client Supplier's Funds Request">
-      <p>The request is tied to this Buyer's invoices, this Due Date, this request window, and this period's Available to Withdraw. A generic product-level request would hide those controls.</p>
+    <app-prototype-explainer tone="action" title="Request funds from this financing period">
+      <p>Your request applies to this buyer's eligible invoices and due date.</p>
     </app-prototype-explainer>
 
     <section class="invoice-period-explanation" [class.invoice-period-explanation--warning]="!canRequestFunds">
       <div>
-        <strong>Why this amount?</strong>
+        <strong>Why this amount is available</strong>
         <p>{{ currentPeriod.bindingConstraint }}</p>
       </div>
-      <span>{{ formatKes(currentPeriod.borrowingBase) }} borrowing base</span>
+      <span>{{ formatKes(currentPeriod.borrowingBase) }} maximum from eligible invoices</span>
     </section>
 
     <section class="baseline-section" aria-labelledby="availability-calculation-title">
       <div class="baseline-section-heading">
         <div>
           <p class="page-eyebrow">Availability</p>
-          <h2 id="availability-calculation-title">How Available to Withdraw is calculated</h2>
+          <h2 id="availability-calculation-title">How your available financing is calculated</h2>
         </div>
       </div>
 
-      <app-prototype-explainer tone="handbook" title="Availability is constrained by both receivables and approved credit">
-        <p>Available to Withdraw is based on Eligible Receivables multiplied by the applicable Advance Rate, constrained by Available Credit and the Buyer sub-limit, then reduced by Principal already financed, reserved or pending amounts, and other applicable deductions.</p>
+      <app-prototype-explainer tone="handbook" title="Available financing depends on eligible invoices and your approved limits">
+        <p>We start with eligible invoice value, apply your advance rate and approved limits, then subtract financing already used or reserved.</p>
       </app-prototype-explainer>
 
       <div class="invoice-period-money-grid">
-        <div><span>Total Receivables</span><strong>{{ formatKes(currentPeriod.totalReceivables) }}</strong></div>
-        <div><span>Eligible Receivables</span><strong>{{ formatKes(currentPeriod.eligibleReceivables) }}</strong></div>
+        <div><span>Total Invoice Value</span><strong>{{ formatKes(currentPeriod.totalReceivables) }}</strong></div>
+        <div><span>Eligible Invoice Value</span><strong>{{ formatKes(currentPeriod.eligibleReceivables) }}</strong></div>
         <div><span>Advance Rate</span><strong>{{ formatPercent(currentPeriod.advanceRate) }}</strong></div>
-        <div><span>Borrowing Base</span><strong>{{ formatKes(currentPeriod.borrowingBase) }}</strong></div>
-        <div><span>Already Drawn</span><strong>{{ formatKes(currentPeriod.drawnPrincipal) }}</strong></div>
-        <div><span>Reserved Amount</span><strong>{{ formatKes(currentPeriod.reservedAmount) }}</strong></div>
+        <div><span>Maximum from Invoices</span><strong>{{ formatKes(currentPeriod.borrowingBase) }}</strong></div>
+        <div><span>Already Financed</span><strong>{{ formatKes(currentPeriod.drawnPrincipal) }}</strong></div>
+        <div><span>Reserved</span><strong>{{ formatKes(currentPeriod.reservedAmount) }}</strong></div>
         <div class="invoice-period-money-grid__available"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
       </div>
       <div class="invoice-period-limits">
-        <span>Buyer sub-limit remaining <strong>{{ formatKes(currentPeriod.buyerSubLimitRemaining) }}</strong></span>
-        <span>Invoice Financing facility remaining <strong>{{ formatKes(currentPeriod.facilityCreditRemaining) }}</strong></span>
-        <span>Business Available Credit <strong>{{ formatKes(currentPeriod.businessCreditRemaining) }}</strong></span>
+        <span>Buyer limit remaining <strong>{{ formatKes(currentPeriod.buyerSubLimitRemaining) }}</strong></span>
+        <span>Invoice Financing available <strong>{{ formatKes(currentPeriod.facilityCreditRemaining) }}</strong></span>
+        <span>Business available credit <strong>{{ formatKes(currentPeriod.businessCreditRemaining) }}</strong></span>
       </div>
     </section>
 
     <section id="dynamic-period-invoices" class="baseline-section" aria-labelledby="dynamic-period-invoices-title">
       <div class="baseline-section-heading">
         <div>
-          <p class="page-eyebrow">Receivables</p>
-          <h2 id="dynamic-period-invoices-title">Invoices in this Dynamic Period</h2>
+          <p class="page-eyebrow">Invoices</p>
+          <h2 id="dynamic-period-invoices-title">Invoices in this financing period</h2>
         </div>
         <span class="invoice-period-count">{{ invoices.length }} invoices</span>
       </div>
 
       @if (currentPeriod.relationshipModel === 'partner-buyer') {
-        <app-prototype-explainer tone="role" title="The Partner Buyer normally supplies these invoices">
-          <p>The Client Supplier can view the invoices and request financing, but it normally does not upload them for this Financing Relationship unless responsibility has been reassigned and documented.</p>
+        <app-prototype-explainer tone="role" title="Your buyer normally uploads these invoices">
+          <p>You can view the invoices and request financing. Your buyer normally provides the invoice information for this relationship.</p>
         </app-prototype-explainer>
       } @else {
-        <app-prototype-explainer tone="role" title="The Client Supplier normally uploads invoices for this Counterparty Buyer">
-          <p>The Counterparty Buyer does not normally participate in upload or onboarding. Invoices pass through the applicable verification process before they become Eligible Receivables.</p>
+        <app-prototype-explainer tone="role" title="You normally upload invoices for this buyer">
+          <p>Invoices are reviewed before they become eligible for financing.</p>
         </app-prototype-explainer>
       }
 
       <div class="baseline-table-wrap">
         <table class="baseline-table invoice-period-table">
-          <thead><tr><th>Invoice</th><th>Amount</th><th>Uploaded</th><th>Uploaded By</th><th>Status</th><th>Linked Advance</th></tr></thead>
+          <thead><tr><th>Invoice</th><th>Amount</th><th>Uploaded</th><th>Uploaded By</th><th>Status</th><th>Linked Financing</th></tr></thead>
           <tbody>
             @for (invoice of invoices; track invoice.id) {
               <tr>
@@ -104,7 +104,7 @@
                 <td>{{ invoice.linkedAdvanceReference ?? '-' }}</td>
               </tr>
             } @empty {
-              <tr><td colspan="6"><div class="baseline-empty"><strong>No invoices</strong><p>Invoices appear here when accepted into this Dynamic Period.</p></div></td></tr>
+              <tr><td colspan="6"><div class="baseline-empty"><strong>No invoices yet</strong><p>Eligible invoices will appear here.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -118,7 +118,7 @@
             <p class="baseline-muted">Uploaded by {{ invoice.uploadedBy }}</p>
           </article>
         } @empty {
-          <div class="baseline-empty"><strong>No invoices</strong><p>Invoices appear here when accepted into this Dynamic Period.</p></div>
+          <div class="baseline-empty"><strong>No invoices yet</strong><p>Eligible invoices will appear here.</p></div>
         }
       </div>
     </section>
@@ -127,19 +127,19 @@
       <div class="baseline-section-heading">
         <div>
           <p class="page-eyebrow">Funds Requests</p>
-          <h2 id="dynamic-period-advances-title">Advances against this Dynamic Period</h2>
+          <h2 id="dynamic-period-advances-title">Funds requested from this financing period</h2>
         </div>
-        <span class="invoice-period-count">{{ advances.length }} Advances</span>
+        <span class="invoice-period-count">{{ advances.length }} {{ advances.length === 1 ? 'request' : 'requests' }}</span>
       </div>
 
-      <app-prototype-explainer tone="handbook" title="One approved Funds Request becomes one Advance">
-        <p>Several Advances may exist against the same Dynamic Period while availability remains. Each Advance keeps its own Principal, disbursement date, Financing Period, and Markup while sharing the period's invoice Due Date as the repayment date.</p>
+      <app-prototype-explainer tone="handbook" title="Each approved request becomes financing">
+        <p>You may make more than one request while funds are available and the financing period is still eligible.</p>
       </app-prototype-explainer>
 
       @if (advances.length) {
         <div class="baseline-table-wrap">
           <table class="baseline-table invoice-period-advance-table">
-            <thead><tr><th>Reference</th><th>Request Date</th><th>Disbursement</th><th>Principal</th><th>Daily Markup</th><th>Tenor</th><th>Total Repayable</th><th>Status</th></tr></thead>
+            <thead><tr><th>Reference</th><th>Request Date</th><th>Disbursement</th><th>Amount Financed</th><th>Daily Markup</th><th>Days</th><th>Total Repayable</th><th>Status</th></tr></thead>
             <tbody>
               @for (advance of advances; track advance.id) {
                 <tr>
@@ -160,41 +160,41 @@
           @for (advance of advances; track advance.id) {
             <article class="baseline-record-card">
               <div class="baseline-record-card__head"><strong>{{ advance.reference }}</strong><span class="baseline-status" [class]="'baseline-status ' + advanceStatusTone(advance.status)">{{ advanceStatusLabel(advance.status) }}</span></div>
-              <div class="baseline-metrics"><span class="baseline-metric"><small>Principal</small><strong>{{ formatKes(advance.principal) }}</strong></span><span class="baseline-metric"><small>Total Repayable</small><strong>{{ formatKes(advance.totalRepayable) }}</strong></span></div>
-              <p class="baseline-muted">{{ formatDailyRate(advance.dailyMarkupRate) }} per day - {{ advance.tenorDays }} days</p>
+              <div class="baseline-metrics"><span class="baseline-metric"><small>Amount Financed</small><strong>{{ formatKes(advance.principal) }}</strong></span><span class="baseline-metric"><small>Total Repayable</small><strong>{{ formatKes(advance.totalRepayable) }}</strong></span></div>
+              <p class="baseline-muted">{{ formatDailyRate(advance.dailyMarkupRate) }} per day · {{ advance.tenorDays }} days</p>
             </article>
           }
         </div>
       } @else {
-        <div class="baseline-empty"><strong>No Advances yet</strong><p>This Dynamic Period has not been drawn against.</p></div>
+        <div class="baseline-empty"><strong>No funds requested yet</strong><p>No financing has been requested from this period.</p></div>
       }
     </section>
 
     <section class="baseline-card invoice-period-settlement">
-      <div class="baseline-card__header"><p class="page-eyebrow">Settlement</p><h2>Buyer payment and settlement</h2></div>
-      <div class="baseline-card__body"><p>The Buyer pays the full invoice or receivables amount into the designated Client Clearing Account. Avenews allocates the payment, retains the applicable Principal and Markup, and transfers the remaining invoice proceeds to the Client Supplier.</p></div>
+      <div class="baseline-card__header"><p class="page-eyebrow">Payment</p><h2>Buyer payment</h2></div>
+      <div class="baseline-card__body"><p>When the buyer pays the invoices, Avenews settles the outstanding financing and sends any remaining amount to you.</p></div>
     </section>
 
-    <app-prototype-explainer tone="role" title="Partner Buyer economics are not part of the Client Supplier calculation">
-      <p>Any approved Partner Buyer rebate is calculated separately and must not appear in the Client Supplier's Available to Withdraw, repayment obligation, or settlement breakdown.</p>
+    <app-prototype-explainer tone="role" title="Partner rebates are handled separately">
+      <p>Any approved partner rebate does not change your available financing or payment details.</p>
     </app-prototype-explainer>
 
-    <app-prototype-explainer tone="limitation" title="Settlement instructions are not connected on this prototype">
-      <p>This branch deliberately does not show a bank account number, payment reference, live allocation status, or production settlement instruction because those integrations and final data sources are not established here.</p>
+    <app-prototype-explainer tone="limitation" title="Payment instructions are not connected in this prototype">
+      <p>Live bank details, payment references and payment allocations are not connected in this demo.</p>
     </app-prototype-explainer>
   </div>
 
   @if (requestOpen) {
     <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="closeRequest()">
       <section class="baseline-modal baseline-modal--sheet invoice-period-request" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <header class="baseline-modal__head"><h2>Request funds from this Dynamic Period</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRequest()">&times;</button></header>
+        <header class="baseline-modal__head"><h2>Request funds</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRequest()">&times;</button></header>
         <div class="baseline-modal__body">
-          <app-prototype-explainer tone="action" title="The request cannot exceed this period's Available to Withdraw">
-            <p>The final production flow must also enforce the request window, account status, applicable limits, and any Credit, Risk, verification, or operational restrictions.</p>
+          <app-prototype-explainer tone="action" title="You can request up to the amount available">
+            <p>Final eligibility is checked before funds are approved.</p>
           </app-prototype-explainer>
           <div class="invoice-period-request__summary"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
           <div class="baseline-field"><label for="period-request-amount">Requested amount</label><input id="period-request-amount" class="baseline-control" type="text" [value]="formatKes(currentPeriod.availableToWithdraw)"></div>
-          <p class="baseline-muted">This Funds Request is scoped to {{ currentPeriod.buyerName }} invoices due {{ formatDate(currentPeriod.dueDate) }}.</p>
+          <p class="baseline-muted">This request applies to {{ currentPeriod.buyerName }} invoices due {{ formatDate(currentPeriod.dueDate) }}.</p>
           <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="request-financing" (click)="completeRequest()">Continue Funds Request</button>
         </div>
       </section>
@@ -203,5 +203,5 @@
 
   @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
 } @else {
-  <div class="portal-page baseline-empty"><strong>Dynamic Period not found</strong><p>This prototype does not contain the requested Dynamic Period.</p><button type="button" class="baseline-button baseline-button--secondary" (click)="back()">Back to Invoice Financing</button></div>
+  <div class="portal-page baseline-empty"><strong>Financing period not found</strong><p>This demo does not contain the requested financing period.</p><button type="button" class="baseline-button baseline-button--secondary" (click)="back()">Back to Invoice Financing</button></div>
 }
