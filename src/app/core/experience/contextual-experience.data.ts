@@ -103,19 +103,19 @@ export const EXPERIENCES: readonly PortalExperience[] = [
     productName: 'Stockist Financing - STF',
     switcherLabel: 'Stockist Financing - STF',
     roleLabel: 'Client Buyer - Stockist',
-    description: 'Finance approved purchases from your Partner Suppliers.',
+    description: 'Finance approved purchases from your suppliers.',
     homeHeading: 'Stockist Financing - STF',
-    homeIntro: 'View financing by Partner Supplier, track repayments and request funds.',
+    homeIntro: 'View financing by supplier, track repayments and request funds.',
     primaryActionLabel: 'Request funds',
     primaryActionKind: 'funds-request',
     metrics: [
-      { label: 'Available Financing', value: 'KES 800,000', helper: 'Across approved Partner Suppliers' },
+      { label: 'Available Financing', value: 'KES 800,000', helper: 'Across approved suppliers' },
       { label: 'Outstanding Amount', value: 'KES 390,000', helper: 'Across active financing' },
       { label: 'Next Payment', value: 'KES 150,000', helper: 'Due 30 Aug 2026' },
     ],
     records: [
       { title: 'GreenHarvest Distributors', subtitle: 'FR-2026-0501', amountLabel: 'Requested', amount: 'KES 100,000', status: 'Validating', statusTone: 'status-warning', actionLabel: 'View request', actionKind: 'view-financing' },
-      { title: 'Meru Agrovets Ltd', subtitle: 'Approved Partner Supplier', amountLabel: 'Available', amount: 'KES 450,000', status: 'Available', statusTone: 'status-success', actionLabel: 'Request funds', actionKind: 'funds-request' },
+      { title: 'Meru Agrovets Ltd', subtitle: 'Approved supplier', amountLabel: 'Available', amount: 'KES 450,000', status: 'Available', statusTone: 'status-success', actionLabel: 'Request funds', actionKind: 'funds-request' },
     ],
   },
   {
