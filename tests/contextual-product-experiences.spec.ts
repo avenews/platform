@@ -59,6 +59,24 @@ async function openRelationship(page: Page, name: string): Promise<Locator> {
   return dialog
 }
 
+async function openFiles(page: Page): Promise<Locator> {
+  const dialog = page.locator('.customer-period-modal').first()
+  await dialog.getByRole('button', { name: 'Files', exact: true }).click()
+  const files = page.locator('.customer-period-modal').first()
+  await expect(files.getByRole('heading', { name: 'Files', level: 2 })).toBeVisible()
+  return files
+}
+
+async function visibleSortSelect(page: Page, testInfo: TestInfo): Promise<Locator> {
+  const bar = page.locator('app-customer-filter-bar').first()
+  if (mobile(testInfo)) {
+    const mobileBar = bar.locator('[data-filter-layout="mobile"]')
+    await mobileBar.getByRole('button', { name: 'Filters' }).click()
+    return mobileBar.getByRole('combobox', { name: 'Sort by' })
+  }
+  return bar.locator('[data-filter-layout="desktop"]').getByRole('combobox', { name: 'Sort by' })
+}
+
 test.describe('audited customer experience', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
@@ -110,26 +128,86 @@ test.describe('audited customer experience', () => {
     await expect(dialog).toContainText('Total Repaid')
   })
 
-  test('ACL, ABF, STF and INFX expose transaction files in financing-period detail', async ({ page }) => {
+  test('ACL, ABF, STF and INFX expose all period files from the Files screen', async ({ page }) => {
     await page.goto('/experience/acl/home')
     let dialog = await openPeriod(page, 'FR-2026-0318')
-    await expect(dialog).toContainText('Transaction files')
-    await expect(dialog.getByRole('link', { name: 'View' }).first()).toHaveAttribute('href', /demo-documents/)
+    await expect(dialog.getByRole('button', { name: 'Files', exact: true })).toBeVisible()
+    let files = await openFiles(page)
+    await expect(files).toContainText('Funds Request snapshot')
+    await expect(files).toContainText('Invoice')
+    await expect(files).toContainText('Proof of Delivery')
+    await expect(files.getByRole('link', { name: 'View invoice' })).toHaveAttribute('href', /demo-documents/)
 
     await page.goto('/experience/abf/financing')
     dialog = await openRelationship(page, 'Naivas Fresh Produce')
     await dialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0407' }).locator('.relationship-period-row__main').click()
-    await expect(page.locator('.customer-period-modal').first()).toContainText('Proof of Payment')
+    files = await openFiles(page)
+    await expect(files).toContainText('Funds Request snapshot')
+    await expect(files).toContainText('Proof of Payment')
+    await expect(files).toContainText('Proof of Delivery')
 
     await page.goto('/experience/stf/financing')
     dialog = await openRelationship(page, 'GreenHarvest Distributors')
     await dialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0501' }).locator('.relationship-period-row__main').click()
-    await expect(page.locator('.customer-period-modal').first()).toContainText('GH-INV-8831')
+    files = await openFiles(page)
+    await expect(files).toContainText('Funds Request snapshot')
+    await expect(files).toContainText('GH-INV-8831')
 
     await page.goto('/experience/infx/financing')
     dialog = await openRelationship(page, 'Kisumu Buyers Co-op')
     await dialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0028' }).locator('.relationship-period-row__main').click()
-    await expect(page.locator('.customer-period-modal').first()).toContainText('INV-2026-0028')
+    files = await openFiles(page)
+    await expect(files).toContainText('Funds Request snapshot')
+    await expect(files).toContainText('INV-2026-0028')
+  })
+
+  test('financing modal overview does not clip and Files shares the footer with payment details', async ({ page }) => {
+    await page.goto('/experience/invoice-financing/home')
+    const dialog = await openPeriod(page, 'DP-2026-08-15-FRESH')
+    const details = dialog.locator('.customer-period-details')
+    await expect(details).toBeVisible()
+    const rows = await details.locator(':scope > div').evaluateAll((elements) => elements.map((element) => ({
+      clientHeight: element.clientHeight,
+      scrollHeight: element.scrollHeight,
+    })))
+    expect(rows.length).toBeGreaterThan(0)
+    expect(rows.every(row => row.scrollHeight <= row.clientHeight + 1)).toBeTruthy()
+
+    const filesButton = dialog.getByRole('button', { name: 'Files', exact: true })
+    const paymentButton = dialog.getByRole('button', { name: 'Payment details', exact: true })
+    await expect(filesButton).toBeVisible()
+    await expect(paymentButton).toBeVisible()
+    const filesBox = await filesButton.boundingBox()
+    const paymentBox = await paymentButton.boundingBox()
+    expect(filesBox).not.toBeNull()
+    expect(paymentBox).not.toBeNull()
+    expect(Math.abs(filesBox!.y - paymentBox!.y)).toBeLessThanOrEqual(2)
+
+    const files = await openFiles(page)
+    await expect(files).toContainText('Funds Request snapshot')
+    await expect(files).toContainText('INV-9120')
+  })
+
+  test('Funds Request sort options only use fields visible in each table', async ({ page }, testInfo) => {
+    await page.goto('/experience/abf/request-funds')
+    let sort = await visibleSortSelect(page, testInfo)
+    await expect(sort).toBeVisible()
+    let options = await sort.locator('option').allTextContents()
+    expect(options).toContain('Sort by')
+    expect(options).toContain('Supplier: A-Z')
+    expect(options.some(option => option.includes('Due date'))).toBeFalsy()
+    expect(options.some(option => option.includes('Available financing'))).toBeTruthy()
+
+    const statusBar = page.locator('app-customer-filter-bar').first()
+    const statusSelect = mobile(testInfo)
+      ? statusBar.locator('[data-filter-layout="mobile"]').getByRole('combobox', { name: 'Status' })
+      : statusBar.locator('[data-filter-layout="desktop"]').getByRole('combobox', { name: 'Status' })
+    await expect(statusSelect.locator('option').first()).toHaveText('All statuses')
+
+    await page.goto('/experience/invoice-financing/request-funds')
+    sort = await visibleSortSelect(page, testInfo)
+    options = await sort.locator('option').allTextContents()
+    expect(options.some(option => option.includes('Invoice due date'))).toBeTruthy()
   })
 
   test('relationship tables stay concise while limit details remain available', async ({ page }, testInfo) => {
@@ -195,6 +273,22 @@ test.describe('Partner Buyer Portal priorities', () => {
         'Supplier', 'Financing Period', 'Due Date', 'Amount to Pay', 'Payment Status', 'Action',
       ])
     }
+  })
+
+  test('Partner Buyer controls only expose visible status and sort fields', async ({ page }, testInfo) => {
+    await page.goto('/experience/invoice-partner/obligations')
+    let sort = await visibleSortSelect(page, testInfo)
+    let options = await sort.locator('option').allTextContents()
+    expect(options.some(option => option.includes('Financing period'))).toBeTruthy()
+    expect(options.some(option => option.includes('Amount to pay'))).toBeTruthy()
+    expect(options.some(option => option.includes('Period status'))).toBeFalsy()
+
+    await page.goto('/experience/invoice-partner/suppliers')
+    sort = await visibleSortSelect(page, testInfo)
+    options = await sort.locator('option').allTextContents()
+    expect(options.some(option => option.includes('Active periods'))).toBeTruthy()
+    expect(options.some(option => option.includes('Next payment'))).toBeTruthy()
+    expect(options.some(option => option.includes('Max financing'))).toBeFalsy()
   })
 
   test('Partner Buyer can upload invoices and inspect supplier financing periods', async ({ page }) => {
