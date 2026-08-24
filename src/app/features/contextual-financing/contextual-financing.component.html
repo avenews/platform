@@ -14,8 +14,6 @@
           <thead>
             <tr>
               <th title="Supplier or buyer for this financing.">{{ product.relationshipNoun }}</th>
-              <th title="Maximum financing approved.">Max Financing</th>
-              <th title="Financing currently in use.">Financing Used</th>
               <th title="Financing currently available.">Financing Available</th>
               <th title="Current financing availability.">Status</th>
               <th title="Available actions.">Action</th>
@@ -29,8 +27,6 @@
                     <strong>{{ relationship.name }}</strong>
                   </button>
                 </td>
-                <td>{{ formatKes(relationship.limit) }}</td>
-                <td>{{ formatKes(relationshipUsed(relationship)) }}</td>
                 <td><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></td>
                 <td>
                   <span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)" [attr.title]="relationshipAvailabilityTooltip(relationship)">
@@ -60,7 +56,7 @@
                 </td>
               </tr>
             } @empty {
-              <tr><td colspan="6"><div class="baseline-empty"><strong>Nothing to show yet</strong><p>No approved suppliers or buyers are available yet.</p></div></td></tr>
+              <tr><td colspan="4"><div class="baseline-empty"><strong>Nothing to show yet</strong><p>No approved suppliers or buyers are available yet.</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -77,9 +73,8 @@
             </div>
 
             <div class="baseline-metrics relationship-card__metrics">
-              <span class="baseline-metric" title="Maximum financing approved."><small>Max Financing</small><strong>{{ formatKes(relationship.limit) }}</strong></span>
-              <span class="baseline-metric" title="Financing currently in use."><small>Financing Used</small><strong>{{ formatKes(relationshipUsed(relationship)) }}</strong></span>
               <span class="baseline-metric" title="Financing currently available."><small>Financing Available</small><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></span>
+              <span class="baseline-metric" title="Financing currently in use."><small>Financing Used</small><strong>{{ formatKes(relationshipUsed(relationship)) }}</strong></span>
             </div>
 
             <div class="baseline-card-actions relationship-card__actions">
@@ -146,14 +141,11 @@
 
           <section class="relationship-periods" aria-label="Financing periods">
             <div class="relationship-periods__heading">
-              <div>
-                <p class="page-eyebrow">Financing</p>
-                <h3>Financing periods</h3>
-              </div>
+              <div><p class="page-eyebrow">Financing</p><h3>Financing periods</h3></div>
             </div>
 
             @for (period of relationshipPeriods(relationship); track period.id) {
-              <article class="relationship-period-row">
+              <article class="relationship-period-row" [class.is-overdue]="period.statusKey === 'overdue' || period.paymentAttention === 'overdue'">
                 <button type="button" class="relationship-period-row__main" (click)="openPeriod(period)">
                   <div>
                     <strong>{{ period.reference }}</strong>
@@ -191,26 +183,14 @@
     <div class="baseline-modal-backdrop relationship-modal-backdrop" role="presentation" (click)="closeInvoiceUpload()">
       <section class="baseline-modal relationship-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" (click)="$event.stopPropagation()">
         <header class="baseline-modal__head relationship-modal__head">
-          <div>
-            <p class="page-eyebrow">Invoice Financing</p>
-            <h2 id="invoice-upload-title">Upload invoices</h2>
-          </div>
+          <div><p class="page-eyebrow">Invoice Financing</p><h2 id="invoice-upload-title">Upload invoices</h2></div>
           <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeInvoiceUpload()">&times;</button>
         </header>
         <div class="baseline-modal__body relationship-modal__body invoice-upload-modal__body">
           <p class="invoice-upload-modal__intro">Upload invoices for {{ relationship.name }}. Eligible invoices are grouped into financing periods by buyer and due date.</p>
-          <div class="baseline-field">
-            <label for="client-invoice-file">Invoice</label>
-            <input id="client-invoice-file" class="baseline-control" type="file">
-          </div>
-          <div class="baseline-field">
-            <label for="client-invoice-due-date">Invoice due date</label>
-            <input id="client-invoice-due-date" class="baseline-control" type="date">
-          </div>
-          <div class="baseline-field">
-            <label for="client-invoice-value">Invoice value</label>
-            <input id="client-invoice-value" class="baseline-control" type="number" min="0" placeholder="KES">
-          </div>
+          <div class="baseline-field"><label for="client-invoice-file">Invoice</label><input id="client-invoice-file" class="baseline-control" type="file"></div>
+          <div class="baseline-field"><label for="client-invoice-due-date">Invoice due date</label><input id="client-invoice-due-date" class="baseline-control" type="date"></div>
+          <div class="baseline-field"><label for="client-invoice-value">Invoice value</label><input id="client-invoice-value" class="baseline-control" type="number" min="0" placeholder="KES"></div>
           <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="invoice-upload" (click)="completeInvoiceUpload()">Submit invoice</button>
         </div>
       </section>
