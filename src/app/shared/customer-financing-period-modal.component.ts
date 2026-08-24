@@ -74,13 +74,13 @@ const MPESA_DETAILS = [
             </div>
 
             <dl class="customer-period-details">
-              <div title="The date Avenews disbursed the approved financing."><dt>Disbursement Date</dt><dd>{{ period.disbursementDate ? formatDate(period.disbursementDate) : 'Pending' }}</dd></div>
+              <div title="Date the financing was paid out."><dt>Disbursement Date</dt><dd>{{ period.disbursementDate ? formatDate(period.disbursementDate) : 'Pending' }}</dd></div>
               <div><dt>{{ dueDateLabel }}</dt><dd>{{ formatDate(period.repaymentDueDate) }}</dd></div>
               <div><dt>Amount Financed</dt><dd>{{ formatKes(period.amountFinanced) }}</dd></div>
               <div><dt>{{ totalRepaidLabel }}</dt><dd>{{ formatKes(period.totalRepaid) }}</dd></div>
               <div><dt>{{ outstandingLabel }}</dt><dd>{{ formatKes(period.outstandingBalance) }}</dd></div>
               @if (period.settlementMode === 'buyer-payment') {
-                <div><dt>Settlement</dt><dd>Buyer payment</dd></div>
+                <div><dt>Payment source</dt><dd>Buyer payment</dd></div>
               }
               @if (period.invoiceReference && productId !== 'abf') {
                 <div><dt>Invoice</dt><dd>{{ period.invoiceReference }}</dd></div>
@@ -89,7 +89,7 @@ const MPESA_DETAILS = [
                 <div><dt>Invoice type</dt><dd>{{ period.invoiceType }}</dd></div>
               }
               @if (period.eligibleReceivables !== undefined) {
-                <div><dt>Eligible Receivables</dt><dd>{{ formatKes(period.eligibleReceivables) }}</dd></div>
+                <div><dt>Eligible Invoice Value</dt><dd>{{ formatKes(period.eligibleReceivables) }}</dd></div>
               }
               @if (period.availableToWithdraw !== undefined) {
                 <div><dt>Available to Withdraw</dt><dd>{{ formatKes(period.availableToWithdraw) }}</dd></div>
@@ -110,7 +110,7 @@ const MPESA_DETAILS = [
             <section class="customer-instalments" aria-label="Repayment schedule">
               <div class="customer-instalments__heading">
                 <div>
-                  <p class="page-eyebrow">{{ period.settlementMode === 'buyer-payment' ? 'Settlement' : 'Repayment schedule' }}</p>
+                  <p class="page-eyebrow">{{ period.settlementMode === 'buyer-payment' ? 'Buyer payment' : 'Repayment schedule' }}</p>
                   <h3>{{ period.instalments.length ? 'Instalments' : singleRepaymentHeading }}</h3>
                 </div>
               </div>
@@ -187,11 +187,11 @@ const MPESA_DETAILS = [
               <section class="customer-settlement-card">
                 <div><span>Buyer</span><strong>{{ period.relationshipName }}</strong></div>
                 <div><span>Payment destination</span><strong>Your Avenews Clearing Account</strong></div>
-                <div><span>Period</span><strong>{{ period.reference }}</strong></div>
+                <div><span>Financing period</span><strong>{{ period.reference }}</strong></div>
               </section>
 
               <div class="customer-period-note">
-                The Buyer payment is applied to this Period. Avenews settles the financing and transfers any remaining proceeds according to your financing arrangement.
+                When the buyer pays, Avenews settles the outstanding financing and sends any remaining amount to you.
               </div>
             } @else {
               <div class="customer-payment-methods" role="tablist" aria-label="Repayment method">
@@ -476,7 +476,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   }
 
   get detailEyebrow(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Dynamic Period details' : 'Financing period details'
+    return 'Financing period details'
   }
 
   get customerRelationshipType(): string {
@@ -498,23 +498,23 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   }
 
   get singleRepaymentHeading(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Settlement' : 'Single repayment'
+    return this.period?.settlementMode === 'buyer-payment' ? 'Payment' : 'Single repayment'
   }
 
   get singleRepaymentLabel(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Outstanding to settle from Buyer payment' : 'Amount due'
+    return this.period?.settlementMode === 'buyer-payment' ? 'Outstanding amount' : 'Amount due'
   }
 
   get repaymentActionLabel(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'View settlement details' : 'View repayment details'
+    return this.period?.settlementMode === 'buyer-payment' ? 'View payment details' : 'View repayment details'
   }
 
   get repaymentEyebrow(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Settlement details' : 'Repayment details'
+    return this.period?.settlementMode === 'buyer-payment' ? 'Payment details' : 'Repayment details'
   }
 
   get amountDueLabel(): string {
-    return this.period?.settlementMode === 'buyer-payment' ? 'Outstanding to settle' : 'Amount due'
+    return this.period?.settlementMode === 'buyer-payment' ? 'Outstanding amount' : 'Amount due'
   }
 
   instalmentLabel(status: InstalmentStatus): string {
