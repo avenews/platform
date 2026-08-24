@@ -112,7 +112,7 @@
               [ngModel]="draftSortValue"
               (ngModelChange)="updateDraftSort($event)"
             >
-              <option value="">Needs attention</option>
+              <option value="">{{ sortLabel }}</option>
               @for (option of sortOptions; track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
