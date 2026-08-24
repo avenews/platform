@@ -531,15 +531,15 @@ test.describe('relationship-first request flows', () => {
     await expect(periodDialog.getByRole('button', { name: 'Request funds' })).toHaveClass(/baseline-button--primary/)
   })
 
-  test('Invoice Financing settlement remains Buyer-funded with customer-facing clearing account copy', async ({ page }) => {
+  test('Invoice Financing payment remains Buyer-funded with customer-facing clearing account copy', async ({ page }) => {
     await page.goto('/experience/invoice-financing/home')
     await openHomePeriod(page, 'DP-2026-09-15-TWIGA')
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Buyer payment')
-    await periodDialog.getByRole('button', { name: 'View settlement details' }).click()
+    await periodDialog.getByRole('button', { name: 'View payment details' }).click()
     const settlementDialog = page.locator('.customer-repayment-modal')
     await expect(settlementDialog).toContainText('Your Avenews Clearing Account')
-    await expect(settlementDialog).toContainText('The Buyer payment is applied to this Period.')
+    await expect(settlementDialog).toContainText('When the buyer pays, Avenews settles the outstanding financing and sends any remaining amount to you.')
     await expect(settlementDialog).not.toContainText('Client Clearing Account')
     await expect(settlementDialog).not.toContainText('ABSA Bank Kenya PLC')
     await expect(settlementDialog).not.toContainText('M-Pesa Paybill')
