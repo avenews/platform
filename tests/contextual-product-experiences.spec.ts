@@ -117,12 +117,17 @@ async function visibleStatusBadges(page: Page): Promise<Locator> {
 }
 
 test.describe('post-OTP access resolution', () => {
-  test('multiple destinations open the chooser with primary View actions', async ({ page }) => {
+  test('multiple destinations open product selection with customer-facing summaries', async ({ page }) => {
     await completePrototypeLogin(page, 'multiple')
     await expect(page).toHaveURL(/\/access$/)
+    await expect(page.getByRole('heading', { name: 'Welcome back, Amara', level: 1 })).toBeVisible()
+    await expect(page.getByText('Choose the business, role, and financing experience you need for this session.')).toHaveCount(0)
     await expect(page.locator('.access-card')).toHaveCount(6)
     for (const destination of CUSTOMER_DESTINATIONS) {
-      await expect(page.locator(`[data-experience-id="${destination.id}"]`)).toContainText(destination.label)
+      const card = page.locator(`[data-experience-id="${destination.id}"]`)
+      await expect(card).toContainText(destination.label)
+      await expect(card).toContainText('Available Financing')
+      await expect(card).toContainText('Outstanding Amount')
     }
     await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Partner Buyer Portal')
     await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Supplier periods')
@@ -130,16 +135,18 @@ test.describe('post-OTP access resolution', () => {
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
   })
 
-  test('single ABF access routes straight to ABF Home', async ({ page }) => {
+  test('single ABF access still lands on product selection before opening ABF', async ({ page }) => {
     await completePrototypeLogin(page, 'abf-only')
-    await expect(page).toHaveURL(/\/experience\/abf\/home$/)
-    await expect(page.getByRole('heading', { name: 'Agri Buyer Financing', level: 1 })).toBeVisible()
+    await expect(page).toHaveURL(/\/access$/)
+    await expect(page.locator('.access-card')).toHaveCount(1)
+    await expect(page.locator('[data-experience-id="abf"]')).toContainText('Agri Buyer Financing')
   })
 
-  test('single Partner Buyer access routes straight to its workspace', async ({ page }) => {
+  test('single Partner Buyer access still lands on product selection before opening the workspace', async ({ page }) => {
     await completePrototypeLogin(page, 'partner-only')
-    await expect(page).toHaveURL(/\/experience\/invoice-partner\/home$/)
-    await expect(page.getByRole('heading', { name: 'Partner Buyer Portal', level: 1 })).toBeVisible()
+    await expect(page).toHaveURL(/\/access$/)
+    await expect(page.locator('.access-card')).toHaveCount(1)
+    await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Partner Buyer Portal')
   })
 })
 
@@ -152,7 +159,10 @@ test.describe('shared customer financing pattern', () => {
       await expect(page.getByRole('heading', { name: destination.label, level: 1 })).toBeVisible()
       const expectedPrimary = destination.id === 'invoice-financing' ? 'Upload invoices' : 'Request funds'
       await expect(page.locator('.contextual-home__hero').getByRole('button', { name: expectedPrimary })).toBeVisible()
-      await expect(page.locator('.customer-product-summary .contextual-metric')).toHaveCount(3)
+      const summaryCards = page.locator('.customer-product-summary .contextual-metric')
+      await expect(summaryCards).toHaveCount(3)
+      await expect(summaryCards.nth(0)).toContainText('Available Financing')
+      await expect(summaryCards.nth(1)).toContainText('Outstanding Amount')
       await expect(page.getByRole('heading', { name: 'Financing', level: 2, exact: true })).toBeVisible()
       await expect(page.locator('.prototype-explainer')).toHaveCount(0)
       await expect(await visibleStatusBadges(page)).toHaveText(CUSTOMER_STATUSES)
@@ -230,6 +240,29 @@ test.describe('shared customer financing pattern', () => {
     await expect(page.locator('.experience-context-menu')).not.toContainText('Twiga Foods Ltd')
   })
 
+  test('profile avatar initials stay legible and mobile trigger stays vertically centered', async ({ page }, testInfo) => {
+    await page.goto('/experience/acl/home')
+    const trigger = isMobile(testInfo)
+      ? page.locator('.experience-avatar-trigger')
+      : page.locator('.experience-profile-button')
+    const avatar = trigger.locator('av-avatar')
+    await expect(avatar).toHaveCSS('font-size', '32px')
+
+    if (isMobile(testInfo)) {
+      const centers = await page.evaluate(() => {
+        const header = document.querySelector('.experience-mobile-header')?.getBoundingClientRect()
+        const triggerRect = document.querySelector('.experience-avatar-trigger')?.getBoundingClientRect()
+        if (!header || !triggerRect) return null
+        return {
+          header: header.top + header.height / 2,
+          trigger: triggerRect.top + triggerRect.height / 2,
+        }
+      })
+      expect(centers).not.toBeNull()
+      expect(Math.abs((centers?.header ?? 0) - (centers?.trigger ?? 0))).toBeLessThanOrEqual(1)
+    }
+  })
+
   test('Payments Due remains outlined and filters Financing', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
     const card = page.locator('.customer-payments-due')
@@ -251,6 +284,34 @@ test.describe('shared customer financing pattern', () => {
       await expect(table.locator('.customer-activity-row')).toHaveCount(2)
     } else {
       await expect(page.locator('.customer-activity-cards .baseline-record-card')).toHaveCount(2)
+    }
+  })
+
+  test('Invoice Financing Available Financing filters to periods that can request funds', async ({ page }, testInfo) => {
+    await page.goto('/experience/invoice-financing/home')
+    const card = page.locator('.customer-available-financing')
+    const action = card.getByRole('button', { name: 'Show periods with Available to Withdraw' })
+    await expect(action).toHaveClass(/baseline-button--secondary/)
+    await action.click()
+
+    if (isMobile(testInfo)) {
+      await page.getByRole('button', { name: 'Filters' }).click()
+      await expect(page.getByRole('combobox', { name: 'Availability' })).toHaveValue('available-to-withdraw')
+    } else {
+      await expect(page.getByRole('combobox', { name: 'Availability' })).toHaveValue('available-to-withdraw')
+    }
+
+    const table = page.locator('.customer-activity-table')
+    if (await table.isVisible()) {
+      const rows = table.locator('.customer-activity-row')
+      const rowCount = await rows.count()
+      expect(rowCount).toBeGreaterThan(0)
+      await expect(rows.getByRole('button', { name: 'Request funds' })).toHaveCount(rowCount)
+    } else {
+      const cards = page.locator('.customer-activity-cards .baseline-record-card')
+      const cardCount = await cards.count()
+      expect(cardCount).toBeGreaterThan(0)
+      await expect(cards.getByRole('button', { name: 'Request funds' })).toHaveCount(cardCount)
     }
   })
 
