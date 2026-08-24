@@ -501,7 +501,7 @@ test.describe('relationship-first request flows', () => {
     await page.goto('/experience/invoice-financing/home')
     const tableHead = page.locator('.customer-activity-table thead')
     await expect(tableHead).toContainText('Reference')
-    await expect(tableHead).toContainText('Period Due Date')
+    await expect(tableHead).toContainText('Invoice Due Date')
     await expect(tableHead).toContainText('Available to Withdraw')
     await expect(tableHead).not.toContainText('Disbursement Date')
     await expect(tableHead).not.toContainText('Buyer Payments Allocated')
