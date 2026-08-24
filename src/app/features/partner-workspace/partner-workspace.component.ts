@@ -81,14 +81,12 @@ export class PartnerWorkspaceComponent {
 
   supplierSearch = ''
   supplierStatusFilter = ''
-  supplierPeriodStatusFilter = ''
   supplierSort = ''
   supplierPage = 1
   readonly supplierPageSize = 5
 
   paymentSearch = ''
   paymentStatusFilter = ''
-  paymentPeriodStatusFilter = ''
   paymentSort = ''
   paymentPage = 1
   readonly paymentPageSize = 6
@@ -97,15 +95,20 @@ export class PartnerWorkspaceComponent {
     { value: 'name-asc', label: 'Supplier: A-Z' },
     { value: 'available-desc', label: 'Available financing: high to low' },
     { value: 'available-asc', label: 'Available financing: low to high' },
+    { value: 'active-desc', label: 'Active periods: high to low' },
+    { value: 'active-asc', label: 'Active periods: low to high' },
     { value: 'payment-due-asc', label: 'Next payment: earliest' },
+    { value: 'status-asc', label: 'Status: A-Z' },
   ]
 
   readonly paymentSortOptions: readonly CustomerSortOption[] = [
+    { value: 'supplier-asc', label: 'Supplier: A-Z' },
+    { value: 'period-asc', label: 'Financing period: A-Z' },
     { value: 'due-asc', label: 'Due date: earliest' },
     { value: 'due-desc', label: 'Due date: latest' },
-    { value: 'amount-desc', label: 'Amount: high to low' },
-    { value: 'amount-asc', label: 'Amount: low to high' },
-    { value: 'supplier-asc', label: 'Supplier: A-Z' },
+    { value: 'amount-desc', label: 'Amount to pay: high to low' },
+    { value: 'amount-asc', label: 'Amount to pay: low to high' },
+    { value: 'status-asc', label: 'Status: A-Z' },
   ]
 
   readonly uploadBatches: readonly UploadBatch[] = [
@@ -141,52 +144,53 @@ export class PartnerWorkspaceComponent {
   ]
 
   get supplierFilterFields(): readonly CustomerFilterField[] {
-    return [
-      { key: 'supplierStatus', label: 'Status', allLabel: 'All statuses', options: [
-        { value: 'available', label: 'Available' },
-        { value: 'unavailable', label: 'Unavailable' },
-        { value: 'max-used', label: 'Max financing used' },
-      ] },
-      { key: 'periodStatus', label: 'Period status', allLabel: 'Any period status', options: [
-        { value: 'open', label: 'Open' }, { value: 'cutoff', label: 'Cutoff' }, { value: 'overdue', label: 'Overdue' }, { value: 'settled', label: 'Settled' }, { value: 'expired', label: 'Expired' },
-      ] },
-    ]
+    return [{ key: 'supplierStatus', label: 'Status', allLabel: 'All statuses', options: [
+      { value: 'available', label: 'Available' },
+      { value: 'unavailable', label: 'Unavailable' },
+      { value: 'max-used', label: 'Max financing used' },
+    ] }]
   }
 
   get supplierFilterValues(): Readonly<Record<string, string>> {
-    return { supplierStatus: this.supplierStatusFilter, periodStatus: this.supplierPeriodStatusFilter }
+    return { supplierStatus: this.supplierStatusFilter }
   }
 
   get paymentFilterFields(): readonly CustomerFilterField[] {
-    return [
-      { key: 'paymentStatus', label: 'Status', allLabel: 'All statuses', options: [
-        { value: 'upcoming', label: 'Upcoming' }, { value: 'processing', label: 'Payment processing' }, { value: 'overdue', label: 'Overdue' }, { value: 'paid', label: 'Paid' },
-      ] },
-      { key: 'periodStatus', label: 'Period status', allLabel: 'Any period status', options: [
-        { value: 'open', label: 'Open' }, { value: 'cutoff', label: 'Cutoff' }, { value: 'overdue', label: 'Overdue' }, { value: 'settled', label: 'Settled' }, { value: 'expired', label: 'Expired' },
-      ] },
-    ]
+    return [{ key: 'paymentStatus', label: 'Status', allLabel: 'All statuses', options: [
+      { value: 'upcoming', label: 'Upcoming' },
+      { value: 'processing', label: 'Payment processing' },
+      { value: 'overdue', label: 'Overdue' },
+      { value: 'paid', label: 'Paid' },
+    ] }]
   }
 
   get paymentFilterValues(): Readonly<Record<string, string>> {
-    return { paymentStatus: this.paymentStatusFilter, periodStatus: this.paymentPeriodStatusFilter }
+    return { paymentStatus: this.paymentStatusFilter }
   }
 
   get filteredSuppliers(): readonly PartnerSupplierRow[] {
     const query = this.supplierSearch.trim().toLowerCase()
     const items = this.suppliers
       .filter(supplier => !this.supplierStatusFilter || supplier.statusKey === this.supplierStatusFilter)
-      .filter(supplier => !this.supplierPeriodStatusFilter || this.periodsForSupplier(supplier).some(period => period.periodStatusKey === this.supplierPeriodStatusFilter))
       .filter(supplier => {
         if (!query) return true
-        const periodValues = this.periodsForSupplier(supplier).flatMap(period => [period.reference, period.periodStatus, period.paymentStatus, formatDate(period.dueDate, true), formatKes(period.amountToPay)])
-        return [supplier.business, supplier.identifier, supplier.status, ...periodValues].join(' ').toLowerCase().includes(query)
+        return [
+          supplier.business,
+          supplier.identifier,
+          formatKes(supplier.available),
+          this.activePeriodCount(supplier),
+          this.nextPaymentLabel(supplier),
+          supplier.status,
+        ].join(' ').toLowerCase().includes(query)
       })
 
     return [...items].sort((a, b) => {
       if (this.supplierSort === 'available-desc') return b.available - a.available
       if (this.supplierSort === 'available-asc') return a.available - b.available
+      if (this.supplierSort === 'active-desc') return this.activePeriodCount(b) - this.activePeriodCount(a)
+      if (this.supplierSort === 'active-asc') return this.activePeriodCount(a) - this.activePeriodCount(b)
       if (this.supplierSort === 'payment-due-asc') return this.nextPaymentDate(a).localeCompare(this.nextPaymentDate(b))
+      if (this.supplierSort === 'status-asc') return a.status.localeCompare(b.status)
       if (this.supplierSort === 'name-asc') return a.business.localeCompare(b.business)
       const aOverdue = this.periodsForSupplier(a).some(period => period.paymentStatusKey === 'overdue')
       const bOverdue = this.periodsForSupplier(b).some(period => period.paymentStatusKey === 'overdue')
@@ -208,19 +212,27 @@ export class PartnerWorkspaceComponent {
     const query = this.paymentSearch.trim().toLowerCase()
     const items = this.periods
       .filter(period => !this.paymentStatusFilter || period.paymentStatusKey === this.paymentStatusFilter)
-      .filter(period => !this.paymentPeriodStatusFilter || period.periodStatusKey === this.paymentPeriodStatusFilter)
       .filter(period => {
         if (!query) return true
         const supplier = this.supplierForPeriod(period)
-        return [supplier?.business ?? '', supplier?.identifier ?? '', period.reference, period.paymentReference, period.periodStatus, period.paymentStatus, formatDate(period.dueDate, true), formatKes(period.amountToPay), formatKes(period.financedAgainst)].join(' ').toLowerCase().includes(query)
+        return [
+          supplier?.business ?? '',
+          supplier?.identifier ?? '',
+          period.reference,
+          formatDate(period.dueDate, true),
+          formatKes(period.amountToPay),
+          period.paymentStatus,
+        ].join(' ').toLowerCase().includes(query)
       })
 
     return [...items].sort((a, b) => {
+      if (this.paymentSort === 'supplier-asc') return (this.supplierForPeriod(a)?.business ?? '').localeCompare(this.supplierForPeriod(b)?.business ?? '')
+      if (this.paymentSort === 'period-asc') return a.reference.localeCompare(b.reference)
       if (this.paymentSort === 'due-asc') return a.dueDate.localeCompare(b.dueDate)
       if (this.paymentSort === 'due-desc') return b.dueDate.localeCompare(a.dueDate)
       if (this.paymentSort === 'amount-desc') return b.amountToPay - a.amountToPay
       if (this.paymentSort === 'amount-asc') return a.amountToPay - b.amountToPay
-      if (this.paymentSort === 'supplier-asc') return (this.supplierForPeriod(a)?.business ?? '').localeCompare(this.supplierForPeriod(b)?.business ?? '')
+      if (this.paymentSort === 'status-asc') return a.paymentStatus.localeCompare(b.paymentStatus)
       return this.paymentPriority(a) - this.paymentPriority(b) || a.dueDate.localeCompare(b.dueDate)
     })
   }
@@ -262,12 +274,12 @@ export class PartnerWorkspaceComponent {
   closePeriod(): void { this.selectedPeriod = null; this.returnSupplier = null }
 
   onSupplierSearchValueChange(value: string): void { this.supplierSearch = value; this.supplierPage = 1 }
-  onSupplierFilterValuesChange(values: Record<string, string>): void { this.supplierStatusFilter = values['supplierStatus'] ?? ''; this.supplierPeriodStatusFilter = values['periodStatus'] ?? ''; this.supplierPage = 1 }
+  onSupplierFilterValuesChange(values: Record<string, string>): void { this.supplierStatusFilter = values['supplierStatus'] ?? ''; this.supplierPage = 1 }
   onSupplierSortValueChange(value: string): void { this.supplierSort = value; this.supplierPage = 1 }
   changeSupplierPage(page: number): void { this.supplierPage = Math.min(Math.max(1, page), this.supplierTotalPages) }
 
   onPaymentSearchValueChange(value: string): void { this.paymentSearch = value; this.paymentPage = 1 }
-  onPaymentFilterValuesChange(values: Record<string, string>): void { this.paymentStatusFilter = values['paymentStatus'] ?? ''; this.paymentPeriodStatusFilter = values['periodStatus'] ?? ''; this.paymentPage = 1 }
+  onPaymentFilterValuesChange(values: Record<string, string>): void { this.paymentStatusFilter = values['paymentStatus'] ?? ''; this.paymentPage = 1 }
   onPaymentSortValueChange(value: string): void { this.paymentSort = value; this.paymentPage = 1 }
   changePaymentPage(page: number): void { this.paymentPage = Math.min(Math.max(1, page), this.paymentTotalPages) }
 
