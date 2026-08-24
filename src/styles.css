@@ -180,6 +180,32 @@ body .partner-home-workspace-card .baseline-button--primary:not([data-action]):f
   filter: none;
 }
 
+/*
+ * The design-system Avatar initials are defined as 0.4em. Give the avatar host
+ * an explicit typographic base so initials remain readable at sm/md sizes.
+ * Mobile profile triggers stretch to the 56px header and center the avatar.
+ */
+body .experience-avatar-trigger av-avatar,
+body .experience-profile-button av-avatar,
+body .avatar-trigger av-avatar,
+body .profile-button av-avatar {
+  display: inline-flex;
+  font-size: 32px;
+  line-height: 1;
+}
+
+body .experience-mobile-header .experience-avatar-trigger,
+body .mobile-header .avatar-trigger {
+  min-width: 48px;
+  min-height: 56px;
+  height: 56px;
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
 /* Repayment details use one consistent reading edge; Copy remains the trailing action. */
 app-customer-financing-period-modal .customer-payment-details > div > span {
   flex: 1 1 auto;
