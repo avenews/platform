@@ -4,7 +4,7 @@ const SESSION_KEY = 'av_customer_portal_session'
 const SCENARIO_KEY = 'av_experience_scenario'
 const ACL_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ACLDemoV2/formperma/yJ6BX6SANxu6zsGmFihcRuuAwT2dI9SbK4UGYlNIFog'
 const ABF_DEMO_URL = 'https://financing.avenews-gt.com/ishai/form/ABFDemo1/formperma/88hpcsGdZAsMIA0-EbgWUOc6jIqIr5VRd1htmpKqIRA'
-const CUSTOMER_STATUSES = ['Requested', 'Live', 'Overdue', 'Repaid', 'Cancelled', 'Declined'] as const
+const CUSTOMER_STATUSES = ['Overdue', 'Requested', 'Live', 'Repaid', 'Cancelled', 'Declined'] as const
 
 const SESSION = {
   contactId: 'usr_001',
@@ -160,7 +160,13 @@ test.describe('shared customer financing pattern', () => {
       await page.goto(`/experience/${destination.id}/home`)
       await expect(page.getByRole('heading', { name: destination.label, level: 1 })).toBeVisible()
       const expectedPrimary = destination.id === 'invoice-financing' ? 'Upload invoices' : 'Request funds'
-      await expect(page.locator('.contextual-home__hero').getByRole('button', { name: expectedPrimary })).toBeVisible()
+      const heroPrimary = page.locator('.contextual-home__hero').getByRole('button', { name: expectedPrimary })
+      if (isMobile(testInfo)) {
+        await expect(heroPrimary).toBeHidden()
+        await expect(page.locator('.customer-available-financing').getByRole('button', { name: 'Request funds' })).toBeVisible()
+      } else {
+        await expect(heroPrimary).toBeVisible()
+      }
       const summaryCards = page.locator('.customer-product-summary .contextual-metric')
       await expect(summaryCards).toHaveCount(3)
       await expect(summaryCards.nth(0)).toContainText('Available Financing')
@@ -173,6 +179,19 @@ test.describe('shared customer financing pattern', () => {
     })
   }
 
+  test('overdue financing always leads the list and uses a light red treatment', async ({ page }, testInfo) => {
+    await page.goto('/experience/abf/home')
+    if (isMobile(testInfo)) {
+      const first = page.locator('.customer-activity-cards .customer-financing-card').first()
+      await expect(first).toContainText('Overdue')
+      await expect(first).toHaveCSS('background-color', 'rgb(255, 244, 244)')
+    } else {
+      const first = page.locator('.customer-activity-table tbody .customer-activity-row').first()
+      await expect(first).toContainText('Overdue')
+      await expect(first).toHaveCSS('background-color', 'rgb(255, 244, 244)')
+    }
+  })
+
   test('customer-facing home copy avoids internal financing role and period language', async ({ page }) => {
     await page.goto('/experience/invoice-financing/home')
     const home = page.locator('.contextual-home')
@@ -182,16 +201,16 @@ test.describe('shared customer financing pattern', () => {
     await expect(home).not.toContainText('Client Supplier')
   })
 
-  test('relationship is the primary financing identifier outside ACL', async ({ page }, testInfo) => {
+  test('relationship is the primary financing identifier outside ACL with overdue first', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
     const aclCell = page.locator('.customer-activity-table tbody .customer-reference-cell').first()
-    await expect(aclCell).toHaveText('FR-2026-0612')
+    await expect(aclCell).toHaveText('FR-2026-0421')
 
     const expectations = [
-      { id: 'abf', relationship: 'Eastleigh Traders Co.', reference: 'FR-2026-0819' },
-      { id: 'stf', relationship: 'GreenHarvest Distributors', reference: 'FR-2026-0820' },
-      { id: 'invoice-financing', relationship: 'Twiga Foods Ltd', reference: 'DP-2026-10-15-TWIGA' },
-      { id: 'infx', relationship: 'Mombasa Buyers Network', reference: 'FR-2026-0818' },
+      { id: 'abf', relationship: 'Naivas Fresh Produce', reference: 'FR-2026-0407' },
+      { id: 'stf', relationship: 'Meru Agrovets Ltd', reference: 'FR-2026-0415' },
+      { id: 'invoice-financing', relationship: 'FreshProduce Kenya Ltd', reference: 'DP-2026-08-15-FRESH' },
+      { id: 'infx', relationship: 'Mombasa Buyers Network', reference: 'FR-2026-0017' },
     ]
 
     for (const expected of expectations) {
@@ -326,13 +345,13 @@ test.describe('shared customer financing pattern', () => {
     }
   })
 
-  test('primary navigation keeps relationship labels distinct from Manage Users', async ({ page }, testInfo) => {
+  test('primary navigation exposes customer tasks while Manage Users lives in the profile menu', async ({ page }, testInfo) => {
     const expectations = [
-      { id: 'acl', items: ['Home', 'Request Funds', 'Manage Users'] },
-      { id: 'abf', items: ['Home', 'Suppliers', 'Manage Users'] },
-      { id: 'stf', items: ['Home', 'Partner Suppliers', 'Manage Users'] },
-      { id: 'invoice-financing', items: ['Home', 'Buyers', 'Manage Users'] },
-      { id: 'infx', items: ['Home', 'Buyers', 'Manage Users'] },
+      { id: 'acl', items: ['Home', 'Funds Request'] },
+      { id: 'abf', items: ['Home', 'Suppliers', 'Funds Request'] },
+      { id: 'stf', items: ['Home', 'Partner Suppliers', 'Funds Request'] },
+      { id: 'invoice-financing', items: ['Home', 'Buyers', 'Funds Request', 'Invoice Uploader'] },
+      { id: 'infx', items: ['Home', 'Buyers', 'Funds Request'] },
     ]
 
     for (const expected of expectations) {
@@ -341,6 +360,14 @@ test.describe('shared customer financing pattern', () => {
         ? page.locator('.experience-bottom-nav')
         : page.locator('.experience-sidebar-nav')
       await expect(navigation.locator('a')).toHaveText(expected.items)
+      await expect(navigation).not.toContainText('Manage Users')
+
+      const profileTrigger = isMobile(testInfo)
+        ? page.locator('.experience-avatar-trigger')
+        : page.locator('.experience-profile-button')
+      await profileTrigger.click()
+      await expect(page.locator('.experience-profile-menu').getByRole('menuitem', { name: 'Manage Users' })).toBeVisible()
+      await page.keyboard.press('Escape')
     }
   })
 })
@@ -351,11 +378,13 @@ test.describe('repayment details', () => {
     await page.goto('/experience/acl/home')
   })
 
-  test('Live ACL financing retains Instalments and scrollable repayment details', async ({ page }) => {
+  test('Live ACL financing retains Instalments, documents and scrollable repayment details', async ({ page }) => {
     await openHomePeriod(page, 'FR-2026-0318')
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Instalment 1 of 2')
     await expect(periodDialog).toContainText('Instalment 2 of 2')
+    await expect(periodDialog).toContainText('Transaction files')
+    await expect(periodDialog.getByRole('link', { name: 'View' }).first()).toHaveAttribute('href', /demo-documents/)
     await expect(periodDialog).not.toContainText('Client repayment')
     await assertModalBodyScrollable(periodDialog)
 
@@ -381,7 +410,7 @@ test.describe('repayment details', () => {
     await expect(repaymentDialog).toContainText('Use your registered phone number')
   })
 
-  test('ACL Request funds keeps the permanent direct demo URL', async ({ page }) => {
+  test('ACL Funds Request keeps the permanent direct demo URL', async ({ page }) => {
     const requestFunds = page.locator('.contextual-home__hero').getByRole('button', { name: 'Request funds' })
     await expect(requestFunds).toHaveAttribute('data-external-url', ACL_DEMO_URL)
   })
@@ -412,7 +441,6 @@ test.describe('relationship-first request flows', () => {
     await page.goto('/experience/abf/financing')
     const maxed = await relationshipRow(page, 'Quick Mart Stores')
     await expect(maxed).toContainText('Unavailable')
-    await expect(maxed).toContainText('Ksh 900,000')
     await expect(maxed).toContainText('Ksh 0')
     await expect(maxed.getByRole('button', { name: 'Request funds' })).toBeDisabled()
 
@@ -421,6 +449,9 @@ test.describe('relationship-first request flows', () => {
     const request = available.getByRole('button', { name: 'Request funds' })
     await expect(request).toBeEnabled()
     await expect(request).toHaveAttribute('data-external-url', ABF_DEMO_URL)
+
+    await openRelationship(page, 'Quick Mart Stores')
+    await expect(page.locator('.relationship-modal')).toContainText('Ksh 900,000')
   })
 
   test('ABF details use customer-facing Supplier copy and omit the single invoice reference', async ({ page }) => {
@@ -468,6 +499,7 @@ test.describe('relationship-first request flows', () => {
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('Instalment 1 of 2')
     await expect(periodDialog).toContainText('Instalment 2 of 2')
+    await expect(periodDialog).toContainText('Transaction files')
     await expect(periodDialog).not.toContainText('Client repayment')
     await periodDialog.getByRole('button', { name: 'View repayment details' }).click()
     await expect(page.locator('.customer-repayment-modal')).toContainText('ABSA Bank Kenya PLC')
@@ -502,9 +534,10 @@ test.describe('relationship-first request flows', () => {
     const tableHead = page.locator('.customer-activity-table thead')
     await expect(tableHead).toContainText('Reference')
     await expect(tableHead).toContainText('Invoice Due Date')
-    await expect(tableHead).toContainText('Available to Withdraw')
+    await expect(tableHead).toContainText('Available Financing')
     await expect(tableHead).not.toContainText('Disbursement Date')
     await expect(tableHead).not.toContainText('Buyer Payments Allocated')
+    await expect(tableHead).not.toContainText('Total Repaid')
     await expect(page.locator('.customer-product-summary')).toContainText('Across eligible financing periods')
     await expect(page.locator('.customer-product-summary')).not.toContainText('Dynamic Period')
 
@@ -520,6 +553,15 @@ test.describe('relationship-first request flows', () => {
       await expect(card).toContainText('Ksh 320,000')
       await expect(card.getByRole('button', { name: 'Request funds' })).toHaveClass(/baseline-button--primary/)
     }
+  })
+
+  test('Invoice Financing invoice workspace exposes real demo files and uploader', async ({ page }) => {
+    await page.goto('/experience/invoice-financing/invoices')
+    await expect(page.getByRole('heading', { name: 'Invoices', level: 1 })).toBeVisible()
+    await expect(page.getByRole('link', { name: 'View invoice' }).first()).toHaveAttribute('href', /demo-documents/)
+    await expect(page.locator('.invoice-files-table tbody tr').first()).toContainText('Overdue')
+    await page.getByRole('button', { name: 'Upload invoices' }).click()
+    await expect(page.locator('.invoice-upload-modal')).toBeVisible()
   })
 
   test('Invoice Financing detail keeps disbursement and Request funds in the modal', async ({ page }) => {
@@ -558,6 +600,7 @@ test.describe('relationship-first request flows', () => {
       .click()
     const periodDialog = page.locator('.customer-period-modal').first()
     await expect(periodDialog).toContainText('INV-2026-0028')
+    await expect(periodDialog).toContainText('Transaction files')
     await periodDialog.getByRole('button', { name: 'View repayment details' }).click()
     await expect(page.locator('.customer-repayment-modal')).toContainText('ABSA Bank Kenya PLC')
   })
@@ -566,7 +609,7 @@ test.describe('relationship-first request flows', () => {
 test.describe('Partner Buyer Portal', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
-  test('uses a supplier-first home instead of generic Partner activity', async ({ page }, testInfo) => {
+  test('uses a supplier-first home with priority payments and task navigation', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/home')
     await expect(page.getByRole('heading', { name: 'Partner Buyer Portal', level: 1 })).toBeVisible()
     await expect(page.getByRole('button', { name: 'View suppliers', exact: true }).first()).toHaveClass(/baseline-button--primary/)
@@ -575,6 +618,12 @@ test.describe('Partner Buyer Portal', () => {
     await expect(page.locator('.contextual-metrics')).toContainText('Invoices Uploaded')
     await expect(page.locator('.contextual-metrics')).toContainText('Payments Due')
     await expect(page.locator('.contextual-metrics')).toContainText('Available Financing')
+    await expect(page.getByRole('heading', { name: 'Payments needing attention', level: 2 })).toBeVisible()
+    const priorityPayments = isMobile(testInfo)
+      ? page.locator('.partner-home-payment-card')
+      : page.locator('.partner-home-payments-table tbody tr')
+    await expect(priorityPayments.first()).toContainText('Overdue')
+    await expect(priorityPayments.first()).toHaveCSS('background-color', 'rgb(255, 244, 244)')
     await expect(page.getByRole('heading', { name: 'Supplier financing', level: 2 })).toBeVisible()
     await expect(page.locator('.partner-home-workspaces')).not.toContainText('Partner activity')
     await expect(page.locator('.customer-product-summary')).toHaveCount(0)
@@ -583,7 +632,7 @@ test.describe('Partner Buyer Portal', () => {
     const navigation = isMobile(testInfo)
       ? page.locator('.experience-bottom-nav')
       : page.locator('.experience-sidebar-nav')
-    await expect(navigation.locator('a')).toHaveText(['Home', 'Invoice Uploads', 'Payments', 'Suppliers', 'Manage Users'])
+    await expect(navigation.locator('a')).toHaveText(['Home', 'Payments', 'Suppliers', 'Invoices'])
     await assertNoOverflow(page)
   })
 
@@ -609,9 +658,15 @@ test.describe('Partner Buyer Portal', () => {
     await expect(resultDialog).toContainText('Failed')
   })
 
-  test('payments are searchable and always tied to a Supplier and Period', async ({ page }, testInfo) => {
+  test('payments are searchable, overdue-first and always tied to a Supplier and Period', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/obligations')
     await expect(page.getByRole('heading', { name: 'Payments', level: 1 })).toBeVisible()
+
+    const priorityRows = isMobile(testInfo)
+      ? page.locator('.partner-payment-card')
+      : page.locator('.partner-payments-table tbody tr')
+    await expect(priorityRows.first()).toContainText('Overdue')
+
     const search = page.getByRole('searchbox', { name: 'Search supplier payments and financing periods' })
     await search.fill('Kioko')
 
