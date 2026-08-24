@@ -11,6 +11,7 @@ import {
   customerWorkspaceById,
   periodsForRelationship,
   type CustomerFinancingPeriod,
+  type CustomerProductId,
   type CustomerRelationship,
   type CustomerWorkspace,
 } from '../../core/experience/customer-product-workspace.data'
@@ -21,6 +22,34 @@ import {
 import { CustomerFinancingPeriodModalComponent } from '../../shared/customer-financing-period-modal.component'
 import { formatDate, formatKes } from '../../shared/customer-portal.data'
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
+
+interface RelationshipPageCopy {
+  heading: string
+  intro: string
+}
+
+const RELATIONSHIP_PAGE_COPY: Record<CustomerProductId, RelationshipPageCopy> = {
+  acl: {
+    heading: 'Financing',
+    intro: 'View your financing periods and repayment details.',
+  },
+  abf: {
+    heading: 'Suppliers',
+    intro: 'Choose a supplier to view available financing or request funds.',
+  },
+  stf: {
+    heading: 'Partner Suppliers',
+    intro: 'Choose a Partner Supplier to view available financing or request funds.',
+  },
+  'invoice-financing': {
+    heading: 'Buyers',
+    intro: 'Choose a buyer to view financing periods, upload invoices or request funds.',
+  },
+  infx: {
+    heading: 'Buyers',
+    intro: 'Choose a buyer to view available financing or request funds for an invoice.',
+  },
+}
 
 @Component({
   selector: 'app-contextual-financing',
@@ -67,6 +96,14 @@ export class ContextualFinancingComponent implements OnDestroy {
     return experienceById(id) ?? experienceById('acl')!
   }
 
+  get relationshipHeading(): string {
+    return this.workspace ? RELATIONSHIP_PAGE_COPY[this.workspace.id].heading : 'Financing'
+  }
+
+  get relationshipIntro(): string {
+    return this.workspace ? RELATIONSHIP_PAGE_COPY[this.workspace.id].intro : ''
+  }
+
   get periodBackLabel(): string | null {
     if (!this.returnRelationship) return null
     return `Back to ${this.relationshipCustomerType(this.returnRelationship)}`
@@ -94,8 +131,8 @@ export class ContextualFinancingComponent implements OnDestroy {
 
   relationshipAvailabilityTooltip(relationship: CustomerRelationship): string {
     return this.relationshipAvailable(relationship) > 0
-      ? 'Financing is currently available for this relationship, subject to request eligibility.'
-      : 'The available financing for this relationship is currently fully used, so a new Funds Request cannot be started.'
+      ? 'Financing is available.'
+      : 'No financing is currently available.'
   }
 
   relationshipCustomerType(relationship: CustomerRelationship): string {
@@ -176,7 +213,7 @@ export class ContextualFinancingComponent implements OnDestroy {
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
     if (!this.canRequestFromPeriod(period)) return
-    this.toast = `Request funds from ${period.reference}. Available to Withdraw: ${formatKes(period.availableToWithdraw ?? 0)}.`
+    this.toast = `You can request up to ${formatKes(period.availableToWithdraw ?? 0)} from this financing period.`
     this.cdr.markForCheck()
   }
 
@@ -197,7 +234,7 @@ export class ContextualFinancingComponent implements OnDestroy {
     const relationship = this.invoiceUploadRelationship
     if (!relationship) return
     this.invoiceUploadRelationship = null
-    this.toast = `Invoice received for ${relationship.name}. Once eligible, it will appear in the matching Dynamic Period.`
+    this.toast = `Invoice received for ${relationship.name}. Eligible invoices will appear in the matching financing period.`
     this.restoreRelationship()
     this.cdr.markForCheck()
   }
