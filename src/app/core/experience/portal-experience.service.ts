@@ -46,16 +46,9 @@ export class PortalExperienceService {
   }
 
   resolvePostLoginRoute(): string[] {
-    const available = this.availableExperiences()
-
-    // A user with one available destination has nothing to choose, so open it
-    // directly. Only identities with more than one available product/workspace
-    // need the product selection page.
-    if (available.length === 1) {
-      this.selectExperience(available[0].id)
-      return this.routeFor(available[0].id, 'home')
-    }
-
+    // Prototype authentication always lands on product selection first. This
+    // keeps entry behaviour stable across normal and single-destination review
+    // scenarios and prevents login from dropping into the staging baseline.
     return ['/access']
   }
 
