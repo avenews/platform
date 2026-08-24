@@ -382,7 +382,7 @@
   padding-inline: 12px;
 }
 
-@media (min-width: 1180px) {
+@media (min-width: 1024px) {
   .partner-list-toolbar {
     grid-template-columns: minmax(230px, .7fr) minmax(0, 1.8fr);
     align-items: center;
