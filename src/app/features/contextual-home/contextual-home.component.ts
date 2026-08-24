@@ -56,6 +56,7 @@ export class ContextualHomeComponent implements OnDestroy {
   searchQuery = ''
   statusFilter = ''
   dueDateFilter = ''
+  availabilityFilter = ''
   page = 1
   readonly pageSize = 10
   selectedPeriod: CustomerFinancingPeriod | null = null
@@ -87,7 +88,7 @@ export class ContextualHomeComponent implements OnDestroy {
     const statuses = new Map<string, string>()
     for (const period of this.workspace.periods) statuses.set(period.statusKey, period.statusLabel)
 
-    return [
+    const fields: CustomerFilterField[] = [
       {
         key: 'status',
         label: 'Status',
@@ -105,10 +106,27 @@ export class ContextualHomeComponent implements OnDestroy {
         ],
       },
     ]
+
+    if (this.workspace.id === 'invoice-financing') {
+      fields.push({
+        key: 'availability',
+        label: 'Availability',
+        allLabel: 'Any availability',
+        options: [
+          { value: 'available-to-withdraw', label: 'Available to withdraw' },
+        ],
+      })
+    }
+
+    return fields
   }
 
   get filterValues(): Readonly<Record<string, string>> {
-    return { status: this.statusFilter, dueDate: this.dueDateFilter }
+    return {
+      status: this.statusFilter,
+      dueDate: this.dueDateFilter,
+      availability: this.availabilityFilter,
+    }
   }
 
   get searchPlaceholder(): string {
@@ -146,6 +164,7 @@ export class ContextualHomeComponent implements OnDestroy {
     return this.workspace.periods
       .filter(period => !this.statusFilter || period.statusKey === this.statusFilter)
       .filter(period => this.matchesDueFilter(period))
+      .filter(period => !this.availabilityFilter || this.canRequestFromPeriod(period))
       .filter(period => {
         if (!query) return true
         const relationshipSearch = this.workspace?.id === 'acl'
@@ -208,20 +227,27 @@ export class ContextualHomeComponent implements OnDestroy {
     this.cdr.markForCheck()
   }
 
+  filterAvailableFinancing(): void {
+    if (this.workspace?.id !== 'invoice-financing') return
+    this.searchQuery = ''
+    this.statusFilter = ''
+    this.dueDateFilter = ''
+    this.availabilityFilter = 'available-to-withdraw'
+    this.page = 1
+    this.selectedPeriod = null
+    this.cdr.markForCheck()
+    this.scrollToFinancing()
+  }
+
   filterPaymentsDue(): void {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = 'payments-due'
+    this.availabilityFilter = ''
     this.page = 1
     this.selectedPeriod = null
     this.cdr.markForCheck()
-
-    requestAnimationFrame(() => {
-      document.getElementById('customer-financing-activity')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'start',
-      })
-    })
+    this.scrollToFinancing()
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
@@ -255,6 +281,7 @@ export class ContextualHomeComponent implements OnDestroy {
   onFilterValuesChange(values: Record<string, string>): void {
     this.statusFilter = values['status'] ?? ''
     this.dueDateFilter = values['dueDate'] ?? ''
+    this.availabilityFilter = values['availability'] ?? ''
     this.page = 1
   }
 
@@ -312,10 +339,20 @@ export class ContextualHomeComponent implements OnDestroy {
     return true
   }
 
+  private scrollToFinancing(): void {
+    requestAnimationFrame(() => {
+      document.getElementById('customer-financing-activity')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start',
+      })
+    })
+  }
+
   private resetFilters(): void {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = ''
+    this.availabilityFilter = ''
     this.page = 1
   }
 
