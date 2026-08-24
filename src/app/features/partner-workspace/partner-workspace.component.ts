@@ -253,7 +253,7 @@ export class PartnerWorkspaceComponent {
           formatKes(period.financedAgainst),
         ].join(' ').toLowerCase().includes(query)
       })
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+      .sort((a, b) => this.paymentPriority(a) - this.paymentPriority(b) || a.dueDate.localeCompare(b.dueDate))
   }
 
   get paymentPageItems(): readonly PartnerPeriod[] {
@@ -294,7 +294,7 @@ export class PartnerWorkspaceComponent {
   periodsForSupplier(supplier: PartnerSupplierRow): readonly PartnerPeriod[] {
     return this.periods
       .filter(period => supplier.periodIds.includes(period.id))
-      .sort((a, b) => a.dueDate.localeCompare(b.dueDate))
+      .sort((a, b) => this.paymentPriority(a) - this.paymentPriority(b) || a.dueDate.localeCompare(b.dueDate))
   }
 
   supplierForPeriod(period: PartnerPeriod): PartnerSupplierRow | undefined {
@@ -409,6 +409,13 @@ export class PartnerWorkspaceComponent {
     } catch {
       this.toast = `Payment reference: ${reference}`
     }
+  }
+
+  private paymentPriority(period: PartnerPeriod): number {
+    if (period.paymentStatusKey === 'overdue' || period.periodStatusKey === 'overdue') return 0
+    if (period.paymentStatusKey === 'upcoming') return 1
+    if (period.paymentStatusKey === 'processing') return 2
+    return 3
   }
 
   private closeDetailModals(): void {
