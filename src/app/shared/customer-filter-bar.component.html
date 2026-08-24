@@ -32,11 +32,28 @@
       </label>
     }
 
+    @if (sortOptions.length) {
+      <label class="customer-filter-select customer-sort-select">
+        <span class="customer-filter-sr-only">{{ sortLabel }}</span>
+        <select
+          class="baseline-control customer-filter-bar__select-control"
+          [attr.aria-label]="sortLabel"
+          [ngModel]="sortValue"
+          (ngModelChange)="onDesktopSortChange($event)"
+        >
+          <option value="">{{ sortLabel }}</option>
+          @for (option of sortOptions; track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
+        </select>
+      </label>
+    }
+
     <button
       type="button"
       class="customer-filter-clear"
       [disabled]="!hasActiveFilters"
-      title="Clear the current search and filters"
+      title="Clear the current search, filters and sorting"
       (click)="clearAllFilters()"
     >Clear filters</button>
   </div>
@@ -68,7 +85,7 @@
     </div>
 
     @if (mobileOpen) {
-      <section [id]="panelId" class="customer-filter-panel" aria-label="Filters">
+      <section [id]="panelId" class="customer-filter-panel" aria-label="Filters and sorting">
         @for (filter of filters; track filter.key) {
           <label class="customer-filter-panel__field">
             <span>{{ filter.label }}</span>
@@ -80,6 +97,23 @@
             >
               <option value="">{{ filter.allLabel }}</option>
               @for (option of filter.options; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select>
+          </label>
+        }
+
+        @if (sortOptions.length) {
+          <label class="customer-filter-panel__field">
+            <span>{{ sortLabel }}</span>
+            <select
+              class="baseline-control customer-filter-bar__select-control"
+              [attr.aria-label]="sortLabel"
+              [ngModel]="draftSortValue"
+              (ngModelChange)="updateDraftSort($event)"
+            >
+              <option value="">Needs attention</option>
+              @for (option of sortOptions; track option.value) {
                 <option [value]="option.value">{{ option.label }}</option>
               }
             </select>
