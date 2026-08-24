@@ -38,7 +38,7 @@ const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   {
     segment: 'request-funds',
-    label: 'Request Funds',
+    label: 'Funds Request',
     icon: 'wallet',
     exact: false,
     externalUrl: ACL_FUNDS_REQUEST_DEMO_URL,
@@ -48,36 +48,34 @@ const AGRI_CREDIT_LINE_NAV: readonly ExperienceNavItem[] = [
 const ABF_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'financing', label: 'Suppliers', icon: 'building', exact: false },
+  { segment: 'request-funds', label: 'Funds Request', icon: 'wallet', exact: false },
 ]
 
 const STF_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'financing', label: 'Partner Suppliers', icon: 'building', exact: false },
+  { segment: 'request-funds', label: 'Funds Request', icon: 'wallet', exact: false },
 ]
 
 const INVOICE_FINANCING_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'financing', label: 'Buyers', icon: 'building', exact: false },
+  { segment: 'request-funds', label: 'Funds Request', icon: 'wallet', exact: false },
+  { segment: 'invoices', label: 'Invoice Uploader', icon: 'receipt', exact: false },
 ]
 
 const INFX_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'financing', label: 'Buyers', icon: 'building', exact: false },
+  { segment: 'request-funds', label: 'Funds Request', icon: 'wallet', exact: false },
 ]
 
 const PARTNER_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
-  { segment: 'invoice-uploads', label: 'Invoice Uploads', icon: 'receipt', exact: false },
   { segment: 'obligations', label: 'Payments', icon: 'wallet', exact: false },
   { segment: 'suppliers', label: 'Suppliers', icon: 'building', exact: false },
+  { segment: 'invoice-uploads', label: 'Invoices', icon: 'receipt', exact: false },
 ]
-
-const MANAGE_USERS_NAV: ExperienceNavItem = {
-  segment: 'manage-users',
-  label: 'Manage Users',
-  icon: 'person',
-  exact: false,
-}
 
 @Component({
   selector: 'app-experience-shell',
@@ -149,32 +147,16 @@ export class ExperienceShellComponent implements OnDestroy {
   }
 
   get primaryNavItems(): readonly ExperienceNavItem[] {
-    let base: readonly ExperienceNavItem[]
-    if (this.currentExperience.kind === 'partner') {
-      base = PARTNER_NAV
-    } else {
-      switch (this.currentExperience.id) {
-        case 'acl':
-          base = AGRI_CREDIT_LINE_NAV
-          break
-        case 'abf':
-          base = ABF_NAV
-          break
-        case 'stf':
-          base = STF_NAV
-          break
-        case 'invoice-financing':
-          base = INVOICE_FINANCING_NAV
-          break
-        case 'infx':
-          base = INFX_NAV
-          break
-        default:
-          base = [{ segment: 'home', label: 'Home', icon: 'home', exact: true }]
-      }
-    }
+    if (this.currentExperience.kind === 'partner') return PARTNER_NAV
 
-    return this.session?.role === 'admin' ? [...base, MANAGE_USERS_NAV] : base
+    switch (this.currentExperience.id) {
+      case 'acl': return AGRI_CREDIT_LINE_NAV
+      case 'abf': return ABF_NAV
+      case 'stf': return STF_NAV
+      case 'invoice-financing': return INVOICE_FINANCING_NAV
+      case 'infx': return INFX_NAV
+      default: return [{ segment: 'home', label: 'Home', icon: 'home', exact: true }]
+    }
   }
 
   get mobileNavItems(): readonly ExperienceNavItem[] {
