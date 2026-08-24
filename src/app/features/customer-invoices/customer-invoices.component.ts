@@ -93,7 +93,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
     @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
   `,
   styles: [`
-    :host{display:block}.invoice-workspace{gap:20px}.invoice-workspace__hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}.invoice-workspace__hero>div{display:grid;gap:6px}.invoice-workspace__hero h1,.invoice-workspace__hero p{margin:0}.invoice-workspace__hero h1{color:var(--av-color-text-heading,#0d343f);font-size:32px;line-height:1.15}.invoice-workspace__hero p,.invoice-upload-modal__body>p{max-width:760px;color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}.invoice-list{display:grid;gap:14px}.invoice-list__toolbar{display:flex;justify-content:flex-end}.invoice-list__toolbar app-customer-filter-bar{width:100%}.invoice-upload-action{border-color:var(--av-color-success,#39c173)!important;background:var(--av-color-success,#39c173)!important;color:#fff!important}.invoice-files-table{min-width:860px}.invoice-files-cards{display:none}.invoice-row--overdue{background:#fff4f4}.invoice-file-card--overdue{border-color:#efb4b4;background:#fff4f4}.invoice-upload-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}.invoice-upload-modal{width:min(100%,620px);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}.invoice-upload-modal__body{min-height:0;overflow-y:auto;display:grid;gap:14px}.invoice-upload-modal__body>p{margin:0}@media(max-width:767px){.invoice-workspace__hero{display:grid;gap:16px}.invoice-workspace__hero h1{font-size:26px}.invoice-workspace__hero .baseline-button{width:100%}.baseline-table-wrap{display:none}.invoice-files-cards{display:grid;gap:12px}.invoice-upload-backdrop{align-items:flex-end;padding:0}.invoice-upload-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0}}
+    :host{display:block}.invoice-workspace{gap:24px}.invoice-workspace__hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}.invoice-workspace__hero>div{display:grid;gap:6px}.invoice-workspace__hero h1,.invoice-workspace__hero p{margin:0}.invoice-workspace__hero h1{color:var(--av-color-text-heading,#0d343f);font-size:32px;line-height:1.15}.invoice-workspace__hero p,.invoice-upload-modal__body>p{max-width:760px;color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}.invoice-list{display:grid;gap:16px}.invoice-list__toolbar{display:flex;justify-content:flex-start;width:100%}.invoice-list__toolbar app-customer-filter-bar{width:100%}.invoice-upload-action{border-color:var(--av-color-success,#39c173)!important;background:var(--av-color-success,#39c173)!important;color:#fff!important}.invoice-files-table{min-width:860px}.invoice-files-cards{display:none}.invoice-row--overdue{background:#fff4f4}.invoice-file-card--overdue{border-color:#efb4b4;background:#fff4f4}.invoice-upload-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}.invoice-upload-modal{width:min(100%,620px);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}.invoice-upload-modal__body{min-height:0;overflow-y:auto;display:grid;gap:14px}.invoice-upload-modal__body>p{margin:0}@media(max-width:767px){.invoice-workspace{gap:20px}.invoice-workspace__hero{display:grid;gap:16px}.invoice-workspace__hero h1{font-size:26px}.invoice-workspace__hero .baseline-button{width:100%}.invoice-list{gap:14px}.baseline-table-wrap{display:none}.invoice-files-cards{display:grid;gap:12px}.invoice-upload-backdrop{align-items:flex-end;padding:0}.invoice-upload-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0}}
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -115,7 +115,13 @@ export class CustomerInvoicesComponent {
   ] }]
 
   readonly sortOptions: readonly CustomerSortOption[] = [
-    { value: 'due-asc', label: 'Due date: earliest' }, { value: 'due-desc', label: 'Due date: latest' }, { value: 'amount-desc', label: 'Amount: high to low' }, { value: 'amount-asc', label: 'Amount: low to high' }, { value: 'buyer-asc', label: 'Buyer: A-Z' },
+    { value: 'invoice-asc', label: 'Invoice: A-Z' },
+    { value: 'buyer-asc', label: 'Buyer: A-Z' },
+    { value: 'due-asc', label: 'Due date: earliest' },
+    { value: 'due-desc', label: 'Due date: latest' },
+    { value: 'amount-desc', label: 'Amount: high to low' },
+    { value: 'amount-asc', label: 'Amount: low to high' },
+    { value: 'status-asc', label: 'Status: A-Z' },
   ]
 
   get filterValues(): Readonly<Record<string,string>> { return { status: this.status } }
@@ -124,11 +130,13 @@ export class CustomerInvoicesComponent {
     const q=this.search.trim().toLowerCase()
     const items=this.invoices.filter(i=>!this.status || (i.status ?? 'Uploaded')===this.status).filter(i=>!q || [i.reference,i.fileName,i.counterparty,i.status ?? 'Uploaded',i.dueDate ?? '',i.amount ?? ''].join(' ').toLowerCase().includes(q))
     return [...items].sort((a,b)=>{
+      if(this.sort==='invoice-asc') return a.reference.localeCompare(b.reference)
+      if(this.sort==='buyer-asc') return a.counterparty.localeCompare(b.counterparty)
       if(this.sort==='due-asc') return (a.dueDate??'').localeCompare(b.dueDate??'')
       if(this.sort==='due-desc') return (b.dueDate??'').localeCompare(a.dueDate??'')
       if(this.sort==='amount-desc') return (b.amount??0)-(a.amount??0)
       if(this.sort==='amount-asc') return (a.amount??0)-(b.amount??0)
-      if(this.sort==='buyer-asc') return a.counterparty.localeCompare(b.counterparty)
+      if(this.sort==='status-asc') return (a.status??'Uploaded').localeCompare(b.status??'Uploaded')
       const oa=a.status==='Overdue'?0:1, ob=b.status==='Overdue'?0:1
       return oa-ob || (a.dueDate??'').localeCompare(b.dueDate??'')
     })
