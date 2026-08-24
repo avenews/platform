@@ -22,6 +22,11 @@ export interface CustomerFilterField {
   options: readonly CustomerFilterOption[]
 }
 
+export interface CustomerSortOption {
+  value: string
+  label: string
+}
+
 @Component({
   selector: 'app-customer-filter-bar',
   standalone: true,
@@ -40,15 +45,20 @@ export class CustomerFilterBarComponent implements OnChanges {
   @Input() searchAriaLabel = 'Search records'
   @Input() filters: readonly CustomerFilterField[] = []
   @Input() values: Readonly<Record<string, string>> = {}
+  @Input() sortOptions: readonly CustomerSortOption[] = []
+  @Input() sortValue = ''
+  @Input() sortLabel = 'Sort by'
 
   @Output() readonly searchValueChange = new EventEmitter<string>()
   @Output() readonly valuesChange = new EventEmitter<Record<string, string>>()
+  @Output() readonly sortValueChange = new EventEmitter<string>()
 
   mobileOpen = false
   draftValues: Record<string, string> = {}
+  draftSortValue = ''
 
   ngOnChanges(changes: SimpleChanges): void {
-    if ((changes['filters'] || changes['values']) && !this.mobileOpen) {
+    if ((changes['filters'] || changes['values'] || changes['sortValue'] || changes['sortOptions']) && !this.mobileOpen) {
       this.syncDraftValues()
     }
   }
@@ -56,6 +66,7 @@ export class CustomerFilterBarComponent implements OnChanges {
   get hasActiveFilters(): boolean {
     return Boolean(
       this.searchValue.trim()
+      || this.sortValue
       || this.filters.some(filter => Boolean(this.values[filter.key])),
     )
   }
@@ -76,6 +87,10 @@ export class CustomerFilterBarComponent implements OnChanges {
     this.valuesChange.emit({ ...this.values, [key]: value })
   }
 
+  onDesktopSortChange(value: string): void {
+    this.sortValueChange.emit(value)
+  }
+
   toggleMobileFilters(): void {
     if (this.mobileOpen) {
       this.mobileOpen = false
@@ -90,12 +105,18 @@ export class CustomerFilterBarComponent implements OnChanges {
     this.draftValues = { ...this.draftValues, [key]: value }
   }
 
+  updateDraftSort(value: string): void {
+    this.draftSortValue = value
+  }
+
   clearAllFilters(): void {
     const nextValues: Record<string, string> = {}
     for (const filter of this.filters) nextValues[filter.key] = ''
     this.draftValues = nextValues
+    this.draftSortValue = ''
     this.searchValueChange.emit('')
     this.valuesChange.emit(nextValues)
+    this.sortValueChange.emit('')
   }
 
   applyDraftValues(): void {
@@ -104,6 +125,7 @@ export class CustomerFilterBarComponent implements OnChanges {
       nextValues[filter.key] = this.draftValues[filter.key] ?? ''
     }
     this.valuesChange.emit(nextValues)
+    this.sortValueChange.emit(this.draftSortValue)
     this.mobileOpen = false
   }
 
@@ -116,5 +138,6 @@ export class CustomerFilterBarComponent implements OnChanges {
     const nextValues: Record<string, string> = {}
     for (const filter of this.filters) nextValues[filter.key] = this.values[filter.key] ?? ''
     this.draftValues = nextValues
+    this.draftSortValue = this.sortValue
   }
 }
