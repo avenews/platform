@@ -63,6 +63,9 @@ test.describe('action colour consistency', () => {
     const relationshipUpload = page.locator('[data-action="invoice-upload"]:visible').first()
     await expect(relationshipUpload).toHaveText('Upload invoices')
     await expectActionColor(relationshipUpload, INVOICE_UPLOAD_GREEN)
+    await relationshipUpload.click()
+    const submitInvoice = page.locator('.invoice-upload-modal').getByRole('button', { name: 'Submit invoice', exact: true })
+    await expectActionColor(submitInvoice, INVOICE_UPLOAD_GREEN)
 
     await page.goto('/experience/invoice-partner/home')
     const partnerHomeUpload = page.locator('[data-action="invoice-upload"]:visible').first()
