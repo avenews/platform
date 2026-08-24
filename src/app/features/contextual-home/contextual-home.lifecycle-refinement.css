@@ -1,16 +1,31 @@
 .customer-product-summary .contextual-metric {
   align-content: start;
   grid-auto-rows: max-content;
-  gap: 10px;
-  min-height: 170px;
+  gap: 8px;
+  min-height: 172px;
+  padding: 20px;
+  border-color: var(--av-color-surface-border, #e1e7eb);
+  border-radius: var(--av-radius-lg, 12px);
+  box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(16, 24, 40, .06));
+}
+
+.customer-product-summary .contextual-metric > span {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+  font-weight: 500;
 }
 
 .customer-product-summary .contextual-metric > strong {
   margin-top: 2px;
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: clamp(24px, 2.4vw, 30px);
   line-height: 1.15;
 }
 
 .customer-product-summary .contextual-metric > small {
+  min-height: 34px;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
   line-height: 1.45;
 }
 
@@ -18,10 +33,11 @@
   line-height: 1.2;
 }
 
+.customer-available-financing__action,
 .customer-payments-due__action {
   width: fit-content;
   justify-self: start;
-  margin-top: 4px;
+  margin-top: auto;
 }
 
 .customer-financing-activity {
@@ -118,9 +134,16 @@
 @media (max-width: 767px) {
   .customer-product-summary .contextual-metric {
     min-height: 0;
+    padding: 18px;
   }
 
+  .customer-product-summary .contextual-metric > small {
+    min-height: 0;
+  }
+
+  .customer-available-financing__action,
   .customer-payments-due__action {
     width: 100%;
+    margin-top: 4px;
   }
 }
