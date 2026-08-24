@@ -130,7 +130,9 @@ test.describe('post-OTP access resolution', () => {
       await expect(card).toContainText('Outstanding Amount')
     }
     await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Partner Buyer Portal')
-    await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('Supplier periods')
+    await expect(page.locator('[data-experience-id="invoice-partner"]')).toContainText('financing periods')
+    await expect(page.locator('.access-main')).not.toContainText('Dynamic Period')
+    await expect(page.locator('.access-main')).not.toContainText('Client Supplier')
     await expect(page.locator('.access-card__action')).toHaveText(['View', 'View', 'View', 'View', 'View', 'View'])
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
   })
@@ -170,6 +172,15 @@ test.describe('shared customer financing pattern', () => {
       await page.screenshot({ path: testInfo.outputPath(`${destination.id}-financing.png`), fullPage: true })
     })
   }
+
+  test('customer-facing home copy avoids internal financing role and period language', async ({ page }) => {
+    await page.goto('/experience/invoice-financing/home')
+    const home = page.locator('.contextual-home')
+    await expect(home).toContainText('View financing by buyer and invoice due date')
+    await expect(home).toContainText('Across eligible financing periods')
+    await expect(home).not.toContainText('Dynamic Period')
+    await expect(home).not.toContainText('Client Supplier')
+  })
 
   test('relationship is the primary financing identifier outside ACL', async ({ page }, testInfo) => {
     await page.goto('/experience/acl/home')
@@ -290,7 +301,7 @@ test.describe('shared customer financing pattern', () => {
   test('Invoice Financing Available Financing filters to periods that can request funds', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-financing/home')
     const card = page.locator('.customer-available-financing')
-    const action = card.getByRole('button', { name: 'Show periods with Available to Withdraw' })
+    const action = card.getByRole('button', { name: 'Show financing periods with funds available' })
     await expect(action).toHaveClass(/baseline-button--secondary/)
     await action.click()
 
@@ -380,15 +391,17 @@ test.describe('relationship-first request flows', () => {
   test.beforeEach(async ({ page }) => signIn(page))
 
   for (const relationshipPage of [
-    { id: 'abf', heading: 'Approved Suppliers', count: 3 },
+    { id: 'abf', heading: 'Suppliers', count: 3 },
     { id: 'stf', heading: 'Partner Suppliers', count: 3 },
-    { id: 'invoice-financing', heading: 'Buyer Relationships', count: 2 },
-    { id: 'infx', heading: 'Approved Buyers', count: 3 },
+    { id: 'invoice-financing', heading: 'Buyers', count: 2 },
+    { id: 'infx', heading: 'Buyers', count: 3 },
   ] as const) {
     test(`${relationshipPage.id} uses one concise relationship heading`, async ({ page }, testInfo) => {
       await page.goto(`/experience/${relationshipPage.id}/financing`)
       await expect(page.getByRole('heading', { name: relationshipPage.heading, level: 1 })).toHaveCount(1)
       await expect(page.locator('.contextual-financing__hero > div > p:not(.page-eyebrow)')).toHaveCount(1)
+      await expect(page.locator('.contextual-financing')).not.toContainText('Dynamic Period')
+      await expect(page.locator('.contextual-financing')).not.toContainText('Client Supplier')
       await expect(page.locator('.prototype-explainer')).toHaveCount(0)
       await assertRelationshipListCount(page, testInfo, relationshipPage.count)
       await assertNoOverflow(page)
@@ -479,7 +492,7 @@ test.describe('relationship-first request flows', () => {
     await upload.locator('input[type="date"]').fill('2026-09-30')
     await upload.locator('input[type="number"]').fill('500000')
     await upload.getByRole('button', { name: 'Submit invoice' }).click()
-    await expect(page.locator('.baseline-toast')).toContainText('matching Dynamic Period')
+    await expect(page.locator('.baseline-toast')).toContainText('matching financing period')
     await assertNoOverflow(page)
     if (!isMobile(testInfo)) await expect(page.locator('.relationship-table thead')).not.toContainText('Invoices')
   })
@@ -492,8 +505,8 @@ test.describe('relationship-first request flows', () => {
     await expect(tableHead).toContainText('Available to Withdraw')
     await expect(tableHead).not.toContainText('Disbursement Date')
     await expect(tableHead).not.toContainText('Buyer Payments Allocated')
-    await expect(page.locator('.customer-product-summary')).toContainText('Across eligible periods')
-    await expect(page.locator('.customer-product-summary')).not.toContainText('Across eligible Dynamic Periods')
+    await expect(page.locator('.customer-product-summary')).toContainText('Across eligible financing periods')
+    await expect(page.locator('.customer-product-summary')).not.toContainText('Dynamic Period')
 
     const requested = page.locator('.customer-activity-row').filter({ hasText: 'DP-2026-10-15-TWIGA' })
     if (await requested.isVisible()) {
@@ -561,8 +574,8 @@ test.describe('Partner Buyer Portal', () => {
     await expect(page.locator('.contextual-metrics .contextual-metric')).toHaveCount(3)
     await expect(page.locator('.contextual-metrics')).toContainText('Invoices Uploaded')
     await expect(page.locator('.contextual-metrics')).toContainText('Payments Due')
-    await expect(page.locator('.contextual-metrics')).toContainText('Supplier Financing Available')
-    await expect(page.getByRole('heading', { name: 'Manage Supplier financing', level: 2 })).toBeVisible()
+    await expect(page.locator('.contextual-metrics')).toContainText('Available Financing')
+    await expect(page.getByRole('heading', { name: 'Supplier financing', level: 2 })).toBeVisible()
     await expect(page.locator('.partner-home-workspaces')).not.toContainText('Partner activity')
     await expect(page.locator('.customer-product-summary')).toHaveCount(0)
     await expect(page.locator('.prototype-explainer')).toHaveCount(0)
@@ -583,7 +596,7 @@ test.describe('Partner Buyer Portal', () => {
     const uploadDialog = page.locator('.partner-modal')
     await expect(uploadDialog).toBeVisible()
     await expect(uploadDialog.getByRole('heading', { name: 'Upload invoices' })).toBeVisible()
-    await expect(uploadDialog).toContainText('multiple Suppliers and due dates')
+    await expect(uploadDialog).toContainText('multiple suppliers and due dates')
     await assertModalBodyScrollable(uploadDialog)
     await uploadDialog.getByRole('button', { name: 'Close' }).click()
 
@@ -599,7 +612,7 @@ test.describe('Partner Buyer Portal', () => {
   test('payments are searchable and always tied to a Supplier and Period', async ({ page }, testInfo) => {
     await page.goto('/experience/invoice-partner/obligations')
     await expect(page.getByRole('heading', { name: 'Payments', level: 1 })).toBeVisible()
-    const search = page.getByRole('searchbox', { name: 'Search Partner Buyer payments by Supplier and Period' })
+    const search = page.getByRole('searchbox', { name: 'Search supplier payments and financing periods' })
     await search.fill('Kioko')
 
     if (isMobile(testInfo)) {
@@ -630,7 +643,7 @@ test.describe('Partner Buyer Portal', () => {
     await expect(page.getByRole('button', { name: 'Manage limit' })).toHaveCount(0)
     await expect(page.getByRole('button', { name: 'Invite Supplier' })).toHaveCount(0)
 
-    const search = page.getByRole('searchbox', { name: 'Search Partner Buyer Suppliers and periods' })
+    const search = page.getByRole('searchbox', { name: 'Search suppliers and financing periods' })
     await search.fill('Kioko')
 
     if (isMobile(testInfo)) {
@@ -645,7 +658,7 @@ test.describe('Partner Buyer Portal', () => {
     await expect(view).toHaveClass(/baseline-button--secondary/)
     await view.click()
     const supplierDialog = page.locator('.partner-modal').filter({ hasText: 'Kioko Agri Supplies Ltd' }).first()
-    await expect(supplierDialog).toContainText('Supplier periods')
+    await expect(supplierDialog).toContainText('Financing periods')
     await expect(supplierDialog).toContainText('PER-2026-09-15-KIOKO')
     await supplierDialog.locator('.partner-period-row').first().click()
 
@@ -654,7 +667,7 @@ test.describe('Partner Buyer Portal', () => {
     const back = periodDialog.getByRole('button', { name: 'Back to Supplier' })
     await expect(back).toHaveClass(/baseline-button--secondary/)
     await back.click()
-    await expect(page.locator('.partner-modal')).toContainText('Supplier periods')
+    await expect(page.locator('.partner-modal')).toContainText('Financing periods')
     await assertNoOverflow(page)
   })
 })
