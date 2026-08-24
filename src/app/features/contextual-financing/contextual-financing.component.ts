@@ -161,7 +161,16 @@ export class ContextualFinancingComponent implements OnDestroy {
   }
 
   relationshipPeriods(relationship: CustomerRelationship): readonly CustomerFinancingPeriod[] {
-    return this.workspace ? periodsForRelationship(this.workspace, relationship) : []
+    if (!this.workspace) return []
+    return periodsForRelationship(this.workspace, relationship)
+      .map((period, index) => ({ period, index }))
+      .sort((a, b) => {
+        const aOverdue = a.period.statusKey === 'overdue' || a.period.paymentAttention === 'overdue'
+        const bOverdue = b.period.statusKey === 'overdue' || b.period.paymentAttention === 'overdue'
+        if (aOverdue !== bOverdue) return aOverdue ? -1 : 1
+        return a.index - b.index
+      })
+      .map(item => item.period)
   }
 
   openPeriod(period: CustomerFinancingPeriod): void {
