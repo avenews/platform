@@ -11,7 +11,6 @@ import {
   invoiceStatusLabel,
   invoiceStatusTone,
   periodStatusTone,
-  relationshipModelLabel,
   type InvoiceFinancingPeriod,
 } from '../../core/experience/invoice-financing.data'
 import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.component'
@@ -61,7 +60,7 @@ export class InvoicePeriodComponent {
 
   completeRequest(): void {
     this.requestOpen = false
-    this.toast = `Funds Request prototype started for up to ${formatKes(this.period?.availableToWithdraw ?? 0)}.`
+    this.toast = `Request started for up to ${formatKes(this.period?.availableToWithdraw ?? 0)}.`
   }
 
   scrollToInvoices(): void {
@@ -78,7 +77,6 @@ export class InvoicePeriodComponent {
 
   readonly formatKes = formatKes
   readonly formatDate = formatDate
-  readonly relationshipModelLabel = relationshipModelLabel
   readonly periodStatusTone = periodStatusTone
   readonly invoiceStatusLabel = invoiceStatusLabel
   readonly invoiceStatusTone = invoiceStatusTone
