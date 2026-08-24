@@ -37,15 +37,51 @@
 }
 
 .partner-upload-table {
-  min-width: 1120px;
+  min-width: 760px;
+}
+
+.partner-upload-table th:nth-child(4),
+.partner-upload-table td:nth-child(4),
+.partner-upload-table th:nth-child(5),
+.partner-upload-table td:nth-child(5),
+.partner-upload-table th:nth-child(6),
+.partner-upload-table td:nth-child(6) {
+  display: none;
 }
 
 .partner-payments-table {
-  min-width: 1380px;
+  min-width: 920px;
+}
+
+.partner-payments-table th:nth-child(5),
+.partner-payments-table td:nth-child(5),
+.partner-payments-table th:nth-child(6),
+.partner-payments-table td:nth-child(6),
+.partner-payments-table th:nth-child(7),
+.partner-payments-table td:nth-child(7) {
+  display: none;
 }
 
 .partner-suppliers-table {
-  min-width: 1260px;
+  min-width: 900px;
+}
+
+.partner-suppliers-table th:nth-child(2),
+.partner-suppliers-table td:nth-child(2),
+.partner-suppliers-table th:nth-child(3),
+.partner-suppliers-table td:nth-child(3) {
+  display: none;
+}
+
+.partner-payments-table tbody tr:has(.status-danger),
+.partner-payment-card:has(.status-danger),
+.partner-period-row:has(.status-danger) {
+  background: #fff4f4;
+}
+
+.partner-payment-card:has(.status-danger),
+.partner-period-row:has(.status-danger) {
+  border-color: #efb4b4;
 }
 
 .partner-workspace-cards {
