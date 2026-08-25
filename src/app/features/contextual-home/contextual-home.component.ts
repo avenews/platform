@@ -121,6 +121,7 @@ export class ContextualHomeComponent implements OnDestroy {
   searchQuery = ''
   statusFilter = ''
   dueDateFilter = ''
+  private availabilityFilter = ''
   sort = ''
   page = 1
   readonly pageSize = 10
@@ -217,6 +218,7 @@ export class ContextualHomeComponent implements OnDestroy {
     const items = product.periods
       .filter(period => !this.statusFilter || period.statusKey === this.statusFilter)
       .filter(period => this.matchesDueFilter(period))
+      .filter(period => !this.availabilityFilter || this.canRequestFromPeriod(period))
       .filter(period => {
         if (!query) return true
         const displayedName = product.id === 'acl' ? period.reference : period.relationshipName
@@ -279,13 +281,22 @@ export class ContextualHomeComponent implements OnDestroy {
 
   filterAvailableFinancing(): void {
     if (this.workspace?.id !== 'invoice-financing') return
-    void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'request-funds'))
+    this.searchQuery = ''
+    this.statusFilter = ''
+    this.dueDateFilter = ''
+    this.availabilityFilter = 'available-to-withdraw'
+    this.sort = ''
+    this.page = 1
+    this.selectedPeriod = null
+    this.cdr.markForCheck()
+    this.scrollToFinancing()
   }
 
   filterPaymentsDue(): void {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = 'payments-due'
+    this.availabilityFilter = ''
     this.sort = ''
     this.page = 1
     this.selectedPeriod = null
@@ -320,10 +331,19 @@ export class ContextualHomeComponent implements OnDestroy {
   onFilterValuesChange(values: Record<string, string>): void {
     this.statusFilter = values['status'] ?? ''
     this.dueDateFilter = values['dueDate'] ?? ''
+    this.availabilityFilter = ''
     this.page = 1
   }
-  onSearchValueChange(value: string): void { this.searchQuery = value; this.page = 1 }
-  onSortValueChange(value: string): void { this.sort = value; this.page = 1 }
+  onSearchValueChange(value: string): void {
+    this.searchQuery = value
+    this.availabilityFilter = ''
+    this.page = 1
+  }
+  onSortValueChange(value: string): void {
+    this.sort = value
+    this.availabilityFilter = ''
+    this.page = 1
+  }
   changePage(page: number): void { this.page = Math.min(Math.max(1, page), this.totalPages) }
 
   takePartnerAction(kind: ExperienceActionKind): void {
@@ -363,6 +383,7 @@ export class ContextualHomeComponent implements OnDestroy {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = ''
+    this.availabilityFilter = ''
     this.sort = ''
     this.page = 1
   }
