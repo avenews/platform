@@ -163,7 +163,7 @@ test.describe('product consistency follow-up', () => {
   test('access chooser uses first-time Welcome then Welcome back with punctuation', async ({ page }) => {
     await signIn(page, false)
     await page.goto('/access?scenario=multiple')
-    await expect(page.getByRole('heading', { name: 'Welcome, Amara.', level: 1 })).toBeVisible()
+    await expect(page.getByRole('heading', { name: 'Welcome.', level: 1 })).toBeVisible()
 
     await page.reload()
     await expect(page.getByRole('heading', { name: 'Welcome back, Amara.', level: 1 })).toBeVisible()
