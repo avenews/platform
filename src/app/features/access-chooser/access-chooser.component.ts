@@ -126,7 +126,7 @@ export class AccessChooserComponent implements OnInit {
     const firstName = this.auth.getSession()?.contactFirstName?.trim()
     const hasVisited = typeof window !== 'undefined' && localStorage.getItem(ACCESS_VISITED_KEY) === '1'
     if (typeof window !== 'undefined') localStorage.setItem(ACCESS_VISITED_KEY, '1')
-    const greeting = hasVisited ? 'Welcome back' : 'Welcome'
-    return firstName ? `${greeting}, ${firstName}.` : `${greeting}.`
+    if (!hasVisited) return 'Welcome.'
+    return firstName ? `Welcome back, ${firstName}.` : 'Welcome back.'
   }
 }
