@@ -18,7 +18,6 @@ async function signIn(page: Page, visited = true): Promise<void> {
     localStorage.setItem(sessionKey, JSON.stringify(session))
     sessionStorage.setItem(scenarioKey, 'multiple')
     if (hasVisited) localStorage.setItem(accessVisitedKey, '1')
-    else localStorage.removeItem(accessVisitedKey)
   }, {
     sessionKey: SESSION_KEY,
     scenarioKey: SCENARIO_KEY,
