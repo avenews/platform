@@ -53,10 +53,15 @@ async function relationship(page: Page, name: string): Promise<Locator> {
 
 async function openRelationship(page: Page, name: string): Promise<Locator> {
   const row = await relationship(page, name)
-  await row.getByRole('button', { name: 'View', exact: true }).click()
+  await row.getByRole('button', { name: 'View more', exact: true }).click()
   const dialog = page.locator('.relationship-modal')
   await expect(dialog).toBeVisible()
   return dialog
+}
+
+async function openRelationshipPeriods(dialog: Locator): Promise<void> {
+  await dialog.getByRole('button', { name: /View financing periods \(\d+\)/ }).click()
+  await expect(dialog.getByRole('heading', { name: 'Financing periods', level: 2 })).toBeVisible()
 }
 
 async function openFiles(page: Page): Promise<Locator> {
@@ -140,6 +145,7 @@ test.describe('audited customer experience', () => {
 
     await page.goto('/experience/abf/financing')
     dialog = await openRelationship(page, 'Naivas Fresh Produce')
+    await openRelationshipPeriods(dialog)
     await dialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0407' }).locator('.relationship-period-row__main').click()
     files = await openFiles(page)
     await expect(files).toContainText('Funds Request snapshot')
@@ -148,6 +154,7 @@ test.describe('audited customer experience', () => {
 
     await page.goto('/experience/stf/financing')
     dialog = await openRelationship(page, 'GreenHarvest Distributors')
+    await openRelationshipPeriods(dialog)
     await dialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0501' }).locator('.relationship-period-row__main').click()
     files = await openFiles(page)
     await expect(files).toContainText('Funds Request snapshot')
@@ -155,6 +162,7 @@ test.describe('audited customer experience', () => {
 
     await page.goto('/experience/infx/financing')
     dialog = await openRelationship(page, 'Kisumu Buyers Co-op')
+    await openRelationshipPeriods(dialog)
     await dialog.locator('.relationship-period-row').filter({ hasText: 'FR-2026-0028' }).locator('.relationship-period-row__main').click()
     files = await openFiles(page)
     await expect(files).toContainText('Funds Request snapshot')
@@ -301,7 +309,9 @@ test.describe('Partner Buyer Portal priorities', () => {
     const row = await table.isVisible()
       ? table.locator('tbody tr').filter({ hasText: 'Kioko Agri Supplies Ltd' })
       : page.locator('.partner-supplier-card').filter({ hasText: 'Kioko Agri Supplies Ltd' })
-    await row.getByRole('button', { name: 'View' }).click()
-    await expect(page.locator('.partner-modal')).toContainText('PER-2026-09-15-KIOKO')
+    await row.getByRole('button', { name: 'View more' }).click()
+    const modal = page.locator('.partner-modal')
+    await modal.getByRole('button', { name: /View financing periods \(\d+\)/ }).click()
+    await expect(modal).toContainText('PER-2026-09-15-KIOKO')
   })
 })
