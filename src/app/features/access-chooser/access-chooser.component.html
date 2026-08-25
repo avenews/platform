@@ -3,13 +3,18 @@
     <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="access-logo">
     <div class="access-header__actions">
       <div class="access-developer">
-        <button type="button" class="access-developer__trigger" aria-haspopup="menu" [attr.aria-expanded]="developerOpen" (click)="toggleDeveloper()">Developer</button>
+        <button type="button" class="access-developer__trigger" aria-haspopup="menu" [attr.aria-expanded]="developerOpen" (click)="toggleDeveloper()">
+          <span>Developer</span>
+          <av-icon name="chevron-down" [size]="14" />
+        </button>
         @if (developerOpen) {
           <button type="button" class="access-developer__backdrop" aria-label="Close developer menu" (click)="developerOpen = false"></button>
           <div class="access-developer__menu" role="menu" aria-label="Developer review controls">
+            <div class="access-developer__label">Review controls</div>
             <button type="button" role="menuitem" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">
               Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}
             </button>
+            <div class="access-developer__label">Experiences</div>
             <button type="button" role="menuitem" (click)="openDestination('acl')">Agri Credit Line</button>
             <button type="button" role="menuitem" (click)="openDestination('abf')">Agri Buyer Financing</button>
             <button type="button" role="menuitem" (click)="openDestination('stf')">Stockist Financing</button>
