@@ -40,7 +40,8 @@
   gap: 16px;
 }
 
-.relationship-section app-customer-filter-bar {
+.relationship-section app-customer-filter-bar,
+.relationship-periods-screen app-customer-filter-bar {
   width: 100%;
 }
 
@@ -96,16 +97,6 @@
   gap: 6px;
 }
 
-.relationship-view-action svg {
-  width: 16px;
-  height: 16px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.8;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
 .contextual-financing .baseline-button--primary {
   border-color: var(--av-color-action, #16b3c4);
   background: var(--av-color-action, #16b3c4);
@@ -153,17 +144,39 @@
 
 .relationship-modal__head {
   flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
 }
 
 .relationship-modal__head > div {
   min-width: 0;
   display: grid;
+  flex: 1 1 auto;
   gap: 4px;
 }
 
 .relationship-modal__head p,
 .relationship-modal__head h2 {
   margin: 0;
+}
+
+.relationship-modal__back {
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 8px;
+  background: var(--av-color-surface, #fff);
+  color: var(--av-color-text, #25384a);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.relationship-modal__back:hover,
+.relationship-modal__back:focus-visible {
+  background: var(--av-color-surface-subtle, #f6f7f9);
 }
 
 .relationship-modal__body {
@@ -212,20 +225,23 @@
   font-weight: 700;
 }
 
-.relationship-periods,
-.relationship-periods__heading > div {
+.relationship-modal__actions {
   display: grid;
   gap: 10px;
 }
 
-.relationship-periods__heading p,
-.relationship-periods__heading h3 {
-  margin: 0;
+.relationship-periods-action {
+  margin-top: 2px;
 }
 
-.relationship-periods__heading h3 {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 16px;
+.relationship-periods-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.relationship-period-list {
+  display: grid;
+  gap: 10px;
 }
 
 .relationship-period-row {
@@ -284,6 +300,10 @@
   flex: 0 0 auto;
 }
 
+.relationship-period-pagination {
+  margin-top: 0;
+}
+
 .invoice-upload-modal {
   width: min(100%, 620px);
 }
@@ -340,6 +360,16 @@
     max-height: 92dvh;
     border-radius: 18px 18px 0 0;
     border-bottom: 0;
+  }
+
+  .relationship-modal__head {
+    gap: 8px;
+  }
+
+  .relationship-modal__back {
+    min-height: 34px;
+    padding: 0 8px;
+    font-size: 11px;
   }
 
   .relationship-detail-grid {
