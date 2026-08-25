@@ -74,7 +74,7 @@ test.describe('product consistency follow-up', () => {
     }
   })
 
-  test('relationship rows only open from the name or View more', async ({ page }) => {
+  test('relationship rows open details from the whole row', async ({ page }) => {
     await signIn(page)
     await page.goto('/experience/abf/financing')
 
@@ -83,9 +83,6 @@ test.describe('product consistency follow-up', () => {
 
     const row = page.locator('.relationship-table tbody tr').filter({ hasText: 'Quick Mart Stores' })
     await row.locator('td').nth(1).click()
-    await expect(page.locator('.relationship-modal')).toHaveCount(0)
-
-    await row.getByRole('button', { name: 'Quick Mart Stores' }).click()
     await expect(page.locator('.relationship-modal')).toBeVisible()
     await page.locator('.relationship-modal').getByRole('button', { name: 'Close' }).click()
 
@@ -128,7 +125,7 @@ test.describe('product consistency follow-up', () => {
     await expect(page.locator('.customer-period-modal')).toBeVisible()
   })
 
-  test('Partner Supplier rows only open from supplier name or View more', async ({ page }) => {
+  test('Partner Supplier rows open details from the whole row', async ({ page }) => {
     await signIn(page)
     await page.goto('/experience/invoice-partner/suppliers')
 
@@ -137,10 +134,18 @@ test.describe('product consistency follow-up', () => {
 
     const row = table.locator('tbody tr').filter({ hasText: 'Coastline Produce Ltd' })
     await row.locator('td').nth(1).click()
-    await expect(page.locator('.partner-modal')).toHaveCount(0)
-
-    await row.getByRole('button', { name: /Coastline Produce Ltd/ }).click()
     await expect(page.locator('.partner-modal')).toBeVisible()
+  })
+
+  test('Partner upload history rows open upload details from the whole row', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/experience/invoice-partner/invoice-uploads')
+
+    const table = page.locator('.partner-upload-table')
+    if (!(await table.isVisible())) return
+
+    await table.locator('tbody tr').first().locator('td').nth(1).click()
+    await expect(page.locator('section[aria-labelledby="partner-batch-title"]')).toBeVisible()
   })
 
   test('Partner Supplier financing periods use a scalable sub-screen without duplicate status badges', async ({ page }) => {

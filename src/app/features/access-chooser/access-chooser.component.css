@@ -213,7 +213,7 @@
 
   .access-developer__trigger {
     height: 20px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     gap: 5px;
     padding: 0 9px;

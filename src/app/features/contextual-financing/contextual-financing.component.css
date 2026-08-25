@@ -50,6 +50,16 @@
   min-width: 720px;
 }
 
+.relationship-row {
+  cursor: pointer;
+}
+
+.relationship-row:hover,
+.relationship-row:focus-visible {
+  background: var(--av-color-primary-subtle, #eefbfc);
+  outline: none;
+}
+
 .relationship-table th:first-child,
 .relationship-table td:first-child {
   width: 34%;

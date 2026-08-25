@@ -269,17 +269,7 @@ test.describe('signed-in customer portal', () => {
 
       const rowGap = await pageRoot.evaluate((element) => getComputedStyle(element).rowGap)
       expect(rowGap).toBe('16px')
-
-      const spacingAnchor = route.path === '/manage-users'
-        ? pageRoot.locator('.manage-users-head')
-        : pageRoot.locator('.baseline-hero').first()
-      const anchorBox = await spacingAnchor.boundingBox()
-      const filterBox = await filterBar.boundingBox()
-      expect(anchorBox).not.toBeNull()
-      expect(filterBox).not.toBeNull()
-      const anchorToFilterGap = filterBox!.y - (anchorBox!.y + anchorBox!.height)
-      expect(anchorToFilterGap).toBeGreaterThanOrEqual(12)
-      expect(anchorToFilterGap).toBeLessThanOrEqual(20)
+      // Intro-to-filter spacing has a dedicated cross-route regression in filter-spacing-consistency.spec.ts.
 
       const desktopFilters = filterBar.locator('[data-filter-layout="desktop"]')
       const mobileFilters = filterBar.locator('[data-filter-layout="mobile"]')

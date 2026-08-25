@@ -23,13 +23,20 @@
           <thead><tr><th>{{ product.relationshipNoun }}</th><th>Financing Available</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
             @for (relationship of relationshipPageItems; track relationship.id) {
-              <tr>
-                <td><button type="button" class="relationship-name-button" (click)="openRelationship(relationship)"><strong>{{ relationship.name }}</strong></button></td>
+              <tr
+                class="relationship-row"
+                tabindex="0"
+                [attr.aria-label]="'View details for ' + relationship.name"
+                (click)="openRelationship(relationship)"
+                (keydown.enter)="openRelationship(relationship)"
+                (keydown.space)="openRelationship(relationship); $event.preventDefault()"
+              >
+                <td><button type="button" class="relationship-name-button" (click)="openRelationship(relationship); $event.stopPropagation()"><strong>{{ relationship.name }}</strong></button></td>
                 <td><strong>{{ formatKes(relationshipAvailable(relationship)) }}</strong></td>
                 <td><span class="baseline-status" [class]="'baseline-status ' + relationshipAvailabilityTone(relationship)" [attr.title]="relationshipAvailabilityTooltip(relationship)">{{ relationshipAvailabilityLabel(relationship) }}</span></td>
                 <td>
                   <div class="relationship-table__actions">
-                    <button type="button" class="baseline-button baseline-button--secondary relationship-view-action" (click)="openRelationship(relationship)"><span>View more</span></button>
+                    <button type="button" class="baseline-button baseline-button--secondary relationship-view-action" (click)="openRelationship(relationship); $event.stopPropagation()"><span>View more</span></button>
                     @if (canUploadInvoices(relationship)) { <button type="button" class="baseline-button baseline-button--primary" data-action="invoice-upload" (click)="startInvoiceUpload(relationship, $event)">Upload invoices</button> }
                     @if (relationship.fundsRequestLabel) { <button type="button" class="baseline-button baseline-button--primary" data-action="request-financing" [disabled]="!relationship.fundsRequestEnabled || relationshipAvailable(relationship) <= 0" (click)="startFundsRequest(relationship, $event)">Request funds</button> }
                   </div>

@@ -59,12 +59,18 @@
   border-color: #efb4b4;
 }
 
-.partner-payment-row {
+.partner-payment-row,
+.partner-supplier-row,
+.partner-upload-row {
   cursor: pointer;
 }
 
 .partner-payment-row:hover,
-.partner-payment-row:focus-visible {
+.partner-payment-row:focus-visible,
+.partner-supplier-row:hover,
+.partner-supplier-row:focus-visible,
+.partner-upload-row:hover,
+.partner-upload-row:focus-visible {
   background: var(--av-color-primary-subtle, #eefbfc);
   outline: none;
 }
