@@ -7,6 +7,7 @@ import {
   inject,
 } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
+import { AvIconComponent } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
 import { customerWorkspaceById } from '../../core/experience/customer-product-workspace.data'
 import {
@@ -24,10 +25,12 @@ interface AccessSummary {
   value: string
 }
 
+const ACCESS_VISITED_KEY = 'av_customer_portal_access_visited'
+
 @Component({
   selector: 'app-access-chooser',
   standalone: true,
-  imports: [PrototypeExplainerComponent],
+  imports: [PrototypeExplainerComponent, AvIconComponent],
   templateUrl: './access-chooser.component.html',
   styleUrl: './access-chooser.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,7 +43,7 @@ export class AccessChooserComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef)
 
   readonly explainers = inject(PrototypeExplainerService)
-  readonly welcomeMessage = this.buildWelcomeMessage()
+  welcomeMessage = ''
   destinations: readonly PortalExperience[] = []
   developerOpen = false
 
@@ -55,6 +58,8 @@ export class AccessChooserComponent implements OnInit {
   ngOnInit(): void {
     const requestedScenario = this.route.snapshot.queryParamMap.get('scenario')
     if (isExperienceScenario(requestedScenario)) this.experiences.setScenario(requestedScenario)
+
+    this.welcomeMessage = this.buildWelcomeMessage()
 
     // The product selection screen is the prototype landing surface after login,
     // even when the current review scenario contains only one destination.
@@ -119,6 +124,9 @@ export class AccessChooserComponent implements OnInit {
 
   private buildWelcomeMessage(): string {
     const firstName = this.auth.getSession()?.contactFirstName?.trim()
-    return firstName ? `Welcome back, ${firstName}` : 'Welcome back'
+    const hasVisited = typeof window !== 'undefined' && localStorage.getItem(ACCESS_VISITED_KEY) === '1'
+    if (typeof window !== 'undefined') localStorage.setItem(ACCESS_VISITED_KEY, '1')
+    const greeting = hasVisited ? 'Welcome back' : 'Welcome'
+    return firstName ? `${greeting}, ${firstName}.` : `${greeting}.`
   }
 }
