@@ -97,7 +97,7 @@ test.describe('action colour consistency', () => {
     await expectActionColor(viewPayment, NEUTRAL_ACTION)
 
     await page.goto('/experience/abf/financing')
-    const viewRelationship = page.locator('button:visible').filter({ hasText: /^View$/ }).first()
+    const viewRelationship = page.locator('button:visible').filter({ hasText: /^View more$/ }).first()
     await expectActionColor(viewRelationship, NEUTRAL_ACTION)
   })
 })
