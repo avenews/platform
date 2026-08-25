@@ -77,6 +77,8 @@ export class PartnerWorkspaceComponent {
   selectedSupplier: PartnerSupplierRow | null = null
   selectedPeriod: PartnerPeriod | null = null
   returnSupplier: PartnerSupplierRow | null = null
+  supplierPeriodsOpen = false
+  returnSupplierPeriodsOpen = false
   toast = ''
 
   supplierSearch = ''
@@ -90,6 +92,12 @@ export class PartnerWorkspaceComponent {
   paymentSort = ''
   paymentPage = 1
   readonly paymentPageSize = 6
+
+  supplierPeriodSearch = ''
+  supplierPeriodStatusFilter = ''
+  supplierPeriodSort = ''
+  supplierPeriodPage = 1
+  readonly supplierPeriodPageSize = 10
 
   readonly supplierSortOptions: readonly CustomerSortOption[] = [
     { value: 'name-asc', label: 'Supplier: A-Z' },
@@ -108,6 +116,17 @@ export class PartnerWorkspaceComponent {
     { value: 'due-desc', label: 'Due date: latest' },
     { value: 'amount-desc', label: 'Amount to pay: high to low' },
     { value: 'amount-asc', label: 'Amount to pay: low to high' },
+    { value: 'status-asc', label: 'Status: A-Z' },
+  ]
+
+  readonly supplierPeriodSortOptions: readonly CustomerSortOption[] = [
+    { value: 'reference-asc', label: 'Financing period: A-Z' },
+    { value: 'due-asc', label: 'Due date: earliest' },
+    { value: 'due-desc', label: 'Due date: latest' },
+    { value: 'amount-desc', label: 'Amount to pay: high to low' },
+    { value: 'amount-asc', label: 'Amount to pay: low to high' },
+    { value: 'invoices-desc', label: 'Invoices: high to low' },
+    { value: 'financing-desc', label: 'Financing: high to low' },
     { value: 'status-asc', label: 'Status: A-Z' },
   ]
 
@@ -166,6 +185,19 @@ export class PartnerWorkspaceComponent {
 
   get paymentFilterValues(): Readonly<Record<string, string>> {
     return { paymentStatus: this.paymentStatusFilter }
+  }
+
+  get supplierPeriodFilterFields(): readonly CustomerFilterField[] {
+    const statuses = new Map<string, string>()
+    for (const period of this.selectedSupplier ? this.periodsForSupplier(this.selectedSupplier) : []) {
+      statuses.set(period.periodStatus, period.periodStatus)
+      statuses.set(period.paymentStatus, period.paymentStatus)
+    }
+    return [{ key: 'status', label: 'Status', allLabel: 'All statuses', options: Array.from(statuses.keys()).map(value => ({ value, label: value })) }]
+  }
+
+  get supplierPeriodFilterValues(): Readonly<Record<string, string>> {
+    return { status: this.supplierPeriodStatusFilter }
   }
 
   get filteredSuppliers(): readonly PartnerSupplierRow[] {
@@ -246,6 +278,46 @@ export class PartnerWorkspaceComponent {
   get paymentRangeStart(): number { return this.filteredPaymentPeriods.length ? (this.paymentPage - 1) * this.paymentPageSize + 1 : 0 }
   get paymentRangeEnd(): number { return Math.min(this.paymentPage * this.paymentPageSize, this.filteredPaymentPeriods.length) }
 
+  get filteredSupplierPeriods(): readonly PartnerPeriod[] {
+    const supplier = this.selectedSupplier
+    if (!supplier) return []
+    const query = this.supplierPeriodSearch.trim().toLowerCase()
+    const items = this.periodsForSupplier(supplier)
+      .filter(period => !this.supplierPeriodStatusFilter || period.periodStatus === this.supplierPeriodStatusFilter || period.paymentStatus === this.supplierPeriodStatusFilter)
+      .filter(period => !query || [
+        period.reference,
+        formatDate(period.dueDate, true),
+        formatKes(period.amountToPay),
+        period.invoiceCount,
+        formatKes(period.financedAgainst),
+        period.periodStatus,
+        period.paymentStatus,
+      ].join(' ').toLowerCase().includes(query))
+
+    if (!this.supplierPeriodSort) return items
+
+    return [...items].sort((a, b) => {
+      if (this.supplierPeriodSort === 'reference-asc') return a.reference.localeCompare(b.reference)
+      if (this.supplierPeriodSort === 'due-asc') return a.dueDate.localeCompare(b.dueDate)
+      if (this.supplierPeriodSort === 'due-desc') return b.dueDate.localeCompare(a.dueDate)
+      if (this.supplierPeriodSort === 'amount-desc') return b.amountToPay - a.amountToPay
+      if (this.supplierPeriodSort === 'amount-asc') return a.amountToPay - b.amountToPay
+      if (this.supplierPeriodSort === 'invoices-desc') return b.invoiceCount - a.invoiceCount
+      if (this.supplierPeriodSort === 'financing-desc') return b.financedAgainst - a.financedAgainst
+      if (this.supplierPeriodSort === 'status-asc') return this.primaryPeriodStatus(a).localeCompare(this.primaryPeriodStatus(b))
+      return 0
+    })
+  }
+
+  get supplierPeriodPageItems(): readonly PartnerPeriod[] {
+    const start = (this.supplierPeriodPage - 1) * this.supplierPeriodPageSize
+    return this.filteredSupplierPeriods.slice(start, start + this.supplierPeriodPageSize)
+  }
+  get supplierPeriodTotalPages(): number { return Math.max(1, Math.ceil(this.filteredSupplierPeriods.length / this.supplierPeriodPageSize)) }
+  get supplierPeriodPageNumbers(): readonly number[] { return Array.from({ length: this.supplierPeriodTotalPages }, (_, index) => index + 1) }
+  get supplierPeriodRangeStart(): number { return this.filteredSupplierPeriods.length ? (this.supplierPeriodPage - 1) * this.supplierPeriodPageSize + 1 : 0 }
+  get supplierPeriodRangeEnd(): number { return Math.min(this.supplierPeriodPage * this.supplierPeriodPageSize, this.filteredSupplierPeriods.length) }
+
   get paymentDueTotal(): number { return this.periods.filter(period => period.paymentStatusKey !== 'paid').reduce((total, period) => total + period.amountToPay, 0) }
   get paymentDueCount(): number { return this.periods.filter(period => period.paymentStatusKey !== 'paid').length }
   get overduePaymentCount(): number { return this.periods.filter(period => period.paymentStatusKey === 'overdue').length }
@@ -260,18 +332,23 @@ export class PartnerWorkspaceComponent {
     const period = this.periodsForSupplier(supplier).find(item => item.paymentStatusKey !== 'paid')
     return period ? `${formatKes(period.amountToPay)} · ${formatDate(period.dueDate, true)}` : 'No payment due'
   }
+  showPaymentStatus(period: PartnerPeriod): boolean { return period.paymentStatus !== period.periodStatus }
+  primaryPeriodStatus(period: PartnerPeriod): string { return period.paymentStatusKey === 'overdue' ? period.paymentStatus : period.periodStatus }
+  primaryPeriodTone(period: PartnerPeriod): string { return period.paymentStatusKey === 'overdue' ? period.paymentTone : period.periodTone }
 
   openUpload(): void { this.closeDetailModals(); this.uploadOpen = true }
   closeUpload(): void { this.uploadOpen = false }
   completeUpload(): void { this.uploadOpen = false; this.toast = 'Invoice batch received. Eligible invoices will update the matching Supplier periods.' }
   openBatch(batch: UploadBatch): void { this.closeDetailModals(); this.selectedBatch = batch }
   closeBatch(): void { this.selectedBatch = null }
-  openSupplier(supplier: PartnerSupplierRow): void { this.closeDetailModals(); this.selectedSupplier = supplier }
-  closeSupplier(): void { this.selectedSupplier = null }
-  openSupplierPeriod(period: PartnerPeriod): void { this.returnSupplier = this.selectedSupplier; this.selectedSupplier = null; this.selectedPeriod = period }
+  openSupplier(supplier: PartnerSupplierRow): void { this.closeDetailModals(); this.selectedSupplier = supplier; this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
+  closeSupplier(): void { this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
+  openSupplierPeriods(): void { if (!this.selectedSupplier) return; this.resetSupplierPeriodList(); this.supplierPeriodsOpen = true }
+  closeSupplierPeriods(): void { this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
+  openSupplierPeriod(period: PartnerPeriod): void { this.returnSupplier = this.selectedSupplier; this.returnSupplierPeriodsOpen = this.supplierPeriodsOpen; this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.selectedPeriod = period }
   openPaymentPeriod(period: PartnerPeriod): void { this.closeDetailModals(); this.selectedPeriod = period }
-  backToSupplier(): void { this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null }
-  closePeriod(): void { this.selectedPeriod = null; this.returnSupplier = null }
+  backToSupplier(): void { this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null; this.supplierPeriodsOpen = this.returnSupplierPeriodsOpen; this.returnSupplierPeriodsOpen = false }
+  closePeriod(): void { this.selectedPeriod = null; this.returnSupplier = null; this.returnSupplierPeriodsOpen = false }
 
   onSupplierSearchValueChange(value: string): void { this.supplierSearch = value; this.supplierPage = 1 }
   onSupplierFilterValuesChange(values: Record<string, string>): void { this.supplierStatusFilter = values['supplierStatus'] ?? ''; this.supplierPage = 1 }
@@ -283,9 +360,21 @@ export class PartnerWorkspaceComponent {
   onPaymentSortValueChange(value: string): void { this.paymentSort = value; this.paymentPage = 1 }
   changePaymentPage(page: number): void { this.paymentPage = Math.min(Math.max(1, page), this.paymentTotalPages) }
 
+  onSupplierPeriodSearchValueChange(value: string): void { this.supplierPeriodSearch = value; this.supplierPeriodPage = 1 }
+  onSupplierPeriodFilterValuesChange(values: Record<string, string>): void { this.supplierPeriodStatusFilter = values['status'] ?? ''; this.supplierPeriodPage = 1 }
+  onSupplierPeriodSortValueChange(value: string): void { this.supplierPeriodSort = value; this.supplierPeriodPage = 1 }
+  changeSupplierPeriodPage(page: number): void { this.supplierPeriodPage = Math.min(Math.max(1, page), this.supplierPeriodTotalPages) }
+
   async copyPaymentReference(reference: string): Promise<void> {
     try { await navigator.clipboard.writeText(reference); this.toast = 'Payment reference copied.' }
     catch { this.toast = `Payment reference: ${reference}` }
+  }
+
+  private resetSupplierPeriodList(): void {
+    this.supplierPeriodSearch = ''
+    this.supplierPeriodStatusFilter = ''
+    this.supplierPeriodSort = ''
+    this.supplierPeriodPage = 1
   }
 
   private nextPaymentDate(supplier: PartnerSupplierRow): string {
@@ -297,5 +386,13 @@ export class PartnerWorkspaceComponent {
     if (period.paymentStatusKey === 'processing') return 2
     return 3
   }
-  private closeDetailModals(): void { this.selectedBatch = null; this.selectedSupplier = null; this.selectedPeriod = null; this.returnSupplier = null }
+  private closeDetailModals(): void {
+    this.selectedBatch = null
+    this.selectedSupplier = null
+    this.selectedPeriod = null
+    this.returnSupplier = null
+    this.supplierPeriodsOpen = false
+    this.returnSupplierPeriodsOpen = false
+    this.resetSupplierPeriodList()
+  }
 }
