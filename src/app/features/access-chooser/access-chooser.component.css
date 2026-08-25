@@ -19,8 +19,7 @@
 .access-logo { width: auto; height: 28px; display: block; }
 .access-header__actions { display: flex; align-items: center; gap: 8px; }
 
-.access-logout,
-.access-developer__trigger {
+.access-logout {
   min-height: 40px;
   padding: 0 14px;
   border: 1px solid var(--av-color-surface-border, #dfe4e8);
@@ -33,29 +32,25 @@
   cursor: pointer;
 }
 
-.access-developer { position: relative; }
-.access-developer__trigger { display: none; }
+.access-developer { display: none; }
 .access-developer__backdrop { position: fixed; inset: 0; z-index: 80; border: 0; background: transparent; }
-.access-developer__menu {
-  position: absolute;
-  top: 44px;
-  right: 0;
-  z-index: 85;
-  width: 280px;
-  overflow: hidden;
-  border: 1px solid var(--av-color-surface-border, #e1e7eb);
-  border-radius: var(--av-radius-md, 8px);
-  background: var(--av-color-surface, #fff);
-  box-shadow: var(--av-shadow-md, 0 14px 36px rgba(16, 24, 40, .2));
+
+.access-developer__label {
+  padding: 10px 14px 5px;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
 }
+
 .access-developer__menu button {
   width: 100%;
-  min-height: 42px;
+  min-height: 40px;
   display: flex;
   align-items: center;
   padding: 0 14px;
   border: 0;
-  border-bottom: 1px solid var(--av-color-neutral-divider, #f2f4f7);
   background: transparent;
   color: var(--av-color-text, #25384a);
   font: inherit;
@@ -63,9 +58,11 @@
   text-align: left;
   cursor: pointer;
 }
-.access-developer__menu button:first-child { color: var(--av-color-action, #16b3c4); font-weight: 700; }
+
 .access-developer__menu button:hover,
-.access-developer__menu button:focus-visible { background: var(--av-color-surface-subtle, #f6f7f9); }
+.access-developer__menu button:focus-visible {
+  background: var(--av-color-surface-subtle, #f6f7f9);
+}
 
 .access-main {
   width: min(100%, 1120px);
@@ -206,7 +203,45 @@
 }
 
 @media (min-width: 768px) {
-  .access-developer__trigger { display: inline-flex; align-items: center; }
+  .access-developer {
+    position: fixed;
+    top: 0;
+    right: 0;
+    z-index: 90;
+    display: block;
+  }
+
+  .access-developer__trigger {
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 0 9px;
+    border: 0;
+    border-left: 1px solid var(--av-color-surface-border, #e1e7eb);
+    border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb);
+    border-radius: 0 0 0 6px;
+    background: var(--av-color-surface, #fff);
+    color: var(--av-color-text-muted, #66788a);
+    font: inherit;
+    font-size: 10px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .access-developer__menu {
+    position: absolute;
+    top: 24px;
+    right: 0;
+    z-index: 95;
+    width: 284px;
+    max-height: calc(100dvh - 32px);
+    overflow-y: auto;
+    border: 1px solid var(--av-color-surface-border, #e1e7eb);
+    border-radius: 8px 0 8px 8px;
+    background: var(--av-color-surface, #fff);
+    box-shadow: 0 14px 36px rgba(16, 24, 40, .2);
+  }
 }
 
 @media (max-width: 767px) {
