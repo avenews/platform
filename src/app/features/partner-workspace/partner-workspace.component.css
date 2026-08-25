@@ -59,6 +59,38 @@
   border-color: #efb4b4;
 }
 
+.partner-payment-row {
+  cursor: pointer;
+}
+
+.partner-payment-row:hover,
+.partner-payment-row:focus-visible {
+  background: var(--av-color-primary-subtle, #eefbfc);
+  outline: none;
+}
+
+.partner-payment-row:has(.status-danger):hover,
+.partner-payment-row:has(.status-danger):focus-visible {
+  background: #fff0f0;
+}
+
+.partner-supplier-name-button {
+  min-width: 0;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.partner-supplier-name-button:hover strong,
+.partner-supplier-name-button:focus-visible strong {
+  color: var(--av-color-action, #16b3c4);
+}
+
 .partner-workspace-cards {
   display: none;
 }
@@ -74,7 +106,8 @@
 }
 
 .partner-list-toolbar .baseline-section-heading,
-.partner-list-toolbar app-customer-filter-bar {
+.partner-list-toolbar app-customer-filter-bar,
+.partner-periods-screen app-customer-filter-bar {
   min-width: 0;
 }
 
@@ -165,6 +198,15 @@
 .partner-modal .baseline-modal__head h2,
 .partner-modal .baseline-modal__head p {
   margin: 0;
+}
+
+.partner-supplier-modal__head {
+  align-items: center;
+  gap: 12px;
+}
+
+.partner-supplier-modal__head > div {
+  flex: 1 1 auto;
 }
 
 .partner-modal__body {
@@ -276,25 +318,9 @@
   line-height: 1.55;
 }
 
-.partner-periods,
-.partner-periods__heading {
+.partner-periods-screen {
   display: grid;
-  gap: 10px;
-}
-
-.partner-periods__heading h3,
-.partner-periods__heading p {
-  margin: 0;
-}
-
-.partner-periods__heading h3 {
-  color: var(--av-color-text-heading, #0d343f);
-  font-size: 17px;
-}
-
-.partner-periods__heading > p:not(.page-eyebrow) {
-  color: var(--av-color-text-muted, #66788a);
-  font-size: 12px;
+  gap: 16px;
 }
 
 .partner-period-list {
@@ -434,6 +460,11 @@
     gap: 12px;
   }
 
+  .partner-supplier-card .partner-supplier-name-button {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
   .partner-modal-backdrop {
     align-items: flex-end;
     padding: 0;
@@ -463,6 +494,10 @@
 
   .partner-modal-status {
     display: grid;
+    gap: 8px;
+  }
+
+  .partner-supplier-modal__head {
     gap: 8px;
   }
 
