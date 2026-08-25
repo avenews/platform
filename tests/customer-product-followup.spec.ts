@@ -48,7 +48,7 @@ async function openPartnerSupplier(page: Page, name: string): Promise<void> {
 }
 
 test.describe('product consistency follow-up', () => {
-  test('Invoice Financing no longer exposes an availability dropdown', async ({ page }) => {
+  test('Invoice Financing removes the availability dropdown while keeping the available-period CTA', async ({ page }) => {
     await signIn(page)
     await page.goto('/experience/invoice-financing/home')
 
@@ -56,7 +56,22 @@ test.describe('product consistency follow-up', () => {
     await expect(filterBar.getByRole('combobox', { name: 'Availability' })).toHaveCount(0)
 
     await page.getByRole('button', { name: 'View available periods' }).click()
-    await expect(page).toHaveURL(/\/experience\/invoice-financing\/request-funds/)
+    await expect(page).toHaveURL(/\/experience\/invoice-financing\/home/)
+
+    const table = page.locator('.customer-activity-table')
+    if (await table.isVisible()) {
+      const rows = table.locator('.customer-activity-row')
+      expect(await rows.count()).toBeGreaterThan(0)
+      for (let index = 0; index < await rows.count(); index += 1) {
+        await expect(rows.nth(index).getByRole('button', { name: 'Request funds' })).toBeVisible()
+      }
+    } else {
+      const cards = page.locator('.customer-financing-card')
+      expect(await cards.count()).toBeGreaterThan(0)
+      for (let index = 0; index < await cards.count(); index += 1) {
+        await expect(cards.nth(index).getByRole('button', { name: 'Request funds' })).toBeVisible()
+      }
+    }
   })
 
   test('relationship rows only open from the name or View more', async ({ page }) => {
