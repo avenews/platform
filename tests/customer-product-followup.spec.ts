@@ -37,6 +37,16 @@ async function openRelationship(page: Page, name: string): Promise<void> {
   await expect(page.locator('.relationship-modal')).toBeVisible()
 }
 
+async function openPartnerSupplier(page: Page, name: string): Promise<void> {
+  const table = page.locator('.partner-suppliers-table')
+  if (await table.isVisible()) {
+    await table.locator('tbody tr').filter({ hasText: name }).getByRole('button', { name: 'View more' }).click()
+  } else {
+    await page.locator('.partner-supplier-card').filter({ hasText: name }).getByRole('button', { name: 'View more' }).click()
+  }
+  await expect(page.locator('.partner-modal')).toBeVisible()
+}
+
 test.describe('product consistency follow-up', () => {
   test('Invoice Financing no longer exposes an availability dropdown', async ({ page }) => {
     await signIn(page)
@@ -101,6 +111,53 @@ test.describe('product consistency follow-up', () => {
     const row = table.locator('tbody tr').first()
     await row.locator('td').nth(1).click()
     await expect(page.locator('.customer-period-modal')).toBeVisible()
+  })
+
+  test('Partner Supplier rows only open from supplier name or View more', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/experience/invoice-partner/suppliers')
+
+    const table = page.locator('.partner-suppliers-table')
+    if (!(await table.isVisible())) return
+
+    const row = table.locator('tbody tr').filter({ hasText: 'Coastline Produce Ltd' })
+    await row.locator('td').nth(1).click()
+    await expect(page.locator('.partner-modal')).toHaveCount(0)
+
+    await row.getByRole('button', { name: /Coastline Produce Ltd/ }).click()
+    await expect(page.locator('.partner-modal')).toBeVisible()
+  })
+
+  test('Partner Supplier financing periods use a scalable sub-screen without duplicate status badges', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/experience/invoice-partner/suppliers')
+    await openPartnerSupplier(page, 'Coastline Produce Ltd')
+
+    const modal = page.locator('.partner-modal')
+    await modal.getByRole('button', { name: /View financing periods \(\d+\)/ }).click()
+    await expect(modal.getByRole('heading', { name: 'Financing periods', level: 2 })).toBeVisible()
+    await expect(modal.locator('app-customer-filter-bar')).toBeVisible()
+
+    const overdue = modal.locator('.partner-period-row').filter({ hasText: 'PER-2026-08-15-COAST' })
+    await expect(overdue).toBeVisible()
+    await expect(overdue.locator('.baseline-status')).toHaveCount(1)
+    await overdue.click()
+
+    const paymentModal = page.locator('.partner-period-modal')
+    await expect(paymentModal.getByRole('button', { name: 'Back to financing periods' })).toBeVisible()
+    await paymentModal.getByRole('button', { name: 'Back to financing periods' }).click()
+    await expect(page.locator('.partner-modal').getByRole('heading', { name: 'Financing periods', level: 2 })).toBeVisible()
+  })
+
+  test('Partner payment table rows open payment details from the row', async ({ page }) => {
+    await signIn(page)
+    await page.goto('/experience/invoice-partner/obligations')
+
+    const table = page.locator('.partner-payments-table')
+    if (!(await table.isVisible())) return
+
+    await table.locator('tbody tr').first().locator('td').nth(2).click()
+    await expect(page.locator('.partner-period-modal')).toBeVisible()
   })
 
   test('access chooser uses first-time Welcome then Welcome back with punctuation', async ({ page }) => {
