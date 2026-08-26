@@ -81,8 +81,8 @@ The Netlify project for this repository is `avenews-platform`.
 The repository configuration is:
 
 - Production branch: `main`
-- Persistent staging/branch deploy: `staging`
-- Deploy Previews: enabled for pull requests where GitHub continuous deployment is connected
+- Persistent branch deploys: `staging`, `stefan`, and `ishai`
+- Deploy Previews: enabled for pull requests against the production branch or configured branch-deploy branches
 - Build command: `npm run build`
 - Publish directory: `dist/platform/browser`
 - Repository build settings: governed by `netlify.toml`
@@ -91,11 +91,15 @@ The intended behavior is:
 
 | Git state | Netlify result | Purpose |
 | --- | --- | --- |
-| PR `ishai` -> `stefan` | Deploy Preview | Review Ishai's proposed changes before integration |
+| Push to `ishai` | Branch Deploy | Persistent latest Ishai environment |
+| PR `ishai` -> `stefan` | Deploy Preview | Review Ishai's exact proposed PR state before integration |
+| Push to `stefan` | Branch Deploy | Persistent latest Stefan environment |
 | PR `stefan` -> `staging` | Deploy Preview | Review Stefan's consolidated changes before baseline promotion |
 | `staging` branch | Branch Deploy | Persistent accepted integration environment |
 | PR `staging` -> `main` | Deploy Preview where available | Final release review |
 | `main` branch | Production Deploy | Production release only |
+
+For Ishai, the persistent branch URL is expected to follow Netlify's branch-deploy convention, while the PR Deploy Preview remains the authoritative review URL for a specific pull-request head. The agent should return the verified PR Deploy Preview URL after each completed change and may also include the persistent `ishai` branch URL as a convenience link when available.
 
 Production deploys must remain deliberate. Normal UI iteration belongs in Deploy Previews and the staging environment, not repeated production deploys from `main`.
 
