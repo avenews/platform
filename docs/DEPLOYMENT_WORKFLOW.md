@@ -112,33 +112,38 @@ For normal Ishai work:
 7. Push changes to `ishai` only.
 8. Open or update a Draft pull request from `ishai` to `stefan`, referencing the issue.
 9. Confirm GitHub checks correspond to the current `ishai` branch head.
-10. Locate the Netlify Deploy Preview for the current PR head when Git-based deployment is connected.
-11. Confirm the preview is built from the current commit rather than an older build.
-12. Open and review the changed screen or flow on the preview.
-13. Report the issue, branch, PR target, current head, checks, preview status, preview URL, and what was validated.
-14. Implement review feedback on the same `ishai` branch and repeat validation.
-15. Leave the PR open/Draft until explicit approval is given for integration.
+10. Locate the Netlify Deploy Preview for the current PR head.
+11. Wait until that exact preview is either `ready` or has definitively failed; do not send the final delivery response while it is still building.
+12. Confirm the preview is built from the current commit rather than an older build.
+13. Open and review the changed screen or flow on the preview. For UI work, verify the relevant desktop and mobile states.
+14. If the preview is ready, return the actual Netlify Deploy Preview URL prominently in the final response.
+15. If the preview failed, report the failed status and available build details instead of presenting the change as ready.
+16. Report the issue, branch, PR target, current head, checks, preview status, preview URL, and what was validated.
+17. Implement review feedback on the same `ishai` branch and repeat the full validation and preview cycle.
+18. Leave the PR open/Draft until explicit approval is given for integration.
 
 After Ishai's work is accepted, integration into `stefan` is an explicit review action. Promotion from `stefan` to `staging`, and from `staging` to `main`, are separate approval stages.
 
-## 5. Mandatory Netlify preview check
+## 5. Mandatory Netlify preview-return rule for Ishai
 
-For review pull requests, the person or agent making the change must check the Netlify Deploy Preview before declaring visual work complete when GitHub-to-Netlify continuous deployment is connected.
+For every fix, change, or update delivered from `ishai`, Netlify preview handling is part of the work, not an optional follow-up.
 
-The delivery response should include:
+The person or agent making the change must:
 
-- issue number or issue numbers
-- working branch
-- pull-request target
-- current commit or branch-head SHA when available
-- GitHub CI status
-- Netlify Deploy Preview status
-- Netlify Deploy Preview URL
-- a short statement of what was checked in the preview
+- push the current change to `ishai`;
+- ensure the active Draft PR targets `stefan`;
+- wait for the Netlify Deploy Preview for the exact current PR head;
+- verify the preview belongs to the current commit;
+- open the preview and check the changed flow or screen;
+- return the actual preview URL in the same final response used to hand the work back to Ishai.
 
-Never describe work as visually verified unless the current preview has actually been opened and checked. Never invent or guess a preview URL.
+Ishai should not need to know how to operate Netlify manually and should not need to ask for the preview separately.
 
-If GitHub-to-Netlify deployment is not connected or no preview is available, report that clearly and do not use `main` to obtain a visible build.
+A normal successful Ishai delivery is **not complete** until the current Netlify Deploy Preview is ready and its URL has been returned.
+
+Never describe work as visually verified unless the current preview has actually been opened and checked. Never invent, infer, or reuse an older preview URL without verification.
+
+If the preview fails, report that failure instead of presenting the work as ready. If GitHub-to-Netlify deployment is not connected or no preview can be generated, report that as a deployment setup problem that must be resolved; do not use `main` to obtain a visible build.
 
 ## 6. Merge rules
 
@@ -203,21 +208,21 @@ The key rule is simple: Ishai works only on `ishai`, Stefan reviews/integrates t
 
 ## 10. Required delivery response format
 
-After making a repository change, use a concise checkpoint such as:
+After making a repository change for Ishai, use a concise checkpoint such as:
 
 ```text
 Issue: #123
 Branch: ishai
 PR target: stefan
 Commit: <sha>
-GitHub checks: passed / running / failed
-Netlify preview: ready / building / unavailable
-Preview URL: <deploy-preview-url or not available>
+GitHub checks: passed / failed
+Netlify preview: ready / failed / unavailable
+Preview URL: <verified deploy-preview URL when ready>
 Preview check: <what was checked>
 Merge status: left open for review
 ```
 
-Never invent a preview URL or claim a preview was checked when it was not.
+Do not send a normal successful final delivery while the current preview is still building. Never invent a preview URL or claim a preview was checked when it was not.
 
 ## 11. Relationship to other repository sources
 
