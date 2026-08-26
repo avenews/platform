@@ -11,10 +11,37 @@ Every new piece of work must start with a GitHub Issue before implementation beg
 - Do not create one oversized issue for a large body of work merely to satisfy the issue requirement.
 - Do not begin unrelated implementation first and create an issue afterward only for bookkeeping.
 - Human and agent-driven work follow the same rule.
-- Feature branches and pull requests must reference the relevant GitHub Issue or Issues.
+- Branches and pull requests must reference the relevant GitHub Issue or Issues.
 - Before starting implementation, check existing open issues and pull requests to avoid duplicating work that is already underway.
 
-The issue structure should be decided before creating implementation branches. A small change normally maps to one issue, one focused branch, and one pull request. Larger initiatives map to multiple logical issues and may therefore use multiple branches and pull requests.
+## Mandatory contributor branch boundaries
+
+The active collaboration model is:
+
+```text
+ishai -> stefan -> staging -> main
+```
+
+For Ishai:
+
+- Work only on the dedicated `ishai` branch.
+- Push changes only to `ishai`.
+- Open or update Draft pull requests from `ishai` to `stefan` for review.
+- Treat `stefan` as the review/integration branch.
+- Treat `staging` as the protected accepted baseline.
+- Never commit or push directly to `stefan`, `staging`, or `main` unless explicitly instructed by the owner of that branch.
+- Never merge into `stefan`, `staging`, or `main` without explicit human approval.
+- Before making changes, verify that the current branch is `ishai`.
+- When Ishai needs Stefan's latest reviewed work, intentionally sync `ishai` from `stefan`; do not use `staging` as a scratch or conflict-resolution branch.
+
+For Stefan:
+
+- Work only on the dedicated `stefan` branch unless explicitly instructed otherwise.
+- Push changes only to `stefan`.
+- Stefan's review/promotion PR targets `staging`.
+- `staging` remains protected and must not be changed without explicit approval.
+
+If older repository documentation describes a generic `feature/* -> staging` path, these dedicated contributor branch boundaries take precedence for Stefan and Ishai.
 
 ## Mandatory customer-portal baseline
 
@@ -35,21 +62,21 @@ Intentional deviations after the baseline is accepted must identify the prior be
 
 Read and follow [`docs/DEPLOYMENT_WORKFLOW.md`](docs/DEPLOYMENT_WORKFLOW.md) before changing, publishing, promoting, or reporting repository work.
 
-The required branch path is:
+For the named contributor branches, the required promotion path is:
 
 ```text
-feature/<scope> or agent/<scope> -> staging -> main
+ishai -> stefan -> staging -> main
 ```
 
-Normal feature work starts from `staging` and targets `staging` by pull request. `main` is production and must not be used merely to generate previews.
+Ishai's normal review PR is `ishai` -> `stefan`. Stefan's normal promotion PR is `stefan` -> `staging`. `main` is production and must not be used merely to generate previews.
 
-Do not merge into `staging` or `main` unless the requester explicitly approves that merge. By default, leave the pull request open for review.
+Do not merge into `stefan`, `staging`, or `main` unless the requester explicitly approves that merge. By default, leave the pull request open for review.
 
 ## Mandatory staging changelog
 
 Read and follow [`docs/STAGING_CHANGELOG.md`](docs/STAGING_CHANGELOG.md) for every pull request that is approved for `staging`.
 
-Before an approved feature/agent PR is merged into `staging`:
+Before an approved PR is merged into `staging`:
 
 - add or update its entry in `src/app/shared/staging-changelog.data.ts` in that same PR;
 - record the PR number, staging date, human work owner/contributor, title, and concise accepted change summary;
@@ -60,7 +87,7 @@ The changelog entry becomes locked staging history when the PR itself is merged.
 
 ## Mandatory Netlify verification
 
-For every feature or agent pull request, once GitHub-to-Netlify continuous deployment is connected:
+For every active review pull request, once GitHub-to-Netlify continuous deployment is connected:
 
 1. Find the Netlify Deploy Preview for the current pull-request head.
 2. Confirm it corresponds to the current branch-head commit rather than an older build.
