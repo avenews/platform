@@ -87,21 +87,26 @@ The changelog entry becomes locked staging history when the PR itself is merged.
 
 ## Mandatory Netlify verification
 
-For every active review pull request, once GitHub-to-Netlify continuous deployment is connected:
+For every fix, change, or update pushed to `ishai` for review:
 
-1. Find the Netlify Deploy Preview for the current pull-request head.
-2. Confirm it corresponds to the current branch-head commit rather than an older build.
-3. Open the preview and check the changed screen or flow.
-4. Include the Netlify Deploy Preview URL and preview status in the delivery response.
-5. State what was checked in the preview.
+1. Ensure the active Draft PR is `ishai` -> `stefan` and reflects the current `ishai` head.
+2. Wait for the Netlify Deploy Preview for that exact PR head to finish building.
+3. Confirm the preview corresponds to the current branch-head commit rather than an older build.
+4. Open the preview and check the changed screen or flow. For UI work, check relevant desktop and mobile states.
+5. Do not send the final delivery response while the current preview is still building. Continue checking until it is either ready or has failed.
+6. If the preview is ready, include the actual Netlify Deploy Preview URL prominently in the final response.
+7. If the preview fails, report the failure instead of presenting the work as ready, and include the available failure/build details.
+8. Never invent, infer, or reuse an older preview URL without verifying it belongs to the current PR head.
+
+This preview-return rule is mandatory even when Ishai does not ask about Netlify. Ishai should not need to understand or operate Netlify manually; the agent is responsible for obtaining and reporting the review URL after each delivered change.
 
 Never claim visual verification without opening the current preview. Never invent or guess a preview URL.
 
-If GitHub-to-Netlify continuous deployment is not connected, explicitly report that the Deploy Preview is unavailable. Do not use or merge to `main` simply to obtain a Netlify build.
+If GitHub-to-Netlify continuous deployment is not connected, explicitly report that the Deploy Preview is unavailable and treat that as a deployment setup problem to resolve. Do not use or merge to `main` simply to obtain a Netlify build.
 
 ## Delivery checkpoint
 
-Every repository-change response should report, when available:
+Every repository-change response should report:
 
 - issue number(s)
 - branch
@@ -109,9 +114,11 @@ Every repository-change response should report, when available:
 - current commit/head SHA
 - GitHub CI status
 - Netlify Deploy Preview status
-- Netlify Deploy Preview URL
+- Netlify Deploy Preview URL when ready
 - what was checked in the preview
 - whether the PR remains open or was merged
+
+For Ishai, a normal successful delivery is not complete until the current Netlify Deploy Preview URL has been returned in the response.
 
 ## Other repository sources
 
