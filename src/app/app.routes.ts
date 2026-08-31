@@ -93,17 +93,14 @@ export const routes: Routes = [
       },
     ],
   },
+  // Stefan's review environment enters through the contextual product chooser.
+  // Signed-out users are redirected from /access to /login by authGuard.
+  { path: '', pathMatch: 'full', redirectTo: 'access' },
   {
     path: '',
     component: PortalShellComponent,
     canActivate: [authGuard],
     children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        loadComponent: () =>
-          import('./features/home/home.component').then(module => module.HomeComponent),
-      },
       {
         path: 'available-financing',
         loadComponent: () =>
