@@ -1,14 +1,14 @@
 <div class="portal-page baseline-page">
   <div class="baseline-hero">
     <h1>Support</h1>
-    <p>Need help with your account, financing, invoices, or repayments? Contact Avenews here.</p>
+    <p>Get help with your account, financing, invoices or repayments.</p>
   </div>
 
   <div class="support-grid">
     <section class="baseline-card">
       <div class="baseline-card__header">
         <h2>Submit a support request</h2>
-        <p>Use this form if something in the portal looks wrong or you need help with a specific record.</p>
+        <p>Tell us what you need help with and include the relevant record if you have one.</p>
       </div>
       <div class="baseline-card__body">
         <form class="baseline-form" (ngSubmit)="submitRequest()">
@@ -30,15 +30,28 @@
       </div>
     </section>
 
-    <section class="baseline-card">
+    <section class="baseline-card quick-help-card">
       <div class="baseline-card__header">
-        <h2>Quick Help</h2>
-        <p>Need quick help? Reach Avenews directly on WhatsApp or browse common questions.</p>
+        <h2>Quick help</h2>
+        <p>Chat with Avenews on WhatsApp or browse common questions.</p>
       </div>
-      <div class="baseline-card__body">
+      <div class="baseline-card__body quick-help-card__body">
         <div class="quick-help-actions">
           <button type="button" class="baseline-button baseline-button--primary" (click)="openWhatsApp()">Open WhatsApp</button>
           <button type="button" class="baseline-button baseline-button--secondary" (click)="openFaq()">View FAQ</button>
+        </div>
+
+        <div class="quick-help-resource">
+          <div>
+            <h3>Help Centre</h3>
+            <p>Browse guides for getting started, requesting funds and repayments.</p>
+          </div>
+          <a
+            class="baseline-button baseline-button--secondary"
+            href="https://www.avenews-gt.com/help-categories/getting-started"
+            target="_blank"
+            rel="noopener noreferrer"
+          >Open Help Centre</a>
         </div>
       </div>
     </section>

@@ -1,0 +1,57 @@
+:host {
+  display: block;
+}
+
+.quick-help-card__body {
+  display: grid;
+  align-content: start;
+  gap: 20px;
+}
+
+.quick-help-resource {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+
+.quick-help-resource > div {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.quick-help-resource h3,
+.quick-help-resource p {
+  margin: 0;
+}
+
+.quick-help-resource h3 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 16px;
+}
+
+.quick-help-resource p {
+  max-width: 520px;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.quick-help-resource > a {
+  flex: 0 0 auto;
+  text-decoration: none;
+}
+
+@media (max-width: 767px) {
+  .quick-help-resource {
+    display: grid;
+  }
+
+  .quick-help-resource > a {
+    width: 100%;
+    justify-content: center;
+  }
+}

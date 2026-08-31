@@ -11,7 +11,7 @@
         <div class="login-heading login-heading--verification">
           <h1>Verification code</h1>
           <p>
-            Please type verification code sent to
+            Enter the verification code sent to
             <strong class="login-destination">{{ sentDestination }}</strong>
           </p>
         </div>
@@ -26,6 +26,7 @@
               placeholder="Enter Verification Code"
               [required]="true"
               [disabled]="step === 'verifying'"
+              [error]="serverError || undefined"
               [value]="verificationCode"
               (valueChange)="verificationCode = $event"
             />

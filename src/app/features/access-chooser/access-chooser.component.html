@@ -1,0 +1,98 @@
+<div class="access-page">
+  <header class="access-header">
+    <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="access-logo">
+    <div class="access-header__actions">
+      <div class="access-developer">
+        <button type="button" class="access-developer__trigger" aria-haspopup="menu" [attr.aria-expanded]="developerOpen" (click)="toggleDeveloper()">
+          <span>Developer</span>
+          <av-icon name="chevron-down" [size]="14" />
+        </button>
+        @if (developerOpen) {
+          <button type="button" class="access-developer__backdrop" aria-label="Close developer menu" (click)="developerOpen = false"></button>
+          <div class="access-developer__menu" role="menu" aria-label="Developer review controls">
+            <div class="access-developer__label">Review controls</div>
+            <button type="button" role="menuitem" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">
+              Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}
+            </button>
+            <div class="access-developer__label">Experiences</div>
+            <button type="button" role="menuitem" (click)="openDestination('acl')">Agri Credit Line</button>
+            <button type="button" role="menuitem" (click)="openDestination('abf')">Agri Buyer Financing</button>
+            <button type="button" role="menuitem" (click)="openDestination('stf')">Stockist Financing</button>
+            <button type="button" role="menuitem" (click)="openDestination('invoice-financing')">Invoice Financing</button>
+            <button type="button" role="menuitem" (click)="openDestination('infx')">Invoice Financing Express</button>
+            <button type="button" role="menuitem" (click)="openDestination('invoice-partner')">Partner Buyer Portal</button>
+          </div>
+        }
+      </div>
+      <button type="button" class="access-logout" (click)="logout()">Log out</button>
+    </div>
+  </header>
+
+  <main class="access-main">
+    <section class="access-hero">
+      <p class="page-eyebrow">Avenews portal</p>
+      <h1>{{ welcomeMessage }}</h1>
+      <h2>What would you like to manage?</h2>
+    </section>
+
+    @if (customerDestinations.length) {
+      <section class="access-group" aria-labelledby="available-products-title">
+        <div class="access-group__heading">
+          <h2 id="available-products-title">Your available products</h2>
+          <span>{{ customerDestinations.length }} {{ customerDestinations.length === 1 ? 'product' : 'products' }}</span>
+        </div>
+
+        <div class="access-grid">
+          @for (destination of customerDestinations; track destination.id) {
+            <button
+              type="button"
+              class="access-card"
+              [attr.data-experience-id]="destination.id"
+              (click)="openDestination(destination.id)"
+            >
+              <strong class="access-card__title">{{ displayProductName(destination) }}</strong>
+              <span class="access-card__business">{{ destination.businessName }}</span>
+              <p>{{ destination.description }}</p>
+
+              @if (availabilitySummary(destination); as available) {
+                <div class="access-card__summary" aria-label="Product summary">
+                  <span><small>{{ available.label }}</small><strong>{{ available.value }}</strong></span>
+                  @if (outstandingSummary(destination); as outstanding) {
+                    <span><small>{{ outstanding.label }}</small><strong>{{ outstanding.value }}</strong></span>
+                  }
+                </div>
+              }
+
+              <span class="access-card__action">View</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+
+    @if (partnerDestinations.length) {
+      <section class="access-group" aria-labelledby="partner-workspace-title">
+        <div class="access-group__heading">
+          <h2 id="partner-workspace-title">Partner workspace</h2>
+          <span>{{ partnerDestinations.length }} {{ partnerDestinations.length === 1 ? 'workspace' : 'workspaces' }}</span>
+        </div>
+
+        <div class="access-grid access-grid--partner">
+          @for (destination of partnerDestinations; track destination.id) {
+            <button
+              type="button"
+              class="access-card access-card--partner"
+              [attr.data-experience-id]="destination.id"
+              (click)="openDestination(destination.id)"
+            >
+              <strong class="access-card__title">{{ displayProductName(destination) }}</strong>
+              <span class="access-card__business">{{ destination.businessName }}</span>
+              <p>{{ destination.description }}</p>
+              <span class="access-card__action">View</span>
+            </button>
+          }
+        </div>
+      </section>
+    }
+  </main>
+</div>

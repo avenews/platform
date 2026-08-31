@@ -2,6 +2,7 @@
 @import './app/shared/customer-portal-parity-overrides.css';
 @import './app/shared/customer-portal-prototype-parity.css';
 @import './app/shared/customer-portal-precision-fixes.css';
+@import './app/shared/prototype-explainer-overrides.css';
 
 :root {
   color-scheme: light;
@@ -89,6 +90,16 @@ h4 {
   text-transform: uppercase;
 }
 
+/* Financing-party roles are access rules, not customer page labels. */
+.contextual-financing__hero .page-eyebrow {
+  display: none;
+}
+
+/* Period model names are internal implementation language. The reference remains visible. */
+app-customer-financing-period-modal .customer-period-modal__heading .page-eyebrow {
+  display: none;
+}
+
 .surface-card {
   border: 1px solid var(--av-color-surface-border, #e1e7eb);
   border-radius: var(--av-radius-lg, 16px);
@@ -101,8 +112,196 @@ h4 {
   font-size: var(--av-font-size-xs, 12px);
 }
 
+/*
+ * Action colour contract.
+ * Colour belongs to the action, not to the page or component using it:
+ * - financing requests use the Avenews primary/action blue
+ * - invoice uploads use the Avenews success green
+ * - view/navigation controls remain neutral secondary actions
+ *
+ * The semantic action rules are deliberately important because Angular's
+ * component-scoped selectors can otherwise out-rank this global contract.
+ */
+body .baseline-button[data-action="request-financing"] {
+  border-color: var(--av-color-action, #16b3c4) !important;
+  background: var(--av-color-action, #16b3c4) !important;
+  color: var(--av-color-on-action, #ffffff) !important;
+  filter: none !important;
+}
+
+body .baseline-button[data-action="request-financing"]:hover:not(:disabled),
+body .baseline-button[data-action="request-financing"]:focus-visible:not(:disabled) {
+  border-color: var(--av-color-action-hover, #0f96a6) !important;
+  background: var(--av-color-action-hover, #0f96a6) !important;
+  filter: none !important;
+}
+
+body .baseline-button[data-action="invoice-upload"],
+body .baseline-button[data-action="upload-invoices"],
+body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button,
+body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary {
+  border-color: var(--av-color-success, #39c173) !important;
+  background: var(--av-color-success, #39c173) !important;
+  color: var(--av-color-on-success, #ffffff) !important;
+  filter: none !important;
+}
+
+body .baseline-button[data-action="invoice-upload"]:hover:not(:disabled),
+body .baseline-button[data-action="invoice-upload"]:focus-visible:not(:disabled),
+body .baseline-button[data-action="upload-invoices"]:hover:not(:disabled),
+body .baseline-button[data-action="upload-invoices"]:focus-visible:not(:disabled),
+body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button:hover:not(:disabled),
+body [data-partner-section="suppliers"] .partner-workspace-hero > .baseline-button:focus-visible:not(:disabled),
+body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary:hover:not(:disabled),
+body section[aria-labelledby="partner-upload-title"] .baseline-modal__body > .baseline-button--primary:focus-visible:not(:disabled) {
+  border-color: var(--av-color-success-hover, #269354) !important;
+  background: var(--av-color-success-hover, #269354) !important;
+  filter: none !important;
+}
+
+body .baseline-button[data-action="request-financing"]:disabled,
+body .baseline-button[data-action="invoice-upload"]:disabled,
+body .baseline-button[data-action="upload-invoices"]:disabled {
+  border-color: var(--av-color-surface-border, #d0d5dd) !important;
+  background: var(--av-color-surface-disabled, #e4e7ec) !important;
+  color: var(--av-color-text-disabled, #98a2b3) !important;
+  opacity: 1;
+}
+
+/* Detail/navigation actions stay neutral instead of borrowing an action colour. */
+body [data-partner-section="obligations"] .baseline-button--primary,
+body .partner-home-hero__actions .baseline-button--primary:not([data-action]),
+body .partner-home-workspace-card .baseline-button--primary:not([data-action]) {
+  border-color: #d0d5dd;
+  background: #ffffff;
+  color: #1d2939;
+}
+
+body [data-partner-section="obligations"] .baseline-button--primary:hover:not(:disabled),
+body [data-partner-section="obligations"] .baseline-button--primary:focus-visible:not(:disabled),
+body .partner-home-hero__actions .baseline-button--primary:not([data-action]):hover:not(:disabled),
+body .partner-home-hero__actions .baseline-button--primary:not([data-action]):focus-visible:not(:disabled),
+body .partner-home-workspace-card .baseline-button--primary:not([data-action]):hover:not(:disabled),
+body .partner-home-workspace-card .baseline-button--primary:not([data-action]):focus-visible:not(:disabled) {
+  border-color: #b8c0cc;
+  background: #f9fafb;
+  filter: none;
+}
+
+/*
+ * The design-system Avatar initials are defined as 0.4em. Give the avatar host
+ * an explicit typographic base so initials remain readable at sm/md sizes.
+ * Mobile profile triggers stretch to the 56px header and center the avatar.
+ */
+body .experience-avatar-trigger av-avatar,
+body .experience-profile-button av-avatar,
+body .avatar-trigger av-avatar,
+body .profile-button av-avatar {
+  display: inline-flex;
+  font-size: 32px;
+  line-height: 1;
+}
+
+body .experience-mobile-header .experience-avatar-trigger,
+body .mobile-header .avatar-trigger {
+  min-width: 48px;
+  min-height: 56px;
+  height: 56px;
+  display: flex;
+  align-self: stretch;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+/* Repayment details use one consistent reading edge; Copy remains the trailing action. */
+app-customer-financing-period-modal .customer-payment-details > div > span {
+  flex: 1 1 auto;
+  justify-items: start;
+  text-align: left;
+}
+
+app-customer-financing-period-modal .customer-payment-details strong {
+  width: 100%;
+  text-align: left !important;
+}
+
+.partner-home-hero__actions {
+  flex: 0 0 auto;
+  display: flex !important;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 10px !important;
+}
+
+.partner-home-workspaces {
+  gap: 14px;
+}
+
+.partner-home-workspace-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.partner-home-workspace-card {
+  min-width: 0;
+  min-height: 210px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px;
+}
+
+.partner-home-workspace-card > div {
+  display: grid;
+  gap: 7px;
+}
+
+.partner-home-workspace-card h3,
+.partner-home-workspace-card p {
+  margin: 0;
+}
+
+.partner-home-workspace-card h3 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 17px;
+}
+
+.partner-home-workspace-card > div > p:not(.page-eyebrow) {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.partner-home-workspace-card .baseline-button {
+  width: fit-content;
+  margin-top: auto;
+}
+
+@media (max-width: 900px) {
+  .partner-home-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .partner-home-workspace-card {
+    min-height: 0;
+  }
+}
+
 @media (max-width: 767px) {
   .page-hero {
     margin-bottom: var(--av-space-5, 20px);
+  }
+
+  .partner-home-hero__actions {
+    width: 100%;
+    display: grid !important;
+    grid-auto-flow: row;
+  }
+
+  .partner-home-hero__actions .baseline-button,
+  .partner-home-workspace-card .baseline-button {
+    width: 100%;
   }
 }

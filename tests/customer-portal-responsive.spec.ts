@@ -269,17 +269,7 @@ test.describe('signed-in customer portal', () => {
 
       const rowGap = await pageRoot.evaluate((element) => getComputedStyle(element).rowGap)
       expect(rowGap).toBe('16px')
-
-      const spacingAnchor = route.path === '/manage-users'
-        ? pageRoot.locator('.manage-users-head')
-        : pageRoot.locator('.baseline-hero').first()
-      const anchorBox = await spacingAnchor.boundingBox()
-      const filterBox = await filterBar.boundingBox()
-      expect(anchorBox).not.toBeNull()
-      expect(filterBox).not.toBeNull()
-      const anchorToFilterGap = filterBox!.y - (anchorBox!.y + anchorBox!.height)
-      expect(anchorToFilterGap).toBeGreaterThanOrEqual(12)
-      expect(anchorToFilterGap).toBeLessThanOrEqual(20)
+      // Intro-to-filter spacing has a dedicated cross-route regression in filter-spacing-consistency.spec.ts.
 
       const desktopFilters = filterBar.locator('[data-filter-layout="desktop"]')
       const mobileFilters = filterBar.locator('[data-filter-layout="mobile"]')
@@ -453,7 +443,7 @@ test.describe('signed-in customer portal', () => {
 })
 
 test.describe('prototype login flow', () => {
-  test('email OTP routes through verification before entering the portal', async ({ page }, testInfo) => {
+  test('email OTP routes through verification before entering the product selector', async ({ page }, testInfo) => {
     await page.goto('/login')
     await page.locator('input[type="email"]').fill('qa.customer@example.com')
     await page.getByRole('button', { name: /send code/i }).click()
@@ -466,11 +456,11 @@ test.describe('prototype login flow', () => {
 
     await page.locator('input[autocomplete="one-time-code"]').fill('123456')
     await page.getByRole('button', { name: 'Verify' }).click()
-    await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:4200\/$/)
-    await expect(page.getByRole('heading', { name: 'Kioko Agri Supplies Ltd', level: 1 })).toBeVisible()
+    await expect(page).toHaveURL(/\/access$/)
+    await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 2 })).toBeVisible()
   })
 
-  test('phone OTP routes through verification before entering the portal', async ({ page }, testInfo) => {
+  test('phone OTP routes through verification before entering the product selector', async ({ page }, testInfo) => {
     await page.goto('/login')
     await page.getByRole('tab', { name: 'Phone number' }).click()
     await page.locator('input[type="tel"]').fill('712 345 678')
@@ -483,7 +473,7 @@ test.describe('prototype login flow', () => {
 
     await page.locator('input[autocomplete="one-time-code"]').fill('654321')
     await page.getByRole('button', { name: 'Verify' }).click()
-    await expect(page).toHaveURL(/^http:\/\/127\.0\.0\.1:4200\/$/)
-    await expect(page.getByRole('heading', { name: 'Kioko Agri Supplies Ltd', level: 1 })).toBeVisible()
+    await expect(page).toHaveURL(/\/access$/)
+    await expect(page.getByRole('heading', { name: 'What would you like to manage?', level: 2 })).toBeVisible()
   })
 })

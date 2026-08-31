@@ -1,0 +1,205 @@
+.customer-product-summary .contextual-metric {
+  align-content: start;
+  grid-auto-rows: max-content;
+  gap: 8px;
+  min-height: 172px;
+  padding: 20px;
+  border-color: var(--av-color-surface-border, #e1e7eb);
+  border-radius: var(--av-radius-lg, 12px);
+  box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(16, 24, 40, .06));
+}
+
+.customer-product-summary .contextual-metric > span {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.customer-product-summary .contextual-metric > strong {
+  margin-top: 2px;
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.15;
+}
+
+.customer-product-summary .contextual-metric > small {
+  min-height: 34px;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.customer-payments-due strong {
+  line-height: 1.2;
+}
+
+.customer-available-financing__action,
+.customer-payments-due__action {
+  width: fit-content;
+  justify-self: start;
+  margin-top: auto;
+}
+
+.customer-available-financing__mobile-action {
+  display: none;
+}
+
+.customer-financing-activity {
+  gap: 16px;
+}
+
+.customer-activity-toolbar {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.customer-activity-toolbar .baseline-section-heading,
+.customer-activity-toolbar app-customer-filter-bar {
+  min-width: 0;
+}
+
+.customer-activity-toolbar .baseline-section-heading h2 {
+  margin-bottom: 0;
+}
+
+.customer-activity-table {
+  min-width: 880px;
+}
+
+[data-product-context="invoice-financing"] .customer-activity-table {
+  min-width: 860px;
+}
+
+.customer-activity-row {
+  cursor: pointer;
+}
+
+.customer-activity-row:hover,
+.customer-activity-row:focus-visible {
+  background: var(--av-color-primary-subtle, #eefbfc);
+  outline: none;
+}
+
+.customer-activity-row.is-overdue,
+.customer-financing-card.is-overdue,
+.partner-home-payments-table tbody tr.is-overdue,
+.partner-home-payment-card.is-overdue {
+  background: #fff4f4;
+}
+
+.customer-financing-card.is-overdue,
+.partner-home-payment-card.is-overdue {
+  border-color: #efb4b4;
+}
+
+.customer-activity-row.is-overdue:hover,
+.customer-activity-row.is-overdue:focus-visible {
+  background: #ffeaea;
+}
+
+.customer-period-availability {
+  display: block;
+  margin-top: 2px;
+  color: var(--av-color-action, #16b3c4);
+  font-size: 10px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.customer-financing-card {
+  display: grid;
+  gap: 14px;
+}
+
+.customer-record-card-button {
+  width: 100%;
+  display: grid;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.customer-record-card-button__action {
+  color: var(--av-color-action, #16b3c4);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customer-period-request {
+  margin-top: 0;
+}
+
+.customer-pagination {
+  margin-top: 0;
+}
+
+.partner-home-payments {
+  gap: 14px;
+}
+
+.partner-home-payments .baseline-section-heading {
+  align-items: flex-end;
+}
+
+.partner-home-payments-table {
+  min-width: 780px;
+}
+
+.partner-home-payment-cards {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .customer-activity-toolbar {
+    grid-template-columns: minmax(140px, .35fr) minmax(0, 1.65fr);
+    align-items: center;
+    column-gap: 24px;
+  }
+
+  .customer-activity-toolbar .baseline-section-heading,
+  .customer-activity-toolbar app-customer-filter-bar {
+    align-self: center;
+  }
+}
+
+@media (max-width: 767px) {
+  .customer-product-summary .contextual-metric {
+    min-height: 0;
+    padding: 18px;
+  }
+
+  .customer-product-summary .contextual-metric > small {
+    min-height: 0;
+  }
+
+  .contextual-home__primary--hero {
+    display: none;
+  }
+
+  .customer-available-financing__mobile-action {
+    display: inline-flex;
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .customer-available-financing__action,
+  .customer-payments-due__action {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .partner-home-payments .baseline-table-wrap {
+    display: none;
+  }
+
+  .partner-home-payment-cards {
+    display: grid;
+    gap: 12px;
+  }
+}

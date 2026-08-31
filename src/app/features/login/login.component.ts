@@ -6,7 +6,7 @@ import {
   inject,
 } from '@angular/core'
 import { FormsModule } from '@angular/forms'
-import { Router } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import {
   AvButtonDirective,
   AvIconComponent,
@@ -15,6 +15,8 @@ import {
   type SegmentOption,
 } from '@avenews/design-system/angular'
 import { AuthService } from '../../core/auth/auth.service'
+import { isExperienceScenario } from '../../core/experience/contextual-experience.data'
+import { PortalExperienceService } from '../../core/experience/portal-experience.service'
 
 type LoginStep = 'idle' | 'loading' | 'verification' | 'verifying' | 'error'
 type InputMethod = 'email' | 'phone'
@@ -39,6 +41,8 @@ const RESEND_COUNTDOWN_SECONDS = 110
 })
 export class LoginComponent implements OnDestroy {
   private readonly auth = inject(AuthService)
+  private readonly experiences = inject(PortalExperienceService)
+  private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
   private readonly cdr = inject(ChangeDetectorRef)
 
@@ -112,6 +116,7 @@ export class LoginComponent implements OnDestroy {
 
     this.sentDestination = this.currentValue.trim()
     this.verificationCode = ''
+    this.serverError = ''
     this.step = 'verification'
     this.startResendCountdown()
     this.cdr.markForCheck()
@@ -120,13 +125,32 @@ export class LoginComponent implements OnDestroy {
   async verifyCode(): Promise<void> {
     if (!this.canVerify) return
 
+    this.serverError = ''
     this.step = 'verifying'
     this.cdr.markForCheck()
     await new Promise(resolve => setTimeout(resolve, 900))
 
     // Prototype-only OTP flow: any non-empty verification code succeeds.
     this.auth.login('admin')
-    void this.router.navigate(['/'])
+
+    const requestedScenario = this.route.snapshot.queryParamMap.get('access')
+    const scenario = isExperienceScenario(requestedScenario) ? requestedScenario : 'multiple'
+
+    // Resolve access again for every login, then always enter the prototype via
+    // product selection before a financing product or Partner workspace opens.
+    this.experiences.resetForLogin(scenario)
+    const target = this.experiences.resolvePostLoginRoute()
+
+    try {
+      const navigated = await this.router.navigate(target)
+      if (!navigated) throw new Error('Navigation was cancelled')
+    } catch {
+      // Never leave the customer on an indefinite loading state if routing is
+      // cancelled or fails. Return to the code field with a retryable error.
+      this.step = 'verification'
+      this.serverError = 'We could not open your available products. Please try again.'
+      this.cdr.markForCheck()
+    }
   }
 
   resendCode(): void {

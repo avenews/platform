@@ -1,0 +1,303 @@
+<div class="portal-page contextual-home" [attr.data-product-context]="workspace?.id ?? null">
+  @if (workspace; as product) {
+    <section class="contextual-home__hero">
+      <div>
+        <h1>{{ product.heading }}</h1>
+        <p>{{ homeIntro }}</p>
+      </div>
+      <button
+        type="button"
+        class="baseline-button contextual-home__primary contextual-home__primary--hero"
+        [attr.data-action]="product.id === 'invoice-financing' ? 'invoice-upload' : 'request-financing'"
+        [attr.data-action-kind]="product.primaryActionKind"
+        [attr.data-external-url]="product.id === 'acl' ? aclFundsRequestDemoUrl : null"
+        [attr.title]="product.id === 'invoice-financing' ? 'Upload invoices for a buyer' : primaryActionLabel"
+        (click)="primaryAction()"
+      >{{ primaryActionLabel }}</button>
+    </section>
+
+    <section class="contextual-metrics customer-product-summary" [attr.aria-label]="product.heading + ' summary'">
+      <article class="contextual-metric baseline-card customer-summary-card customer-available-financing">
+        <span>Available Financing</span>
+        <strong>{{ formatKes(product.availableMetricValue) }}</strong>
+        <small>{{ availableMetricHelper }}</small>
+        <button
+          type="button"
+          class="baseline-button baseline-button--primary customer-available-financing__mobile-action"
+          data-action="request-financing"
+          (click)="openFundsRequest()"
+        >Request funds</button>
+        @if (product.id === 'invoice-financing') {
+          <button
+            type="button"
+            class="baseline-button baseline-button--secondary customer-available-financing__action"
+            title="Show financing periods where you can request funds"
+            (click)="filterAvailableFinancing()"
+          >View available periods</button>
+        }
+      </article>
+
+      <article class="contextual-metric baseline-card customer-summary-card">
+        <span>Outstanding Amount</span>
+        <strong>{{ formatKes(product.outstandingMetricValue) }}</strong>
+        <small>{{ outstandingMetricHelper }}</small>
+      </article>
+
+      <article class="contextual-metric baseline-card customer-summary-card customer-payments-due">
+        <span>{{ dueMetricLabel }}</span>
+        <strong>{{ dueCountLabel }}</strong>
+        <small>{{ dueSplitLabel }}</small>
+        <button
+          type="button"
+          class="baseline-button baseline-button--secondary customer-payments-due__action"
+          [attr.aria-label]="dueActionLabel + ' in Financing'"
+          [attr.title]="dueActionLabel"
+          (click)="filterPaymentsDue()"
+        >{{ dueActionLabel }}</button>
+      </article>
+    </section>
+
+    <section id="customer-financing-activity" class="baseline-section customer-financing-activity">
+      <div class="customer-activity-toolbar">
+        <div class="baseline-section-heading">
+          <div><h2>Financing</h2></div>
+        </div>
+
+        <app-customer-filter-bar
+          [searchValue]="searchQuery"
+          [searchPlaceholder]="searchPlaceholder"
+          [searchAriaLabel]="'Search all values in ' + product.heading + ' financing'"
+          [filters]="filterFields"
+          [values]="filterValues"
+          [sortOptions]="sortOptions"
+          [sortValue]="sort"
+          (searchValueChange)="onSearchValueChange($event)"
+          (valuesChange)="onFilterValuesChange($event)"
+          (sortValueChange)="onSortValueChange($event)"
+        />
+      </div>
+
+      <div class="baseline-table-wrap">
+        <table class="baseline-table customer-activity-table">
+          <thead>
+            <tr>
+              <th title="Financing reference and supplier or buyer.">Reference</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'">{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? 'Additional financing currently available.' : 'Amount financed by Avenews.'">{{ product.id === 'invoice-financing' ? 'Available Financing' : 'Amount Financed' }}</th>
+              <th title="Current financing status.">Status</th>
+              <th title="Amount still outstanding.">{{ product.outstandingColumnLabel }}</th>
+              <th title="Open financing details or request funds.">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (period of pageItems; track period.id) {
+              <tr
+                class="customer-activity-row"
+                [class.is-overdue]="period.statusKey === 'overdue' || period.paymentAttention === 'overdue'"
+                tabindex="0"
+                [attr.aria-label]="'View details for ' + period.reference"
+                (click)="openPeriod(period)"
+                (keydown.enter)="openPeriod(period)"
+                (keydown.space)="openPeriod(period); $event.preventDefault()"
+              >
+                <td>
+                  <span class="baseline-financing-cell customer-reference-cell">
+                    @if (product.id === 'acl') {
+                      <strong>{{ period.reference }}</strong>
+                    } @else {
+                      <strong>{{ period.relationshipName }}</strong>
+                      <span>{{ period.reference }}</span>
+                    }
+                  </span>
+                </td>
+                <td>{{ formatDate(period.repaymentDueDate, true) }}</td>
+                <td>
+                  <strong>{{ formatKes(product.id === 'invoice-financing' ? (period.availableToWithdraw ?? 0) : period.amountFinanced) }}</strong>
+                  @if (product.id === 'invoice-financing' && canRequestFromPeriod(period)) {
+                    <span class="customer-period-availability">Available to request</span>
+                  }
+                </td>
+                <td><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></td>
+                <td><strong>{{ formatKes(period.outstandingBalance) }}</strong></td>
+                <td>
+                  @if (canRequestFromPeriod(period)) {
+                    <button
+                      type="button"
+                      class="baseline-button baseline-button--primary customer-period-request"
+                      data-action="request-financing"
+                      title="Request funds from this financing period"
+                      (click)="requestFundsForPeriod(period, $event)"
+                    >Request funds</button>
+                  } @else {
+                    <button type="button" class="baseline-button baseline-button--secondary" (click)="openPeriod(period); $event.stopPropagation()">View</button>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6"><div class="baseline-empty"><strong>No matching financing</strong><p>Try changing your search or filters.</p></div></td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="baseline-cards customer-activity-cards">
+        @for (period of pageItems; track period.id) {
+          <article class="baseline-record-card customer-financing-card" [class.is-overdue]="period.statusKey === 'overdue' || period.paymentAttention === 'overdue'">
+            <button
+              type="button"
+              class="customer-record-card-button"
+              [attr.title]="'View details for ' + period.reference"
+              (click)="openPeriod(period)"
+            >
+              <div class="baseline-record-card__head">
+                <span class="baseline-financing-cell customer-reference-cell">
+                  @if (product.id === 'acl') {
+                    <strong>{{ period.reference }}</strong>
+                  } @else {
+                    <strong>{{ period.relationshipName }}</strong>
+                    <span>{{ period.reference }}</span>
+                  }
+                </span>
+                <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
+              </div>
+              <div class="baseline-metrics">
+                <span class="baseline-metric"><small>{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                <span class="baseline-metric"><small>{{ product.id === 'invoice-financing' ? 'Available Financing' : 'Amount Financed' }}</small><strong>{{ formatKes(product.id === 'invoice-financing' ? (period.availableToWithdraw ?? 0) : period.amountFinanced) }}</strong></span>
+                <span class="baseline-metric"><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
+              </div>
+              <span class="customer-record-card-button__action">View details</span>
+            </button>
+            @if (canRequestFromPeriod(period)) {
+              <button
+                type="button"
+                class="baseline-button baseline-button--primary baseline-button--block customer-period-request"
+                data-action="request-financing"
+                title="Request funds from this financing period"
+                (click)="requestFundsForPeriod(period, $event)"
+              >Request funds</button>
+            }
+          </article>
+        } @empty {
+          <div class="baseline-empty"><strong>No matching financing</strong><p>Try changing your search or filters.</p></div>
+        }
+      </div>
+
+      @if (filteredPeriods.length) {
+        <div class="baseline-pagination customer-pagination" aria-label="Financing pagination">
+          <p>Showing <strong>{{ rangeStart }}-{{ rangeEnd }}</strong> of {{ filteredPeriods.length }} {{ activityItemLabel }}</p>
+          <div class="baseline-pagination__controls">
+            <button type="button" [disabled]="page === 1" (click)="changePage(page - 1)" aria-label="Previous page">‹</button>
+            @for (pageNumber of pageNumbers; track pageNumber) {
+              <button type="button" [class.is-active]="pageNumber === page" [attr.aria-current]="pageNumber === page ? 'page' : null" (click)="changePage(pageNumber)">{{ pageNumber }}</button>
+            }
+            <button type="button" [disabled]="page === totalPages" (click)="changePage(page + 1)" aria-label="Next page">›</button>
+          </div>
+        </div>
+      }
+    </section>
+  } @else {
+    <section class="contextual-home__hero partner-home-hero">
+      <div>
+        <h1>{{ experience.homeHeading }}</h1>
+        <p>{{ experience.homeIntro }}</p>
+      </div>
+      <div class="partner-home-hero__actions">
+        <button type="button" class="baseline-button baseline-button--primary contextual-home__primary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
+        <button type="button" class="baseline-button contextual-home__primary" data-action="invoice-upload" (click)="takePartnerAction('upload-invoices')">Upload invoices</button>
+      </div>
+    </section>
+
+    <section class="contextual-metrics" aria-label="Partner summary">
+      @for (metric of experience.metrics; track metric.label) {
+        <article class="contextual-metric baseline-card">
+          <span>{{ metric.label }}</span>
+          <strong>{{ metric.value }}</strong>
+          <small>{{ metric.helper }}</small>
+        </article>
+      }
+    </section>
+
+    <section class="baseline-section partner-home-payments" aria-labelledby="partner-home-payments-title">
+      <div class="baseline-section-heading">
+        <div>
+          <h2 id="partner-home-payments-title">Payments needing attention</h2>
+          <p>Overdue payments are shown first, followed by upcoming payments.</p>
+        </div>
+        <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View all payments</button>
+      </div>
+
+      <div class="baseline-table-wrap">
+        <table class="baseline-table partner-home-payments-table">
+          <thead><tr><th>Supplier</th><th>Due Date</th><th>Amount to Pay</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            @for (payment of partnerHomePayments; track payment.id) {
+              <tr [class.is-overdue]="payment.status === 'Overdue'">
+                <td><span class="baseline-financing-cell"><strong>{{ payment.supplier }}</strong><span>{{ payment.reference }}</span></span></td>
+                <td>{{ formatDate(payment.dueDate, true) }}</td>
+                <td><strong>{{ formatKes(payment.amount) }}</strong></td>
+                <td><span class="baseline-status" [class]="'baseline-status ' + payment.tone">{{ payment.status }}</span></td>
+                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View payment</button></td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <div class="baseline-cards partner-home-payment-cards">
+        @for (payment of partnerHomePayments; track payment.id) {
+          <article class="baseline-record-card partner-home-payment-card" [class.is-overdue]="payment.status === 'Overdue'">
+            <div class="baseline-record-card__head">
+              <span class="baseline-financing-cell"><strong>{{ payment.supplier }}</strong><span>{{ payment.reference }}</span></span>
+              <span class="baseline-status" [class]="'baseline-status ' + payment.tone">{{ payment.status }}</span>
+            </div>
+            <div class="baseline-metrics">
+              <span class="baseline-metric"><small>Due Date</small><strong>{{ formatDate(payment.dueDate, true) }}</strong></span>
+              <span class="baseline-metric"><small>Amount to Pay</small><strong>{{ formatKes(payment.amount) }}</strong></span>
+            </div>
+            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="takePartnerAction('view-obligations')">View payment</button>
+          </article>
+        }
+      </div>
+    </section>
+
+    <section class="baseline-section partner-home-workspaces" aria-labelledby="partner-workspaces-title">
+      <div class="baseline-section-heading">
+        <div>
+          <h2 id="partner-workspaces-title">Supplier financing</h2>
+          <p>Choose a supplier to view its financing periods and payments.</p>
+        </div>
+      </div>
+
+      <div class="partner-home-workspace-grid">
+        <article class="baseline-card partner-home-workspace-card">
+          <div><p class="page-eyebrow">Payments</p><h3>Supplier payments</h3><p>Track upcoming, overdue and completed supplier payments.</p></div>
+          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View payments</button>
+        </article>
+        <article class="baseline-card partner-home-workspace-card">
+          <div><p class="page-eyebrow">Suppliers</p><h3>Financing periods</h3><p>View a supplier's financing periods and payments.</p></div>
+          <button type="button" class="baseline-button baseline-button--primary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
+        </article>
+        <article class="baseline-card partner-home-workspace-card">
+          <div><p class="page-eyebrow">Invoices</p><h3>Supplier invoices</h3><p>Upload supplier invoices and see which financing periods were updated.</p></div>
+          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-invoice-uploads')">View invoices</button>
+        </article>
+      </div>
+    </section>
+  }
+</div>
+
+@if (workspace; as product) {
+  <app-customer-financing-period-modal
+    [period]="selectedPeriod"
+    [productId]="product.id"
+    [dueDateLabel]="product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel"
+    [totalRepaidLabel]="product.totalRepaidColumnLabel"
+    [outstandingLabel]="product.outstandingColumnLabel"
+    (requestFunds)="requestFundsForPeriod($event)"
+    (close)="closePeriod()"
+  />
+}
+
+@if (toast) {
+  <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
+}

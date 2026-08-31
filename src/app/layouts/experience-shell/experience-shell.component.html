@@ -1,0 +1,195 @@
+<div class="experience-shell" [attr.data-experience-id]="currentExperience.id">
+  <header class="experience-mobile-header" role="banner">
+    <a [routerLink]="routeFor('home')" class="experience-mobile-brand" aria-label="Avenews experience home">
+      <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="experience-mobile-brand__logo">
+    </a>
+
+    <button
+      type="button"
+      class="experience-mobile-context"
+      (click)="toggleContext()"
+      [attr.aria-expanded]="contextOpen"
+      [attr.aria-haspopup]="availableExperiences.length > 1 ? 'menu' : null"
+    >
+      <span>{{ displayProductName(currentExperience) }}</span>
+      @if (availableExperiences.length > 1) { <av-icon name="chevron-down" [size]="14" /> }
+    </button>
+
+    <button
+      class="experience-avatar-trigger"
+      type="button"
+      (click)="toggleProfile()"
+      aria-label="Open profile menu"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="profileOpen"
+    >
+      <av-avatar [initials]="initials" size="md" />
+    </button>
+  </header>
+
+  <aside class="experience-sidebar">
+    <a [routerLink]="routeFor('home')" class="experience-sidebar-brand" aria-label="Avenews experience home">
+      <img src="/brand/avenews-logo-new.svg" alt="Avenews" class="experience-sidebar-brand__logo">
+    </a>
+
+    <div class="experience-context-wrap">
+      <button
+        type="button"
+        class="experience-context-trigger"
+        (click)="toggleContext()"
+        [attr.aria-expanded]="contextOpen"
+        [attr.aria-haspopup]="availableExperiences.length > 1 ? 'menu' : null"
+      >
+        <span class="experience-context-copy">
+          <small>{{ currentExperience.businessName }}</small>
+          <strong>{{ displayProductName(currentExperience) }}</strong>
+        </span>
+        @if (availableExperiences.length > 1) { <av-icon name="chevron-down" [size]="16" /> }
+      </button>
+    </div>
+
+    <nav class="experience-sidebar-nav" [attr.aria-label]="displayProductName(currentExperience)">
+      @for (item of primaryNavItems; track item.segment) {
+        @if (item.externalUrl; as externalUrl) {
+          <a
+            [href]="externalUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="experience-nav-link experience-nav-link--external"
+            [attr.aria-label]="item.label + ' (opens in a new tab)'"
+            [attr.data-external-url]="externalUrl"
+          >
+            <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        } @else {
+          <a
+            [routerLink]="routeFor(item.segment)"
+            routerLinkActive="experience-nav-link--active"
+            [routerLinkActiveOptions]="{ exact: item.exact }"
+            ariaCurrentWhenActive="page"
+            class="experience-nav-link"
+          >
+            <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+            <span>{{ item.label }}</span>
+          </a>
+        }
+      }
+    </nav>
+
+    <button
+      type="button"
+      class="experience-profile-button"
+      (click)="toggleProfile()"
+      aria-label="Open profile menu"
+      aria-haspopup="menu"
+      [attr.aria-expanded]="profileOpen"
+    >
+      <av-avatar [initials]="initials" size="sm" />
+      <span class="experience-profile-meta">
+        <strong>{{ fullName }}</strong>
+      </span>
+      <av-icon name="chevron-up" [size]="16" />
+    </button>
+  </aside>
+
+  <main class="experience-main">
+    <app-prototype-explainer tone="decision" title="You are viewing one product or Partner role at a time">
+      <p>The customer shell shows the primary tasks for <strong>{{ displayProductName(currentExperience) }}</strong>. Internal financing-party roles still govern access and product behaviour, but they are not repeated as customer-facing tags. Switching product or access changes the whole workspace and the choice is cleared on logout.</p>
+    </app-prototype-explainer>
+    <router-outlet />
+  </main>
+
+  <nav class="experience-bottom-nav" [style.--cols]="mobileNavItems.length" aria-label="Current experience navigation">
+    @for (item of mobileNavItems; track item.segment) {
+      @if (item.externalUrl; as externalUrl) {
+        <a
+          [href]="externalUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="experience-bottom-nav__item experience-bottom-nav__item--external"
+          [attr.aria-label]="item.label + ' (opens in a new tab)'"
+          [attr.data-external-url]="externalUrl"
+        >
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      } @else {
+        <a
+          [routerLink]="routeFor(item.segment)"
+          routerLinkActive="experience-bottom-nav__item--active"
+          [routerLinkActiveOptions]="{ exact: item.exact }"
+          ariaCurrentWhenActive="page"
+          class="experience-bottom-nav__item"
+        >
+          <app-portal-nav-icon [name]="item.icon"></app-portal-nav-icon>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    }
+  </nav>
+
+  @if (contextOpen && availableExperiences.length > 1) {
+    <button class="experience-overlay-backdrop" type="button" aria-label="Close context menu" (click)="closeOverlays()"></button>
+    <div class="experience-context-menu" role="menu" aria-label="Switch product or access">
+      <div class="experience-context-menu__label">Your products</div>
+      @for (experience of availableExperiences; track experience.id) {
+        @if (experience.kind === 'customer') {
+          <button type="button" role="menuitem" class="experience-context-menu__product" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
+            <strong>{{ displayProductName(experience) }}</strong>
+          </button>
+        }
+      }
+      <div class="experience-context-menu__label">Partner workspace</div>
+      @for (experience of availableExperiences; track experience.id) {
+        @if (experience.kind === 'partner') {
+          <button type="button" role="menuitem" class="experience-context-menu__product" [class.is-current]="experience.id === currentExperience.id" (click)="switchExperience(experience.id)">
+            <strong>{{ displayProductName(experience) }}</strong>
+          </button>
+        }
+      }
+      <button type="button" class="experience-context-menu__all" role="menuitem" (click)="openChooser()">All products and access</button>
+    </div>
+  }
+
+  <div class="experience-developer-tools">
+    <button type="button" class="experience-developer-tools__trigger" aria-haspopup="menu" [attr.aria-expanded]="developerOpen" (click)="toggleDeveloper()">
+      <span>Developer</span>
+      <av-icon name="chevron-down" [size]="14" />
+    </button>
+    @if (developerOpen) {
+      <button class="experience-overlay-backdrop" type="button" aria-label="Close developer menu" (click)="closeOverlays()"></button>
+      <div class="experience-developer-tools__menu" role="menu" aria-label="Developer experience shortcuts">
+        <div class="experience-developer-tools__label">Review controls</div>
+        <button type="button" role="menuitem" class="experience-explainer-toggle" [attr.aria-pressed]="explainers.enabled()" (click)="toggleExplainers()">
+          Explainers: {{ explainers.enabled() ? 'On' : 'Off' }}
+        </button>
+        <div class="experience-developer-tools__label">Experiences</div>
+        <a routerLink="/access" [queryParams]="{ scenario: 'multiple' }" role="menuitem" (click)="closeOverlays()">Access chooser</a>
+        @for (experience of allExperiences; track experience.id) {
+          <button type="button" role="menuitem" (click)="openDeveloperExperience(experience.id)">{{ displayProductName(experience) }}</button>
+        }
+        <div class="experience-developer-tools__label">Reference</div>
+        <a routerLink="/" role="menuitem" (click)="closeOverlays()">Current staging baseline</a>
+        <a routerLink="/design-lab" role="menuitem" (click)="closeOverlays()">Design Lab</a>
+        <a routerLink="/changelog" role="menuitem" (click)="closeOverlays()">Changelog</a>
+      </div>
+    }
+  </div>
+
+  @if (profileOpen) {
+    <button class="experience-overlay-backdrop" type="button" aria-label="Close profile menu" (click)="closeOverlays()"></button>
+    <div class="experience-profile-menu" role="menu" aria-label="Profile menu">
+      <div class="experience-profile-menu__header">{{ fullName }}</div>
+      <a [routerLink]="routeFor('profile')" (click)="closeOverlays()" role="menuitem">View Profile</a>
+      @if (session?.role === 'admin') {
+        <a [routerLink]="routeFor('manage-users')" (click)="closeOverlays()" role="menuitem">Manage Users</a>
+      }
+      <a [routerLink]="routeFor('support')" (click)="closeOverlays()" role="menuitem">Support</a>
+      @if (availableExperiences.length > 1) {
+        <button type="button" (click)="openChooser()" role="menuitem">Switch product or access</button>
+      }
+      <button type="button" (click)="logout()" role="menuitem" class="experience-profile-menu__logout">Log out</button>
+    </div>
+  }
+</div>

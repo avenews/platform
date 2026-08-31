@@ -163,8 +163,8 @@ requireText(responsiveSpec, 'shared navigation shell matches the customer portal
 requireText(responsiveSpec, 'prototype typography, table alignment, selects, and email truncation stay locked', 'Precision prototype regression test')
 requireText(responsiveSpec, 'Design Lab reflects the pinned package, terminology and locked assets', 'Design Lab final audit test')
 requireText(responsiveSpec, 'prepared staging changelog renders the complete PR baseline entry', 'Staging changelog render test')
-requireText(responsiveSpec, 'email OTP routes through verification before entering the portal', 'Email OTP flow test')
-requireText(responsiveSpec, 'phone OTP routes through verification before entering the portal', 'Phone OTP flow test')
+requireText(responsiveSpec, 'email OTP routes through verification before entering the product selector', 'Email OTP flow test')
+requireText(responsiveSpec, 'phone OTP routes through verification before entering the product selector', 'Phone OTP flow test')
 requireText(responsiveSpec, 'desktop Developer tools are isolated from customer actions and routes', 'Developer menu isolation test')
 requireText(responsiveWorkflow, 'Customer portal responsive audit', 'Responsive audit workflow')
 

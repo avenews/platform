@@ -7,6 +7,7 @@ export type PortalNavIconName =
   | 'receipt'
   | 'help-circle'
   | 'person'
+  | 'building'
 
 /**
  * Exact navigation glyphs used by the current customer portal.
@@ -60,6 +61,14 @@ export type PortalNavIconName =
         @case ('person') {
           <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
           <circle cx="12" cy="7" r="4" />
+        }
+        @case ('building') {
+          <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18" />
+          <path d="M2 22h20" />
+          <path d="M10 6h4" />
+          <path d="M10 10h4" />
+          <path d="M10 14h4" />
+          <path d="M10 18h4" />
         }
       }
     </svg>

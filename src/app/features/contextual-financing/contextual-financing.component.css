@@ -1,0 +1,404 @@
+:host {
+  display: block;
+}
+
+.contextual-financing {
+  display: grid;
+  gap: 24px;
+}
+
+.contextual-financing__hero {
+  display: grid;
+  gap: 6px;
+}
+
+.contextual-financing__hero h1,
+.contextual-financing__hero p {
+  margin: 0;
+}
+
+.contextual-financing__hero h1 {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.contextual-financing__hero > div {
+  display: grid;
+  gap: 6px;
+}
+
+.contextual-financing__hero > div > p:not(.page-eyebrow) {
+  max-width: 820px;
+  margin: 0;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.relationship-section {
+  gap: 16px;
+}
+
+.relationship-section app-customer-filter-bar,
+.relationship-periods-screen app-customer-filter-bar {
+  width: 100%;
+}
+
+.relationship-table,
+[data-product-context="invoice-financing"] .relationship-table {
+  min-width: 720px;
+}
+
+.relationship-row {
+  cursor: pointer;
+}
+
+.relationship-row:hover,
+.relationship-row:focus-visible {
+  background: var(--av-color-primary-subtle, #eefbfc);
+  outline: none;
+}
+
+.relationship-table th:first-child,
+.relationship-table td:first-child {
+  width: 34%;
+}
+
+.relationship-table th:last-child,
+.relationship-table td:last-child {
+  width: 300px;
+}
+
+.relationship-name-button {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.relationship-name-button strong,
+.relationship-upload-source {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 13px;
+}
+
+.relationship-name-button:hover strong,
+.relationship-name-button:focus-visible strong {
+  color: var(--av-color-action, #16b3c4);
+}
+
+.relationship-table__actions,
+.relationship-card__actions {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.relationship-view-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contextual-financing .baseline-button--primary {
+  border-color: var(--av-color-action, #16b3c4);
+  background: var(--av-color-action, #16b3c4);
+  color: var(--av-color-on-action, #fff);
+}
+
+.contextual-financing .baseline-button--primary:hover:not(:disabled),
+.contextual-financing .baseline-button--primary:focus-visible:not(:disabled) {
+  border-color: var(--av-color-action-hover, #1691a4);
+  background: var(--av-color-action-hover, #1691a4);
+  filter: none;
+}
+
+.contextual-financing .baseline-button--primary:disabled {
+  border-color: var(--av-neutral-300, #d0d5dd);
+  background: var(--av-neutral-300, #d0d5dd);
+  color: #fff;
+  opacity: .78;
+}
+
+.relationship-cards {
+  display: none;
+}
+
+.relationship-card__metrics {
+  grid-template-columns: 1fr;
+}
+
+.relationship-modal-backdrop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.relationship-modal {
+  width: min(100%, 720px);
+  max-height: min(88dvh, 860px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin: 0;
+  border-radius: 14px;
+}
+
+.relationship-modal__head {
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 12px;
+}
+
+.relationship-modal__head > div {
+  min-width: 0;
+  display: grid;
+  flex: 1 1 auto;
+  gap: 4px;
+}
+
+.relationship-modal__head p,
+.relationship-modal__head h2 {
+  margin: 0;
+}
+
+.relationship-modal__back {
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 10px;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 8px;
+  background: var(--av-color-surface, #fff);
+  color: var(--av-color-text, #25384a);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.relationship-modal__back:hover,
+.relationship-modal__back:focus-visible {
+  background: var(--av-color-surface-subtle, #f6f7f9);
+}
+
+.relationship-modal__body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.relationship-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.relationship-detail-grid > div {
+  display: grid;
+  gap: 4px;
+  padding: 13px 15px;
+  border-right: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-bottom: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+
+.relationship-detail-grid > div:nth-child(2n) {
+  border-right: 0;
+}
+
+.relationship-detail-grid dt,
+.relationship-detail-grid dd {
+  margin: 0;
+}
+
+.relationship-detail-grid dt {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 11px;
+}
+
+.relationship-detail-grid dd {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.relationship-modal__actions {
+  display: grid;
+  gap: 10px;
+}
+
+.relationship-periods-action {
+  margin-top: 2px;
+}
+
+.relationship-periods-screen {
+  display: grid;
+  gap: 16px;
+}
+
+.relationship-period-list {
+  display: grid;
+  gap: 10px;
+}
+
+.relationship-period-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--av-color-surface-border, #e1e7eb);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.relationship-period-row.is-overdue {
+  border-color: #efb4b4;
+  background: #fff4f4;
+}
+
+.relationship-period-row__main {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.relationship-period-row__main > div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.relationship-period-row__main strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 13px;
+}
+
+.relationship-period-row__main span:not(.baseline-status) {
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 11px;
+}
+
+.relationship-period-row__main .relationship-period-row__available {
+  color: var(--av-color-action, #16b3c4);
+  font-weight: 600;
+}
+
+.relationship-period-row__action {
+  flex: 0 0 auto;
+}
+
+.relationship-period-pagination {
+  margin-top: 0;
+}
+
+.invoice-upload-modal {
+  width: min(100%, 620px);
+}
+
+.invoice-upload-modal__body {
+  display: grid;
+  gap: 16px;
+}
+
+.invoice-upload-modal__intro {
+  margin: 0;
+  color: var(--av-color-text-muted, #66788a);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+@media (max-width: 767px) {
+  .contextual-financing {
+    gap: 20px;
+  }
+
+  .contextual-financing__hero h1 {
+    font-size: 26px;
+  }
+
+  .relationship-section {
+    gap: 14px;
+  }
+
+  .relationship-table-wrap {
+    display: none;
+  }
+
+  .relationship-cards {
+    display: grid;
+    gap: 12px;
+  }
+
+  .relationship-card__metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .relationship-card__actions .baseline-button {
+    flex: 1 1 140px;
+  }
+
+  .relationship-modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .relationship-modal {
+    width: 100%;
+    max-height: 92dvh;
+    border-radius: 18px 18px 0 0;
+    border-bottom: 0;
+  }
+
+  .relationship-modal__head {
+    gap: 8px;
+  }
+
+  .relationship-modal__back {
+    min-height: 34px;
+    padding: 0 8px;
+    font-size: 11px;
+  }
+
+  .relationship-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .relationship-detail-grid > div {
+    border-right: 0;
+  }
+
+  .relationship-period-row {
+    display: grid;
+  }
+
+  .relationship-period-row__main {
+    align-items: flex-start;
+  }
+
+  .relationship-period-row__action {
+    width: 100%;
+  }
+}
