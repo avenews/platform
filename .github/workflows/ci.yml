@@ -28,7 +28,10 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm install
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Check customer portal baseline contract
+        run: npm run check:baseline
 
       - name: Type-check
         run: npm run typecheck

@@ -1,0 +1,52 @@
+<div class="portal-page baseline-page">
+  <div class="baseline-hero">
+    <h1>Profile</h1>
+    <p>View account details and linked business information.</p>
+  </div>
+
+  <div class="profile-grid">
+    <section class="baseline-card">
+      <div class="baseline-card__header"><h2>My Details</h2></div>
+      <div class="baseline-card__body">
+        <dl class="baseline-data-list">
+          <div><dt>Full name</dt><dd>{{ name }}</dd></div>
+          <div><dt>Email</dt><dd>{{ profile.contact.email }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ profile.contact.phone || 'Not added yet' }}</dd></div>
+          <div><dt>Role</dt><dd>{{ roleLabel }}</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="baseline-card">
+      <div class="baseline-card__header"><h2>Linked Business</h2></div>
+      <div class="baseline-card__body">
+        <dl class="baseline-data-list">
+          <div><dt>Business name</dt><dd>{{ profile.business.name }}</dd></div>
+          <div><dt>Relationship</dt><dd>Main linked business</dd></div>
+        </dl>
+        <div style="margin-top:16px">
+          <a routerLink="/" class="baseline-button baseline-button--secondary baseline-button--block">View my business</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="baseline-card">
+      <div class="baseline-card__header"><h2>Account Access</h2></div>
+      <div class="baseline-card__body">
+        <dl class="baseline-data-list">
+          <div><dt>Sign-in</dt><dd>Email or Phone OTP</dd></div>
+          <div><dt>Email</dt><dd>{{ profile.contact.email }}</dd></div>
+          <div><dt>Phone</dt><dd>{{ profile.contact.phone }}</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <section class="baseline-card">
+      <div class="baseline-card__header"><h2>Request a change</h2></div>
+      <div class="baseline-card__body">
+        <p class="profile-helper">To update any of your personal details, business information, or account access, message the Avenews team on WhatsApp. Let us know what you'd like to change and we'll confirm once it's been applied.</p>
+        <button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="openWhatsApp()">Message us on WhatsApp</button>
+      </div>
+    </section>
+  </div>
+</div>

@@ -1,111 +1,289 @@
-.page {
-  width: min(100%, 1180px);
-  margin: 0 auto;
+.home-page {
+  display: grid;
+  gap: var(--av-space-6, 24px);
 }
 
-.page-hero {
-  max-width: 760px;
-  margin-bottom: 32px;
+.home-summary {
+  overflow: hidden;
+  padding: var(--av-space-5, 20px);
 }
 
-.eyebrow {
-  margin: 0 0 8px;
-  color: var(--av-action-dark);
+.home-summary__top {
+  display: grid;
+  gap: var(--av-space-4, 16px);
+}
+
+.home-summary h1 {
+  margin: 0;
+  color: var(--av-color-heading, #0d343f);
+  font-size: 20px;
+  line-height: 1.3;
+}
+
+.available-funds {
+  display: grid;
+  gap: 3px;
+}
+
+.available-funds span,
+.summary-metric span,
+.summary-details dt,
+.activity-heading p,
+.financing-name span,
+.muted-cell,
+.financing-card span,
+.financing-card dt {
+  color: var(--av-color-text-muted, #8b98a8);
+}
+
+.available-funds span {
   font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.05em;
+}
+
+.available-funds strong {
+  color: #091425;
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: clamp(28px, 3vw, 32px);
+  line-height: 1.15;
+}
+
+.summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: var(--av-space-5, 20px);
+}
+
+.summary-metric {
+  min-height: 78px;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 14px 16px;
+  border: 1px solid var(--av-color-border, #dfe4e8);
+  border-radius: 8px;
+  background: #f7f8fa;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
+}
+
+.summary-metric:hover,
+.summary-metric:focus-visible {
+  border-color: var(--av-color-action, #16b3c4);
+  background: var(--av-color-primary-subtle, #eefbfc);
+}
+
+.summary-metric span {
+  font-size: 13px;
+}
+
+.summary-metric strong {
+  color: #101828;
+  font-size: 14px;
+}
+
+.summary-details {
+  margin: var(--av-space-5, 20px) 0 0;
+  overflow: hidden;
+  border: 1px solid var(--av-color-border, #dfe4e8);
+  border-radius: 8px;
+}
+
+.summary-details > div {
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 16px;
+}
+
+.summary-details > div + div {
+  border-top: 1px solid var(--av-color-border, #dfe4e8);
+}
+
+.summary-details dt,
+.summary-details dd {
+  margin: 0;
+  font-size: 13px;
+}
+
+.summary-details dd {
+  color: #101828;
+  font-weight: 600;
+  text-align: right;
+}
+
+.activity-section {
+  display: grid;
+  gap: 12px;
+}
+
+.activity-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.activity-heading h2 {
+  margin: 0;
+  color: var(--av-color-heading, #0d343f);
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.activity-heading p {
+  margin: 2px 0 0;
+  font-size: 13px;
+}
+
+.financing-table {
+  overflow-x: auto;
+  border: 1px solid var(--av-color-border, #dfe4e8);
+  border-radius: 8px;
+  background: var(--av-color-surface, #fff);
+}
+
+.financing-table table {
+  width: 100%;
+  min-width: 1020px;
+  border-collapse: collapse;
+}
+
+.financing-table th,
+.financing-table td {
+  padding: 13px 16px;
+  border-bottom: 1px solid #edf0f2;
+  color: #1d2939;
+  font-size: 13px;
+  line-height: 1.3;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.financing-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  background: #f7f8fa;
+  color: #8b98a8;
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   text-transform: uppercase;
 }
 
-h1 {
-  margin: 0;
-  color: var(--av-heading);
-  font-size: clamp(34px, 6vw, 54px);
-  line-height: 1.05;
+.financing-table tbody tr:last-child td {
+  border-bottom: 0;
 }
 
-.page-hero p:last-child {
-  max-width: 680px;
-  margin: 16px 0 0;
-  color: var(--av-muted);
-  font-size: 17px;
+.financing-name {
+  min-width: 150px;
+  white-space: normal !important;
 }
 
-.summary-card {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 1px;
-  overflow: hidden;
-  border: 1px solid var(--av-border);
-  border-radius: 16px;
-  background: var(--av-border);
-  box-shadow: var(--av-shadow-soft);
+.financing-name strong,
+.financing-name span {
+  display: block;
 }
 
-.summary-card div {
-  min-height: 116px;
-  display: grid;
-  align-content: center;
-  gap: 8px;
-  padding: 20px;
-  background: white;
+.financing-name strong {
+  color: var(--av-color-heading, #0d343f);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.summary-card small {
-  color: var(--av-muted);
+.financing-name span {
+  margin-top: 2px;
+  font-size: 13px;
 }
 
-.summary-card strong {
-  color: var(--av-heading);
-  font-size: 20px;
-}
-
-.next-card {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 24px;
-  padding: 24px;
-  border: 1px solid var(--av-border);
-  border-radius: 16px;
-  background: white;
-}
-
-.next-card h2 {
-  margin: 0 0 8px;
-  color: var(--av-heading);
-}
-
-.next-card p {
-  margin: 0;
-  color: var(--av-muted);
-}
-
-.next-card a {
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 18px;
-  border-radius: 10px;
-  background: var(--av-action);
-  color: white;
+.outstanding-balance {
+  color: #101828 !important;
   font-weight: 700;
-  text-decoration: none;
 }
 
-@media (min-width: 760px) {
-  .summary-card {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+.muted-cell {
+  color: #9aa6b5 !important;
+}
+
+.financing-cards {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .home-page {
+    gap: var(--av-space-5, 20px);
   }
 
-  .next-card {
-    flex-direction: row;
-    align-items: center;
+  .home-summary {
+    padding: var(--av-space-4, 16px);
+  }
+
+  .financing-table {
+    display: none;
+  }
+
+  .financing-cards {
+    display: grid;
+    gap: 12px;
+  }
+
+  .financing-card {
+    padding: 16px;
+  }
+
+  .financing-card__head {
+    display: flex;
+    align-items: flex-start;
     justify-content: space-between;
+    gap: 12px;
   }
 
-  .next-card div {
-    max-width: 720px;
+  .financing-card__head > div {
+    display: grid;
+    gap: 2px;
+  }
+
+  .financing-card__head strong {
+    color: var(--av-color-heading, #0d343f);
+    font-size: 16px;
+  }
+
+  .financing-card__head span {
+    font-size: 13px;
+  }
+
+  .financing-card dl {
+    display: grid;
+    gap: 10px;
+    margin: 16px 0 0;
+  }
+
+  .financing-card dl > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .financing-card dt,
+  .financing-card dd {
+    margin: 0;
+    font-size: 13px;
+  }
+
+  .financing-card dd {
+    color: #1d2939;
+    text-align: right;
+  }
+}
+
+@media (max-width: 480px) {
+  .summary-metrics {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

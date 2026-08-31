@@ -1,0 +1,335 @@
+/*
+ * Customer portal responsive parity overrides.
+ *
+ * Primary source:
+ *   avenews-crm-portals-temp/apps/customer-portal/src/styles/globals.css
+ *
+ * Keep this file narrowly focused on cross-route layout and responsive
+ * behaviour. Route-specific structure stays in the Angular templates.
+ */
+
+.baseline-page {
+  gap: var(--av-space-4, 16px);
+}
+
+.baseline-hero {
+  gap: var(--av-space-2, 8px);
+}
+
+.baseline-hero h1 {
+  color: var(--av-color-text, #111827);
+  font-size: var(--av-font-size-h1, 26px);
+  line-height: var(--av-line-height-snug, 1.2);
+}
+
+.baseline-hero p,
+.baseline-section-heading p,
+.baseline-muted,
+.baseline-helper {
+  color: var(--av-color-text-muted, #6b7280);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-toolbar {
+  gap: var(--av-space-3, 12px);
+}
+
+.baseline-filter {
+  min-width: 0;
+}
+
+.baseline-filter label {
+  color: var(--av-color-text-muted, #6b7280);
+  font-size: var(--av-font-size-xs, 12px);
+  font-weight: var(--av-font-weight-semibold, 600);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.baseline-control,
+.baseline-search,
+.baseline-view-chip,
+.baseline-button {
+  min-height: 36px;
+}
+
+.baseline-control,
+.baseline-search,
+.baseline-textarea {
+  border-color: var(--av-neutral-300, #d1d5db);
+  border-radius: var(--av-radius-sm, 6px);
+  color: var(--av-color-text, #111827);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-search {
+  flex-basis: 320px;
+}
+
+.baseline-button {
+  border-radius: var(--av-radius-md, 8px);
+  font-size: var(--av-font-size-sm, 13px);
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+.baseline-table-wrap {
+  border-color: var(--av-neutral-200, #e5e7eb);
+  border-radius: var(--av-radius-md, 8px);
+}
+
+.baseline-table {
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-table th,
+.baseline-table td {
+  padding: var(--av-space-3, 12px) var(--av-space-4, 16px);
+  color: var(--av-color-text, #111827);
+  font-size: var(--av-font-size-sm, 13px);
+  line-height: var(--av-line-height-normal, 1.4);
+}
+
+.baseline-table th {
+  border-bottom-width: 2px;
+  color: var(--av-color-text-muted, #6b7280);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: 11px;
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+.baseline-financing-cell strong {
+  color: var(--av-color-text-heading, #0d343f);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: var(--av-font-size-md, 14px);
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+.baseline-financing-cell span {
+  color: var(--av-color-text-muted, #6b7280);
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-record-card {
+  gap: var(--av-space-4, 16px);
+  padding: var(--av-space-5, 20px);
+  border-color: var(--av-color-neutral-divider, #ededed);
+  border-radius: var(--av-radius-lg, 12px);
+  box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(16, 24, 40, .06));
+}
+
+.baseline-record-card .baseline-financing-cell strong,
+.invoice-card__partner {
+  font-size: var(--av-font-size-lg, 16px);
+  font-weight: var(--av-font-weight-bold, 700);
+  line-height: 1.25;
+}
+
+.baseline-record-card .baseline-financing-cell span,
+.invoice-card__number,
+.invoice-card__due {
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-metric small {
+  color: var(--av-color-text-muted, #6b7280);
+  font-size: var(--av-font-size-xs, 12px);
+}
+
+.baseline-metric strong {
+  font-size: var(--av-font-size-md, 14px);
+}
+
+.baseline-card {
+  border-color: var(--av-color-neutral-divider, #ededed);
+  border-radius: var(--av-radius-lg, 12px);
+  box-shadow: var(--av-shadow-sm, 0 1px 3px rgba(16, 24, 40, .06));
+}
+
+.baseline-card__header {
+  padding: var(--av-space-5, 20px) var(--av-space-5, 20px) 0;
+}
+
+.baseline-card__body {
+  padding: var(--av-space-4, 16px) var(--av-space-5, 20px) var(--av-space-5, 20px);
+}
+
+.baseline-data-list > div {
+  min-height: 40px;
+}
+
+.baseline-data-list dt,
+.baseline-data-list dd {
+  font-size: var(--av-font-size-sm, 13px);
+}
+
+.baseline-modal-backdrop {
+  align-items: center;
+  padding: var(--av-space-6, 24px);
+}
+
+.baseline-modal,
+.baseline-modal--small {
+  width: min(calc(100% - 32px), 520px);
+  max-height: calc(100dvh - 48px);
+  border-radius: var(--av-radius-lg, 12px);
+}
+
+.baseline-modal--small {
+  width: min(calc(100% - 32px), 420px);
+}
+
+/* Only action flows that were sheets in the source use this modifier. */
+.baseline-modal-backdrop--sheet {
+  align-items: end;
+  padding: 0;
+}
+
+.baseline-modal--sheet {
+  width: 100%;
+  max-height: 92dvh;
+  border-radius: var(--av-radius-xl, 16px) var(--av-radius-xl, 16px) 0 0;
+}
+
+.support-grid,
+.profile-grid {
+  grid-template-columns: 1fr;
+}
+
+.profile-grid .baseline-card {
+  height: 100%;
+}
+
+@media (min-width: 768px) {
+  .support-grid,
+  .profile-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-grid {
+    grid-auto-rows: 1fr;
+    align-items: stretch;
+  }
+
+  .profile-grid .baseline-card {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-grid .baseline-card__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .profile-grid .baseline-card__body > .baseline-button,
+  .profile-grid .baseline-card__body > div:last-child {
+    margin-top: auto;
+  }
+}
+
+@media (max-width: 767px) {
+  .baseline-page {
+    gap: var(--av-space-5, 20px);
+  }
+
+  .baseline-hero h1 {
+    font-size: 26px;
+  }
+
+  .baseline-hero p {
+    font-size: 14px;
+  }
+
+  .baseline-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .baseline-filter,
+  .baseline-search,
+  .baseline-view-chip,
+  .baseline-toolbar > .baseline-button {
+    width: 100%;
+    min-width: 0;
+    margin-left: 0;
+  }
+
+  .baseline-control,
+  .baseline-search,
+  .baseline-view-chip,
+  .baseline-toolbar > .baseline-button,
+  .baseline-card-actions .baseline-button,
+  .quick-help-actions .baseline-button {
+    min-height: 44px;
+  }
+
+  .baseline-table-wrap {
+    display: none;
+  }
+
+  .baseline-cards {
+    display: grid;
+  }
+
+  .baseline-pagination__controls button {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  /* Compact profile/detail data remains label/value on one row where possible. */
+  .baseline-data-list > div {
+    align-items: center;
+    flex-direction: row;
+    gap: var(--av-space-4, 16px);
+  }
+
+  .baseline-data-list dd {
+    text-align: right;
+    overflow-wrap: anywhere;
+  }
+
+  .baseline-modal-backdrop {
+    align-items: center;
+    padding: var(--av-space-6, 24px) var(--av-space-4, 16px);
+  }
+
+  .baseline-modal,
+  .baseline-modal--small {
+    width: 100%;
+    max-height: calc(100dvh - 48px);
+    border-radius: var(--av-radius-lg, 12px);
+  }
+
+  .baseline-modal-backdrop--sheet {
+    align-items: end;
+    padding: 0;
+  }
+
+  .baseline-modal--sheet {
+    max-height: 92dvh;
+    border-radius: var(--av-radius-xl, 16px) var(--av-radius-xl, 16px) 0 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page .summary-metrics {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 400px) {
+  .baseline-form-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .baseline-data-list > div {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--av-space-1, 4px);
+  }
+
+  .baseline-data-list dd {
+    text-align: left;
+  }
+}

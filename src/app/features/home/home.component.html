@@ -1,34 +1,100 @@
-<div class="page">
-  <header class="page-hero">
-    <p class="eyebrow">Angular foundation</p>
-    <h1>Customer portal</h1>
-    <p>The clean root application and Netlify deployment structure are ready for reconstruction.</p>
-  </header>
+<div class="portal-page home-page">
+  <section class="home-summary surface-card" aria-labelledby="business-heading">
+    <div class="home-summary__top">
+      <h1 id="business-heading">{{ businessName }}</h1>
+      <div class="available-funds">
+        <span>Available Funds</span>
+        <strong>Ksh 5,800,000</strong>
+      </div>
+    </div>
 
-  <section class="summary-card" aria-label="Foundation status">
-    <div>
-      <small>Framework</small>
-      <strong>Angular 18</strong>
+    <div class="summary-metrics" aria-label="Financing summary">
+      <a routerLink="/financing-activity" [queryParams]="{ view: 'active' }" class="summary-metric">
+        <span>Active financing periods</span>
+        <strong>3</strong>
+      </a>
+      <a routerLink="/financing-activity" [queryParams]="{ view: 'due' }" class="summary-metric">
+        <span>Payments Due</span>
+        <strong>2</strong>
+      </a>
+      <a routerLink="/financing-activity" [queryParams]="{ view: 'overdue' }" class="summary-metric">
+        <span>Payments Overdue</span>
+        <strong>1</strong>
+      </a>
     </div>
-    <div>
-      <small>Application shape</small>
-      <strong>Standalone</strong>
-    </div>
-    <div>
-      <small>Data</small>
-      <strong>Mock-first</strong>
-    </div>
-    <div>
-      <small>Hosting</small>
-      <strong>Netlify</strong>
-    </div>
+
+    <dl class="summary-details">
+      <div>
+        <dt>Total amount due</dt>
+        <dd>Ksh 2,500,000</dd>
+      </div>
+      <div>
+        <dt>Next payment</dt>
+        <dd>Ksh 320,000 · 25 May 2026</dd>
+      </div>
+    </dl>
   </section>
 
-  <section class="next-card">
-    <div>
-      <h2>Next build phase</h2>
-      <p>Reconstruct the customer portal from the existing UI while reusing the proven Angular shell, service, and responsive-table conventions.</p>
+  <section class="activity-section" aria-labelledby="activity-heading">
+    <div class="activity-heading">
+      <div>
+        <h2 id="activity-heading">Financing Activity</h2>
+        <p>Top 5 active and recent financing periods.</p>
+      </div>
+      <a routerLink="/financing-activity" avButton variant="secondary" size="sm">View all</a>
     </div>
-    <a routerLink="/available-financing">Open route foundation</a>
+
+    <div class="financing-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Financing</th>
+            <th>Disbursement Date</th>
+            <th>Repayment Due Date</th>
+            <th>Amount Financed</th>
+            <th>Status</th>
+            <th>Total Repaid</th>
+            <th>Outstanding Balance</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of financingPeriods; track row.partner + row.product) {
+            <tr>
+              <td class="financing-name">
+                <strong>{{ row.partner }}</strong>
+                <span>{{ row.product }}</span>
+              </td>
+              <td [class.muted-cell]="row.disbursementDate === 'Pending'">{{ row.disbursementDate }}</td>
+              <td [class.muted-cell]="row.repaymentDueDate === '—'">{{ row.repaymentDueDate }}</td>
+              <td>{{ row.amountFinanced }}</td>
+              <td><av-status-badge [label]="row.status" [color]="row.statusColor" /></td>
+              <td [class.muted-cell]="row.totalRepaid === 'Nil'">{{ row.totalRepaid }}</td>
+              <td class="outstanding-balance">{{ row.outstandingBalance }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="financing-cards">
+      @for (row of financingPeriods; track row.partner + row.product) {
+        <article class="financing-card surface-card">
+          <div class="financing-card__head">
+            <div>
+              <strong>{{ row.partner }}</strong>
+              <span>{{ row.product }}</span>
+            </div>
+            <av-status-badge [label]="row.status" [color]="row.statusColor" />
+          </div>
+          <dl>
+            <div><dt>Amount financed</dt><dd>{{ row.amountFinanced }}</dd></div>
+            <div><dt>Disbursement</dt><dd>{{ row.disbursementDate }}</dd></div>
+            <div><dt>Repayment due</dt><dd>{{ row.repaymentDueDate }}</dd></div>
+            <div><dt>Total repaid</dt><dd>{{ row.totalRepaid }}</dd></div>
+            <div><dt>Outstanding</dt><dd><strong>{{ row.outstandingBalance }}</strong></dd></div>
+          </dl>
+        </article>
+      }
+    </div>
   </section>
 </div>

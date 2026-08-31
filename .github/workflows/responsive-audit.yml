@@ -1,0 +1,51 @@
+name: Customer portal responsive audit
+
+on:
+  pull_request:
+    branches:
+      - main
+      - staging
+
+permissions:
+  contents: read
+
+jobs:
+  responsive-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install application dependencies
+        run: npm install --legacy-peer-deps --no-audit --no-fund
+
+      - name: Install pinned Playwright audit dependency
+        run: npm install --no-save --legacy-peer-deps --no-audit --no-fund @playwright/test@1.55.0
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Validate customer portal baseline contract
+        run: npm run check:baseline
+
+      - name: Run responsive route audit
+        run: npx playwright test
+
+      - name: Upload responsive audit evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: customer-portal-responsive-audit
+          path: |
+            test-results
+            playwright-report
+          if-no-files-found: warn
+          retention-days: 14

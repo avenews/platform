@@ -11,7 +11,9 @@
     "build": "ng build --configuration production",
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
-    "typecheck": "tsc --noEmit"
+    "check:baseline": "node scripts/check-customer-portal-baseline.mjs",
+    "typecheck": "tsc --noEmit",
+    "check": "npm run check:baseline && npm run typecheck && npm run build"
   },
   "dependencies": {
     "@angular/animations": "^18.2.0",
@@ -22,6 +24,7 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@avenews/design-system": "file:vendor/avenews-design-system-1.9.0.tgz",
     "rxjs": "~7.8.0",
     "tslib": "^2.6.0",
     "zone.js": "~0.14.0"
