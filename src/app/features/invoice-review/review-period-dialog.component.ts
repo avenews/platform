@@ -81,7 +81,7 @@ type DetailView = 'main' | 'files' | 'payment' | 'request'
 })
 export class ReviewPeriodDialogComponent implements OnChanges {
   readonly store = inject(InvoiceReviewStore)
-  private readonly element = inject(ElementRef<HTMLElement>)
+  private readonly element: ElementRef<HTMLElement> = inject(ElementRef)
   @Input({required:true}) period!: ReviewPeriod
   @Input() role: InvoiceRole = 'supplier'
   @Input() returnLabel = ''
