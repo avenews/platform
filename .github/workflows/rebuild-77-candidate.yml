@@ -49,6 +49,22 @@ jobs:
                   content=''.join(lines)
               path.parent.mkdir(parents=True,exist_ok=True)
               path.write_text(content)
+          # Browser audit found router input binding overwriting the supplier default.
+          p=root/'src/app/features/customer-invoices/customer-invoices.component.ts'
+          s=p.read_text()
+          replacements=[
+            ("@Input() role:InvoicePortalRole='supplier'", "@Input({transform:(value:InvoicePortalRole|undefined)=>value==='partner'?'partner':'supplier'}) role:InvoicePortalRole='supplier'"),
+            ('  readonly sortOptions: readonly CustomerSortOption[] = [','  get sortOptions(): readonly CustomerSortOption[] { return ['),
+            ("{ value: 'buyer-asc', label: 'Buyer / Supplier: A-Z' }", "{ value: 'buyer-asc', label: this.role==='partner'?'Supplier: A-Z':'Buyer: A-Z' }"),
+            ('  ]\n\n  get filterValues','  ] }\n\n  get filterValues'),
+            ('.invoice-workspace--embedded{width:100%;margin:0}', '.invoice-workspace--embedded{width:100%;margin:0}.invoice-workspace--embedded .baseline-pagination__controls{flex-wrap:wrap;justify-content:center}'),
+          ]
+          for old,new in replacements:
+              assert old in s,old
+              s=s.replace(old,new,1)
+          p.write_text(s)
+          p=root/'src/app/features/contextual-home/contextual-home.component.css'
+          p.write_text(p.read_text()+'\n/* Preserve the conditional invoice-upload action on mobile as well. */\n@media(max-width:767px){[data-product-context="invoice-financing"] .contextual-home__primary--hero[data-action="invoice-upload"]{display:inline-flex}}\n')
           Path('/tmp/correction-evidence/changed-paths.json').write_text(json.dumps(list(edits),indent=2))
           print('Rebuilt',len(edits),'changed files from exact preview-77 tree. No rejected replacement UI carried over.')
           PY
@@ -76,7 +92,7 @@ jobs:
           REFERENCE_BASE_URL: https://deploy-preview-77--avenews-platform.netlify.app
         run: |
           set -o pipefail
-          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee /tmp/correction-evidence/browser.log
+          npx playwright test --config invoice-correction.playwright.config.mjs --max-failures=6 2>&1 | tee /tmp/correction-evidence/browser.log
       - name: Create validated candidate commit without changing any branch
         env:
           GH_TOKEN: ${{ github.token }}
