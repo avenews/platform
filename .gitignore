@@ -23,3 +23,7 @@ Thumbs.db
 
 # Netlify local state
 .netlify
+
+/correction-evidence/
+/correction-results/
+/correction-reference/

@@ -27,7 +27,7 @@ while (Date.now() < deadline) {
   await new Promise(resolve => setTimeout(resolve,10000))
 }
 if (!preview) throw new Error('The exact-head Netlify preview did not become ready within ten minutes.')
-await mkdir('review-evidence',{recursive:true})
-await writeFile('review-evidence/deploy.json',JSON.stringify(preview,null,2))
+await mkdir('correction-evidence',{recursive:true})
+await writeFile('correction-evidence/deploy.json',JSON.stringify(preview,null,2))
 if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT,`url=${preview.url}\n`)
 console.log(`Verified commit status and reachable preview: ${preview.url} @ ${sha}`)

@@ -1,19 +1,15 @@
-name: Invoice portal review checks
-
+name: Invoice portal baseline corrections
 on:
   pull_request:
     branches: [stefan]
-
 permissions:
   contents: read
   statuses: read
-
 concurrency:
-  group: invoice-review-${{ github.head_ref || github.ref }}
+  group: invoice-correction-${{ github.event.pull_request.number }}
   cancel-in-progress: true
-
 jobs:
-  invoice-review:
+  correction:
     if: github.head_ref == 'stefan-invoice-partner-review'
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -21,50 +17,49 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.sha }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
-      - name: Install application and audit dependencies
-        run: |
-          npm install --legacy-peer-deps --no-audit --no-fund
+      - run: |
+          npm ci --legacy-peer-deps --no-audit --no-fund
           npm install --no-save --legacy-peer-deps --no-audit --no-fund @playwright/test@1.55.0 esbuild@0.25.9
       - name: Baseline, typecheck and production build
         run: |
-          mkdir -p review-evidence
+          mkdir -p correction-evidence
           set -o pipefail
-          npm run check 2>&1 | tee review-evidence/build.log
-      - name: Invoice review domain checks
+          npm run check 2>&1 | tee correction-evidence/build.log
+      - name: Original records and new behaviour checks
         run: |
           set -o pipefail
-          node scripts/test-invoice-review.mjs 2>&1 | tee review-evidence/domain.log
-      - name: Install Chromium
-        run: npx playwright install --with-deps chromium
-      - name: Responsive interaction checks
+          node scripts/test-invoice-correction.mjs 2>&1 | tee correction-evidence/domain.log
+      - run: npx playwright install --with-deps chromium
+      - name: Original styling and responsive interaction checks
+        env:
+          REFERENCE_BASE_URL: https://deploy-preview-77--avenews-platform.netlify.app
         run: |
           set -o pipefail
-          npx playwright test --config invoice-review.playwright.config.mjs 2>&1 | tee review-evidence/interactions.log
-      - name: Resolve exact-head Netlify Deploy Preview
+          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee correction-evidence/local.log
+      - name: Wait for exact-head Netlify preview
         id: preview
         env:
           GITHUB_TOKEN: ${{ github.token }}
           REVIEW_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: node scripts/wait-invoice-review-preview.mjs
-      - name: Verify deployed desktop, tablet and mobile journeys
+      - name: Verify the deployed corrections against preview 77
         env:
           REVIEW_BASE_URL: ${{ steps.preview.outputs.url }}
+          REFERENCE_BASE_URL: https://deploy-preview-77--avenews-platform.netlify.app
         run: |
           set -o pipefail
-          npx playwright test --config invoice-review.playwright.config.mjs 2>&1 | tee review-evidence/deployed-interactions.log
-      - name: Preserve review evidence
+          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee correction-evidence/deployed.log
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: invoice-review-evidence-${{ github.event.pull_request.head.sha }}
+          name: invoice-correction-${{ github.event.pull_request.head.sha }}
           path: |
-            review-evidence
-            review-test-results
-            review-playwright-report
-          if-no-files-found: warn
+            correction-evidence
+            correction-results
           retention-days: 14

@@ -402,3 +402,5 @@
     width: 100%;
   }
 }
+
+.invoice-upload-owner{font-size:12px;color:var(--av-color-text-muted,#66788a)}
