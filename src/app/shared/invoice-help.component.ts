@@ -13,6 +13,12 @@ import { AvTooltipComponent } from '@avenews/design-system/angular'
     body:has(app-invoice-upload [aria-modal="true"]) [data-netlify-deploy-id],
     body:has([data-product-context="invoice-financing"]):has(app-customer-financing-period-modal [aria-modal="true"]) [data-netlify-deploy-id],
     body:has(app-partner-workspace [aria-modal="true"]) [data-netlify-deploy-id]{visibility:hidden!important;pointer-events:none!important}
+    /* On mobile the host toolbar covers the fixed product navigation as well.
+       Keep both invoice portals reviewable without moving their original navigation. */
+    @media(max-width:767px){
+      body:has(.experience-bottom-nav__item[href^="/experience/invoice-financing/"]) [data-netlify-deploy-id],
+      body:has(.experience-bottom-nav__item[href^="/experience/invoice-partner/"]) [data-netlify-deploy-id]{visibility:hidden!important;pointer-events:none!important}
+    }
   `],
 })
 export class InvoiceHelpComponent { @Input() text=''; @Input() label='More information' }
