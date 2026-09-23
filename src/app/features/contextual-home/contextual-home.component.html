@@ -5,6 +5,7 @@
         <h1>{{ product.heading }}</h1>
         <p>{{ homeIntro }}</p>
       </div>
+      @if(product.id!=='invoice-financing'||canUploadInvoices){
       <button
         type="button"
         class="baseline-button contextual-home__primary contextual-home__primary--hero"
@@ -14,13 +15,14 @@
         [attr.title]="product.id === 'invoice-financing' ? 'Upload invoices for a buyer' : primaryActionLabel"
         (click)="primaryAction()"
       >{{ primaryActionLabel }}</button>
+      }
     </section>
 
     <section class="contextual-metrics customer-product-summary" [attr.aria-label]="product.heading + ' summary'">
       <article class="contextual-metric baseline-card customer-summary-card customer-available-financing">
-        <span>Available Financing</span>
-        <strong>{{ formatKes(product.availableMetricValue) }}</strong>
-        <small>{{ availableMetricHelper }}</small>
+        <span>Available Financing@if(product.id==='invoice-financing'){<app-invoice-help label="Available Financing" text="The total available to request across eligible financing periods, within your approved limit. This is not the full credit limit." />}</span>
+        <strong>{{ formatKes(product.id==='invoice-financing'?invoiceAvailable:product.availableMetricValue) }}</strong>
+        <small>{{ availableMetricHelper }}@if(product.id==='invoice-financing'){<br>Total approved limit: <b>{{formatKes(invoiceFacility.approvedLimit)}}</b>}</small>
         <button
           type="button"
           class="baseline-button baseline-button--primary customer-available-financing__mobile-action"
@@ -38,13 +40,14 @@
       </article>
 
       <article class="contextual-metric baseline-card customer-summary-card">
-        <span>Outstanding Amount</span>
-        <strong>{{ formatKes(product.outstandingMetricValue) }}</strong>
+        <span>Outstanding Amount@if(product.id==='invoice-financing'){<app-invoice-help label="Outstanding Amount" text="Financing already disbursed that has not yet been repaid from buyer payments. Pending Funds Requests are not included." />}</span>
+        <strong>{{ formatKes(product.id==='invoice-financing'?invoiceOutstanding:product.outstandingMetricValue) }}</strong>
         <small>{{ outstandingMetricHelper }}</small>
+        @if(product.id==='invoice-financing'){<button type="button" class="baseline-button baseline-button--secondary customer-payments-due__action" (click)="filterOutstanding()">View outstanding periods</button>}
       </article>
 
       <article class="contextual-metric baseline-card customer-summary-card customer-payments-due">
-        <span>{{ dueMetricLabel }}</span>
+        <span>{{ dueMetricLabel }}@if(product.id==='invoice-financing'){<app-invoice-help label="Buyer Payments Due" text="The number of financed periods with buyer payments due. Includes upcoming and overdue payments; excludes periods without disbursed financing." />}</span>
         <strong>{{ dueCountLabel }}</strong>
         <small>{{ dueSplitLabel }}</small>
         <button
@@ -57,6 +60,13 @@
       </article>
     </section>
 
+    @if(product.id==='invoice-financing'){
+      <section class="invoice-explanation" aria-labelledby="invoice-explanation-title">
+        <h2 id="invoice-explanation-title">What this means</h2>
+        <p>You can request up to <strong>{{formatKes(invoiceAvailable)}}</strong> across <strong>{{invoiceEligiblePeriods.length}} eligible financing periods</strong>. Your total approved financing limit is <strong>{{formatKes(invoiceFacility.approvedLimit)}}</strong>, with <strong>{{formatKes(invoiceOutstanding)}}</strong> in disbursed financing still outstanding.</p>
+        <p>As buyer payments settle your financing, your available credit increases. The amount you can request also depends on eligible invoices and the limit for each buyer.</p>
+      </section>
+    }
     <section id="customer-financing-activity" class="baseline-section customer-financing-activity">
       <div class="customer-activity-toolbar">
         <div class="baseline-section-heading">
@@ -81,12 +91,12 @@
         <table class="baseline-table customer-activity-table">
           <thead>
             <tr>
-              <th title="Financing reference and supplier or buyer.">Reference</th>
-              <th [attr.title]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'">{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}</th>
-              <th [attr.title]="product.id === 'invoice-financing' ? 'Additional financing currently available.' : 'Amount financed by Avenews.'">{{ product.id === 'invoice-financing' ? 'Available Financing' : 'Amount Financed' }}</th>
-              <th title="Current financing status.">Status</th>
-              <th title="Amount still outstanding.">{{ product.outstandingColumnLabel }}</th>
-              <th title="Open financing details or request funds.">Action</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Financing reference and supplier or buyer.'">Reference@if(product.id==='invoice-financing'){<app-invoice-help text="Financing reference and supplier or buyer." />}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Date this financing is due for repayment.'">{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}@if(product.id==='invoice-financing'){<app-invoice-help [text]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'" />}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Amount financed by Avenews.'">{{ product.id === 'invoice-financing' ? 'Available Financing' : 'Amount Financed' }}@if(product.id==='invoice-financing'){<app-invoice-help [text]="product.id === 'invoice-financing' ? 'Additional financing currently available.' : 'Amount financed by Avenews.'" />}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Current financing status.'">Status@if(product.id==='invoice-financing'){<app-invoice-help text="Current financing status." />}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Amount still outstanding.'">{{ product.outstandingColumnLabel }}@if(product.id==='invoice-financing'){<app-invoice-help text="Amount still outstanding." />}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Open financing details or request funds.'">Action@if(product.id==='invoice-financing'){<app-invoice-help text="Open financing details or request funds." />}</th>
             </tr>
           </thead>
           <tbody>
@@ -208,81 +218,12 @@
     </section>
 
     <section class="contextual-metrics" aria-label="Partner summary">
-      @for (metric of experience.metrics; track metric.label) {
-        <article class="contextual-metric baseline-card">
-          <span>{{ metric.label }}</span>
-          <strong>{{ metric.value }}</strong>
-          <small>{{ metric.helper }}</small>
-        </article>
-      }
+      <article class="contextual-metric baseline-card"><span>Invoices Uploaded<app-invoice-help label="Invoices Uploaded" text="Invoices received from your supplier uploads, including those awaiting correction." /></span><strong>128</strong><small>126 processed, 2 need attention</small></article>
+      <article class="contextual-metric baseline-card"><span>Payments Due<app-invoice-help label="Payments Due" text="The invoice balance payable across unpaid supplier financing periods." /></span><strong>{{formatKes(partnerAmountDue)}}</strong><small>Across unpaid supplier periods</small></article>
+      <article class="contextual-metric baseline-card"><span>Rebate due<app-invoice-help label="Rebate due" text="Your earned rebate on principal collected by Avenews, less rebate payments already made to you." /></span><strong>{{formatKes(rebateDue)}}</strong><small>Across your supplier relationships</small><button type="button" class="baseline-button baseline-button--secondary" (click)="rebateOpen=true">View rebate breakdown</button></article>
     </section>
+    <app-partner-workspace section="obligations" [embeddedPayments]="true" />
 
-    <section class="baseline-section partner-home-payments" aria-labelledby="partner-home-payments-title">
-      <div class="baseline-section-heading">
-        <div>
-          <h2 id="partner-home-payments-title">Payments needing attention</h2>
-          <p>Overdue payments are shown first, followed by upcoming payments.</p>
-        </div>
-        <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View all payments</button>
-      </div>
-
-      <div class="baseline-table-wrap">
-        <table class="baseline-table partner-home-payments-table">
-          <thead><tr><th>Supplier</th><th>Due Date</th><th>Amount to Pay</th><th>Status</th><th>Action</th></tr></thead>
-          <tbody>
-            @for (payment of partnerHomePayments; track payment.id) {
-              <tr [class.is-overdue]="payment.status === 'Overdue'">
-                <td><span class="baseline-financing-cell"><strong>{{ payment.supplier }}</strong><span>{{ payment.reference }}</span></span></td>
-                <td>{{ formatDate(payment.dueDate, true) }}</td>
-                <td><strong>{{ formatKes(payment.amount) }}</strong></td>
-                <td><span class="baseline-status" [class]="'baseline-status ' + payment.tone">{{ payment.status }}</span></td>
-                <td><button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View payment</button></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="baseline-cards partner-home-payment-cards">
-        @for (payment of partnerHomePayments; track payment.id) {
-          <article class="baseline-record-card partner-home-payment-card" [class.is-overdue]="payment.status === 'Overdue'">
-            <div class="baseline-record-card__head">
-              <span class="baseline-financing-cell"><strong>{{ payment.supplier }}</strong><span>{{ payment.reference }}</span></span>
-              <span class="baseline-status" [class]="'baseline-status ' + payment.tone">{{ payment.status }}</span>
-            </div>
-            <div class="baseline-metrics">
-              <span class="baseline-metric"><small>Due Date</small><strong>{{ formatDate(payment.dueDate, true) }}</strong></span>
-              <span class="baseline-metric"><small>Amount to Pay</small><strong>{{ formatKes(payment.amount) }}</strong></span>
-            </div>
-            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="takePartnerAction('view-obligations')">View payment</button>
-          </article>
-        }
-      </div>
-    </section>
-
-    <section class="baseline-section partner-home-workspaces" aria-labelledby="partner-workspaces-title">
-      <div class="baseline-section-heading">
-        <div>
-          <h2 id="partner-workspaces-title">Supplier financing</h2>
-          <p>Choose a supplier to view its financing periods and payments.</p>
-        </div>
-      </div>
-
-      <div class="partner-home-workspace-grid">
-        <article class="baseline-card partner-home-workspace-card">
-          <div><p class="page-eyebrow">Payments</p><h3>Supplier payments</h3><p>Track upcoming, overdue and completed supplier payments.</p></div>
-          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-obligations')">View payments</button>
-        </article>
-        <article class="baseline-card partner-home-workspace-card">
-          <div><p class="page-eyebrow">Suppliers</p><h3>Financing periods</h3><p>View a supplier's financing periods and payments.</p></div>
-          <button type="button" class="baseline-button baseline-button--primary" (click)="takePartnerAction('view-suppliers')">View suppliers</button>
-        </article>
-        <article class="baseline-card partner-home-workspace-card">
-          <div><p class="page-eyebrow">Invoices</p><h3>Supplier invoices</h3><p>Upload supplier invoices and see which financing periods were updated.</p></div>
-          <button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-invoice-uploads')">View invoices</button>
-        </article>
-      </div>
-    </section>
   }
 </div>
 
@@ -300,4 +241,19 @@
 
 @if (toast) {
   <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button>
+}
+
+@if(invoiceUploadOpen){<app-invoice-upload (close)="invoiceUploadOpen=false" />}
+@if(rebateOpen){
+ <div class="baseline-modal-backdrop invoice-rebate-backdrop" role="presentation" (click)="rebateOpen=false">
+  <section class="baseline-modal invoice-rebate-modal" invoiceDialogFocus (dialogEscape)="rebateOpen=false" role="dialog" aria-modal="true" aria-labelledby="rebate-title" (click)="$event.stopPropagation()">
+   <header class="baseline-modal__head"><h2 id="rebate-title">Rebate breakdown</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="rebateOpen=false">&times;</button></header>
+   <div class="baseline-modal__body invoice-rebate-body"><p>Total rebate due: <strong>{{formatKes(rebateDue)}}</strong></p>
+    <div class="baseline-table-wrap"><table class="baseline-table"><thead><tr><th>Supplier<app-invoice-help text="The supplier relationship that generated the rebate." /></th><th>Principal collected<app-invoice-help text="Financed principal collected by Avenews. Not invoice value or disbursements." /></th><th>Rebate rate<app-invoice-help text="The rebate rate configured for this supplier relationship." /></th><th>Earned<app-invoice-help text="Principal collected multiplied by the rebate rate." /></th><th>Paid<app-invoice-help text="Rebate already paid to you." /></th><th>Due<app-invoice-help text="Earned rebate less rebate already paid." /></th></tr></thead><tbody>
+     @for(rebate of rebates;track rebate.supplierId){<tr><td>{{rebate.supplier}}</td><td>{{formatKes(rebate.collected)}}</td><td>{{rebate.rate*100}}%</td><td>{{formatKes(rebate.earned)}}</td><td>{{formatKes(rebate.paid)}}</td><td><strong>{{formatKes(rebate.due)}}</strong></td></tr>}
+    </tbody></table></div>
+    <div class="invoice-rebate-cards">@for(rebate of rebates;track rebate.supplierId){<article class="baseline-record-card"><strong>{{rebate.supplier}}</strong><div class="baseline-metrics"><span class="baseline-metric"><small>Principal collected</small><strong>{{formatKes(rebate.collected)}}</strong></span><span class="baseline-metric"><small>Rebate rate</small><strong>{{rebate.rate*100}}%</strong></span><span class="baseline-metric"><small>Earned</small><strong>{{formatKes(rebate.earned)}}</strong></span><span class="baseline-metric"><small>Paid</small><strong>{{formatKes(rebate.paid)}}</strong></span><span class="baseline-metric"><small>Due</small><strong>{{formatKes(rebate.due)}}</strong></span></div></article>}</div>
+   </div>
+  </section>
+ </div>
 }

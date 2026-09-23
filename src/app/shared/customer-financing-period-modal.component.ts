@@ -1,3 +1,6 @@
+import { CustomerInvoicesComponent } from '../features/customer-invoices/customer-invoices.component'
+import { inject } from '@angular/core'
+import { InvoiceDocumentsStore, invoiceCanRequest } from '../core/experience/invoice-portal.data'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -35,6 +38,7 @@ const MPESA_DETAILS = [
 @Component({
   selector: 'app-customer-financing-period-modal',
   standalone: true,
+  imports:[CustomerInvoicesComponent],
   template: `
     @if (period && !repaymentOpen && !documentsOpen) {
       <div class="baseline-modal-backdrop customer-period-backdrop" role="presentation" (click)="close.emit()">
@@ -107,6 +111,9 @@ const MPESA_DETAILS = [
                 <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openRepayment()">{{ repaymentActionLabel }}</button>
               }
             </div>
+            @if(productId==='invoice-financing'){
+              <details class="invoice-period-area"><summary>Invoices ({{periodInvoices.length}})</summary><app-customer-invoices [embedded]="true" [periodId]="period.id" /></details>
+            }
           </div>
         </section>
       </div>
@@ -162,6 +169,10 @@ const MPESA_DETAILS = [
   `,
   styles: [`
     :host { display: contents; }
+    .invoice-period-area{min-width:0;border-top:1px solid var(--av-color-surface-border,#e1e7eb);padding-top:16px}
+    .invoice-period-area summary{cursor:pointer;font-weight:700;font-size:16px;color:var(--av-color-text-heading);padding:4px 0}
+    .invoice-period-area[open] summary{margin-bottom:16px}
+
     .customer-period-backdrop { display:flex; align-items:center; justify-content:center; padding:24px; }
     .customer-period-modal { width:min(100%,720px); max-height:min(88dvh,860px); display:flex; flex-direction:column; overflow:hidden; margin:0; border-radius:14px; }
     .customer-period-modal__head { flex:0 0 auto; }
@@ -224,6 +235,8 @@ const MPESA_DETAILS = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerFinancingPeriodModalComponent implements OnChanges {
+  private readonly invoiceStore=inject(InvoiceDocumentsStore)
+  get periodInvoices(){return this.period?this.invoiceStore.periodInvoices(this.period.id,'supplier'):[]}
   @Input() period: CustomerFinancingPeriod | null = null
   @Input() productId = ''
   @Input() dueDateLabel = 'Repayment Due Date'
@@ -263,7 +276,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   }
 
   get periodDocuments() {
-    return this.period ? documentsForPeriod(this.period.id) : []
+    return this.period ? [...documentsForPeriod(this.period.id),...this.invoiceStore.deliveryFiles().filter(f=>f.periodId===this.period?.id)] : []
   }
 
   get overdueInstalments(): readonly CustomerInstalment[] {
@@ -274,11 +287,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     if (this.productId !== 'invoice-financing' || !this.period) return false
     if ((this.period.availableToWithdraw ?? 0) <= 0) return false
     if (this.period.statusKey !== 'live' && this.period.statusKey !== 'requested') return false
-    const dueDate = new Date(`${this.period.repaymentDueDate}T00:00:00`)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const daysToDue = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
-    return daysToDue >= 7 && daysToDue <= 60
+    return invoiceCanRequest(this.period)
   }
 
   get repaymentActionLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Payment details' : 'Repayment details' }

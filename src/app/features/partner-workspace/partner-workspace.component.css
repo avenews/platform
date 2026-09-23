@@ -525,3 +525,5 @@
     grid-template-columns: 1fr;
   }
 }
+
+.partner-period-invoices{min-width:0;border-top:1px solid var(--av-color-surface-border,#e1e7eb);padding-top:16px}.partner-period-invoices summary{cursor:pointer;font-weight:700;font-size:16px;color:var(--av-color-text-heading);padding:4px 0}.partner-period-invoices[open] summary{margin-bottom:16px}.partner-invoice-records{min-width:0;display:grid;gap:16px}
