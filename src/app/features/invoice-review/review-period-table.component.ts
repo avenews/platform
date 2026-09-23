@@ -52,7 +52,7 @@ export class ReviewPeriodTableComponent {
       .sort((a,b) => Number(this.store.paymentStatus(b) === 'Overdue') - Number(this.store.paymentStatus(a) === 'Overdue') || a.dueDate.localeCompare(b.dueDate))
   }
   get rows(): ReviewRow[] {
-    return this.periods.map(p => {
+    return this.periods.map((p): ReviewRow => {
       const relationship = this.store.relationship(p.relationshipId)
       if (this.role === 'partner') return {id:p.id, open:'period', overdue:this.store.paymentStatus(p) === 'Overdue', cells:{
         name:{text:relationship.supplier}, reference:{text:p.reference},
