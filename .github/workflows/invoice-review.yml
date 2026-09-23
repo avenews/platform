@@ -1,0 +1,60 @@
+name: Invoice portal review checks
+
+on:
+  push:
+    branches: [stefan-invoice-partner-review]
+  pull_request:
+    branches: [stefan]
+
+permissions:
+  contents: read
+  statuses: read
+
+concurrency:
+  group: invoice-review-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  invoice-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install application and audit dependencies
+        run: |
+          npm install --legacy-peer-deps --no-audit --no-fund
+          npm install --no-save --legacy-peer-deps --no-audit --no-fund @playwright/test@1.55.0 esbuild@0.25.9
+      - name: Baseline, typecheck and production build
+        run: |
+          mkdir -p review-evidence
+          set -o pipefail
+          npm run check 2>&1 | tee review-evidence/build.log
+      - name: Invoice review domain checks
+        run: |
+          set -o pipefail
+          node scripts/test-invoice-review.mjs 2>&1 | tee review-evidence/domain.log
+      - name: Install Chromium
+        if: ${{ hashFiles('invoice-review.playwright.config.mjs') != '' }}
+        run: npx playwright install --with-deps chromium
+      - name: Responsive interaction checks
+        if: ${{ hashFiles('invoice-review.playwright.config.mjs') != '' }}
+        run: |
+          set -o pipefail
+          npx playwright test --config invoice-review.playwright.config.mjs 2>&1 | tee review-evidence/interactions.log
+      - name: Preserve review evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: invoice-review-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          path: |
+            review-evidence
+            review-test-results
+            review-playwright-report
+          if-no-files-found: warn
+          retention-days: 14
