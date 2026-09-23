@@ -2,7 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core'
 import { customerWorkspaceById } from '../../core/experience/customer-product-workspace.data'
 import { invoiceFinancingInvoices } from '../../core/experience/financing-documents.data'
 
-/** Fictional review data only. No CRM, bank or storage API is called. */
+/** Browser-only, fictional review fixtures. Never calls a CRM, bank or storage API. */
 export const REVIEW_DATE = '2026-09-23'
 export const REVIEW_LIMIT = 3_000_000
 export type InvoiceRole = 'supplier' | 'partner'
@@ -31,21 +31,29 @@ export interface UploadGroup {
   id: string; relationshipId: string; dueDate: string; files: File[]; pod: File[]
 }
 export interface UploadReceipt {
-  id: string; role: InvoiceRole; createdAt: string; actor: string; actorId: string
+  id: string; role: InvoiceRole; createdAt: string; confirmedAt: string; actor: string; actorId: string
   confirmation: string; groupCount: number; fileCount: number; groups: {
     relationshipId: string; dueDate: string; invoiceNames: string[]; podNames: string[]
   }[]
 }
+export interface ReviewAttachment {
+  id: string; periodId?: string; relationshipId: string; fileName: string; fileUrl: string
+}
 export const DELIVERY_CONFIRMATION = 'I confirm that all submitted invoices reflect completed deliveries, not pre-delivery or disputed invoices.'
-export const FILE_POLICY = { maxGroups: 20, maxFiles: 10, maxBytes: 10 * 1024 * 1024,
-  extensions: ['pdf', 'jpg', 'jpeg', 'png', 'csv', 'xlsx'] }
+export const FILE_POLICY = {
+  maxGroups: 20, maxFiles: 10, maxBytes: 10 * 1024 * 1024,
+  extensions: ['pdf', 'jpg', 'jpeg', 'png', 'csv', 'xlsx'],
+  documentExtensions: ['pdf', 'jpg', 'jpeg', 'png'],
+}
 export function dateDays(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / 86_400_000)
 }
 export function positive(value: number): number { return Math.max(0, Math.round(value * 100) / 100) }
+export function percent(value: number): string { return `${Number((value * 100).toFixed(3))}%` }
 function demoAccount(supplier: string, id: string): ClearingAccount {
   return { bank: 'Demo bank - do not pay', name: `Demo clearing account - ${supplier}`,
-    number: `DEMO-${id.toUpperCase()}`, branch: 'Demo branch', branchCode: 'DEMO' }
+    number: `DEMO-${id.toUpperCase()}`, branch: 'Demo branch', branchCode: 'DEMO',
+    ...(id === 'inf-twiga' ? { paybill: 'DEMO-PAYBILL', mpesaReference: 'DEMO-KIOKO' } : {}) }
 }
 
 @Injectable({ providedIn: 'root' })
@@ -58,6 +66,8 @@ export class InvoiceReviewStore implements OnDestroy {
   readonly periods: ReviewPeriod[] = []
   readonly invoices: ReviewInvoice[] = []
   readonly receipts: UploadReceipt[] = []
+  readonly attachments: ReviewAttachment[] = []
+  readonly requests: {id: string; periodId: string; amount: number; createdAt: string}[] = []
   private readonly objectUrls: string[] = []
   private sequence = 0
 
@@ -74,8 +84,7 @@ export class InvoiceReviewStore implements OnDestroy {
     })
     for (const p of workspace.periods) this.periods.push({
       id: p.id, reference: p.reference, relationshipId: p.relationshipId,
-      dueDate: p.repaymentDueDate, disbursed: p.amountFinanced,
-      principalCollected: p.totalRepaid,
+      dueDate: p.repaymentDueDate, disbursed: p.amountFinanced, principalCollected: p.totalRepaid,
       buyerPaid: p.statusKey === 'repaid' ? (p.eligibleReceivables ?? 0) : p.totalRepaid,
       reserved: p.statusKey === 'requested' ? 292_000 : 0,
       disbursedDate: p.disbursementDate, closed: p.statusKey === 'repaid',
@@ -88,11 +97,10 @@ export class InvoiceReviewStore implements OnDestroy {
         status: d.status ?? 'Under review', eligible: d.status !== 'Not financed',
         fileName: d.fileName, fileUrl: d.fileUrl })
     }
-    // Explicit demo records without source files complete the original period totals.
+    // Explicit records without files reconcile the original demonstration totals.
     this.addInvoice('inf-twiga-requested', 'DEMO-TWIGA-1015', 720_000, 'Eligible', true)
     this.addInvoice('inf-fresh-overdue', 'DEMO-FRESH-0815', 300_000, 'Overdue', true)
     this.addInvoice('inf-fresh-repaid', 'DEMO-FRESH-0630', 500_000, 'Paid', true)
-
     const seeds = [
       ['nairobi', 'Nairobi Fresh Traders Ltd', 940000, 400000, 200000, '2026-09-30', 6],
       ['makueni', 'Makueni Produce Company', 180000, 0, 180000, '2026-07-31', 2],
@@ -115,7 +123,6 @@ export class InvoiceReviewStore implements OnDestroy {
         relationshipId, dueDate, disbursed, principalCollected: Math.min(disbursed, paid),
         buyerPaid: paid, reserved: 0, disbursedDate: disbursed ? '2026-08-01' : undefined,
         closed: paid >= value })
-      // These are generated review fixtures, never extracted or imported invoice records.
       const portion = Math.floor(value / count)
       for (let i = 0; i < count; i++) this.addInvoice(periodId, `DEMO-${id.toUpperCase()}-${i + 1}`,
         i === count - 1 ? value - portion * i : portion, paid >= value ? 'Paid' : 'Approved', true)
@@ -129,7 +136,7 @@ export class InvoiceReviewStore implements OnDestroy {
   }
   relationship(id: string): ReviewRelationship {
     const r = this.relationships.find(item => item.id === id)
-    if (!r) throw new Error('This financing relationship is not available.')
+    if (!r) throw new Error('Choose an available financing relationship.')
     return r
   }
   relationshipsFor(role: InvoiceRole): ReviewRelationship[] {
@@ -145,23 +152,21 @@ export class InvoiceReviewStore implements OnDestroy {
   }
   periodInvoices(p: ReviewPeriod): ReviewInvoice[] { return this.invoices.filter(i => i.periodId === p.id) }
   relationshipPeriods(r: ReviewRelationship): ReviewPeriod[] { return this.periods.filter(p => p.relationshipId === r.id) }
-  invoiceValue(p: ReviewPeriod): number { return this.periodInvoices(p).reduce((n, i) => n + (i.amount ?? 0), 0) }
-  eligibleValue(p: ReviewPeriod): number { return this.periodInvoices(p).filter(i => i.eligible).reduce((n, i) => n + (i.amount ?? 0), 0) }
+  invoiceValue(p: ReviewPeriod): number { return this.periodInvoices(p).reduce((n,i) => n + (i.amount ?? 0), 0) }
+  eligibleValue(p: ReviewPeriod): number { return this.periodInvoices(p).filter(i => i.eligible).reduce((n,i) => n + (i.amount ?? 0), 0) }
   outstanding(p: ReviewPeriod): number { return p.disbursedDate ? positive(p.disbursed - p.principalCollected) : 0 }
   amountToPay(p: ReviewPeriod): number { return positive(this.invoiceValue(p) - p.buyerPaid) }
   paymentStatus(p: ReviewPeriod): string {
     if (this.amountToPay(p) === 0) return 'Paid'
     if (dateDays(this.asOf, p.dueDate) < 0) return 'Overdue'
     if (p.processing) return 'Processing'
-    if (p.buyerPaid > 0) return 'Part paid'
-    return 'Upcoming'
+    return p.buyerPaid > 0 ? 'Part paid' : 'Upcoming'
   }
   periodStatus(p: ReviewPeriod): string {
     if (p.closed) return 'Settled'
     const days = dateDays(this.asOf, p.dueDate)
     if (days < 0) return p.disbursed > 0 ? 'Overdue' : 'Expired'
-    if (days < this.relationship(p.relationshipId).minDays) return 'Cutoff'
-    return 'Open'
+    return days < this.relationship(p.relationshipId).minDays ? 'Cutoff' : 'Open'
   }
   withinWindow(p: ReviewPeriod): boolean {
     const r = this.relationship(p.relationshipId), days = dateDays(this.asOf, p.dueDate)
@@ -184,13 +189,20 @@ export class InvoiceReviewStore implements OnDestroy {
     return Math.min(this.relationshipPeriods(r).reduce((n,p) => n + this.invoiceCapacity(p), 0), this.buyerHeadroom(r), this.headroom)
   }
   get availableTotal(): number {
-    // Apply the global cap once: adding individually capped periods double-counts shared credit.
+    // Apply the shared global cap once, not once per period/relationship.
     return Math.min(this.headroom, this.relationshipsFor('supplier').reduce((n,r) => n + this.relationshipAvailable(r), 0))
+  }
+  availabilityReason(p: ReviewPeriod): string {
+    if (!this.withinWindow(p)) return 'Outside the funding window. Uploading does not reopen it.'
+    if (!this.eligibleValue(p)) return 'No eligible receivables are available for this period.'
+    if (!this.invoiceCapacity(p)) return 'The eligible invoice capacity is already financed or reserved.'
+    if (this.headroom <= Math.min(this.invoiceCapacity(p), this.buyerHeadroom(this.relationship(p.relationshipId)))) return 'Limited by your remaining total approved credit.'
+    if (this.buyerHeadroom(this.relationship(p.relationshipId)) <= this.invoiceCapacity(p)) return 'Limited by the remaining buyer sub-limit.'
+    return 'Based on eligible invoices, less financing already drawn and reserved requests.'
   }
   rebate(r: ReviewRelationship): { collected: number; earned: number; paid: number; due: number } {
     const collected = this.relationshipPeriods(r).reduce((n,p) => n + p.principalCollected, 0)
-    const earned = positive(collected * r.rebateRate)
-    const paid = Math.min(earned, r.rebatePaid)
+    const earned = positive(collected * r.rebateRate), paid = Math.min(earned, r.rebatePaid)
     return { collected, earned, paid, due: positive(earned - paid) }
   }
   get rebateDue(): number { return this.relationshipsFor('partner').reduce((n,r) => n + this.rebate(r).due, 0) }
@@ -199,48 +211,62 @@ export class InvoiceReviewStore implements OnDestroy {
   }
   paymentReference(p: ReviewPeriod): string { return `${p.relationshipId.toUpperCase()}-${p.dueDate.replace(/-/g, '')}` }
   reserveForReview(p: ReviewPeriod, amount: number): void {
-    if (!Number.isFinite(amount) || amount <= 0 || amount > this.available(p)) throw new Error('Enter an amount within the available financing.')
+    if (!this.periodsFor('supplier').includes(p) || !Number.isFinite(amount) || amount <= 0 || amount > this.available(p)) throw new Error('Enter an amount within the available financing.')
     p.reserved = positive(p.reserved + amount)
+    this.requests.push({id: `REVIEW-FR-${++this.sequence}`, periodId:p.id, amount, createdAt:new Date().toISOString()})
   }
-  saveUpload(groups: UploadGroup[], role: InvoiceRole, actor: string, actorId: string): UploadReceipt {
-    // Authorisation and validation are repeated at this boundary; the component is not the authority.
+  validateUpload(groups: UploadGroup[], role: InvoiceRole): void {
     if (!groups.length || groups.length > FILE_POLICY.maxGroups) throw new Error('Choose between 1 and 20 upload sections.')
     const keys = new Set<string>()
-    for (const g of groups) {
+    for (const [index,g] of groups.entries()) {
+      const prefix = `Section ${index + 1}: `
+      if (!g.relationshipId) throw new Error(prefix + `choose a ${role === 'supplier' ? 'buyer' : 'supplier'}.`)
       const r = this.relationship(g.relationshipId)
-      if (!this.canUpload(r, role)) throw new Error('Invoice uploads are managed by the other party for this relationship.')
-      if (!g.dueDate || !Number.isFinite(dateDays(this.asOf, g.dueDate))) throw new Error('Choose a valid invoice due date.')
-      if (g.files.length < 1 || g.files.length > FILE_POLICY.maxFiles) throw new Error('Add 1 to 10 invoice files per section.')
-      if (r.pod === null) throw new Error('Proof of Delivery requirements need to be confirmed by Avenews.')
-      if (r.pod && !g.pod.length) throw new Error('Add the required Proof of Delivery.')
+      if (!this.canUpload(r, role)) throw new Error(prefix + 'uploads are managed by the other party for this relationship.')
+      const days = dateDays(this.asOf, g.dueDate)
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(g.dueDate) || !Number.isFinite(days) || days < 0) throw new Error(prefix + 'choose the review date or a later invoice due date.')
+      if (g.files.length < 1 || g.files.length > FILE_POLICY.maxFiles) throw new Error(prefix + 'add 1 to 10 invoice files.')
+      if (r.pod === null) throw new Error(prefix + 'Proof of Delivery requirements need confirmation by Avenews.')
+      if (r.pod && !g.pod.length) throw new Error(prefix + 'add the required Proof of Delivery.')
+      if (g.pod.length > FILE_POLICY.maxFiles) throw new Error(prefix + 'add no more than 10 Proof of Delivery files.')
       const key = `${r.id}:${g.dueDate}`
-      if (keys.has(key)) throw new Error('Merge sections with the same relationship and due date.')
+      if (keys.has(key)) throw new Error(prefix + 'merge sections with the same relationship and due date.')
       keys.add(key)
-      for (const file of [...g.files, ...g.pod]) {
-        const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
-        if (!FILE_POLICY.extensions.includes(ext) || file.size <= 0 || file.size > FILE_POLICY.maxBytes) throw new Error('Check the file type and size before saving.')
+      for (const [files,isPod] of [[g.files,false],[g.pod,true]] as const) {
+        const names = new Set<string>()
+        for (const file of files) {
+          const ext = file.name.split('.').pop()?.toLowerCase() ?? ''
+          const allowed = isPod || role === 'supplier' ? FILE_POLICY.documentExtensions : FILE_POLICY.extensions
+          if (!allowed.includes(ext) || file.size <= 0 || file.size > FILE_POLICY.maxBytes) throw new Error(prefix + 'use the listed file formats, with a non-empty file no larger than 10 MB.')
+          const fingerprint = `${file.name}:${file.size}:${file.lastModified}`
+          if (names.has(fingerprint)) throw new Error(prefix + 'the same file was added twice. Remove the duplicate.')
+          names.add(fingerprint)
+        }
       }
     }
+  }
+  saveUpload(groups: UploadGroup[], role: InvoiceRole, actor: string, actorId: string, confirmedAt: string): UploadReceipt {
+    // Recheck role, group and file constraints at the state-changing boundary.
+    this.validateUpload(groups, role)
+    if (!actor.trim() || !actorId.trim() || !confirmedAt || !Number.isFinite(Date.parse(confirmedAt))) throw new Error('Confirm the delivery declaration before saving.')
     const id = `REVIEW-UPLOAD-${++this.sequence}`
-    const createdAt = new Date().toISOString()
-    const receipt: UploadReceipt = { id, role, createdAt, actor, actorId, confirmation: DELIVERY_CONFIRMATION,
-      groupCount: groups.length, fileCount: groups.reduce((n,g) => n + g.files.length, 0),
-      groups: groups.map(g => ({ relationshipId: g.relationshipId, dueDate: g.dueDate,
-        invoiceNames: g.files.map(f => f.name), podNames: g.pod.map(f => f.name) })) }
+    const receipt: UploadReceipt = {id, role, createdAt:new Date().toISOString(), confirmedAt, actor, actorId,
+      confirmation:DELIVERY_CONFIRMATION, groupCount:groups.length,
+      fileCount:groups.reduce((n,g) => n + g.files.length, 0),
+      groups:groups.map(g => ({relationshipId:g.relationshipId, dueDate:g.dueDate, invoiceNames:g.files.map(f => f.name), podNames:g.pod.map(f => f.name)}))}
     for (const g of groups) {
       const r = this.relationship(g.relationshipId)
-      const p = this.periods.find(p => p.relationshipId === r.id && p.dueDate === g.dueDate)
-      for (const file of g.files) {
-        const fileUrl = URL.createObjectURL(file)
-        this.objectUrls.push(fileUrl)
-        this.invoices.push({ id: `${id}-${++this.sequence}`, reference: 'Pending review',
-          relationshipId: r.id, periodId: p?.id, buyer: r.buyer, supplier: r.supplier,
-          dueDate: g.dueDate, amount: null, status: 'Review upload', eligible: false,
-          fileName: file.name, fileUrl })
-      }
+      const p = this.periods.find(item => item.relationshipId === r.id && item.dueDate === g.dueDate)
+      for (const file of g.files) this.invoices.push({id:`${id}-${++this.sequence}`, reference:'Pending review',
+        relationshipId:r.id, periodId:p?.id, buyer:r.buyer, supplier:r.supplier,
+        dueDate:g.dueDate, amount:null, status:'Review upload', eligible:false,
+        fileName:file.name, fileUrl:this.fileUrl(file)})
+      for (const file of g.pod) this.attachments.push({id:`${id}-POD-${++this.sequence}`, relationshipId:r.id,
+        periodId:p?.id, fileName:file.name, fileUrl:this.fileUrl(file)})
     }
     this.receipts.unshift(receipt)
     return receipt
   }
+  private fileUrl(file: File): string { const url=URL.createObjectURL(file); this.objectUrls.push(url); return url }
   ngOnDestroy(): void { for (const url of this.objectUrls) URL.revokeObjectURL(url) }
 }
