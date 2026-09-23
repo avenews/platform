@@ -48,7 +48,7 @@ let nextGroupId = 0
           <div class="review-actions"><button type="submit" class="baseline-button baseline-button--primary review-upload" [disabled]="saving || !uploadRelationships.length">{{ saving ? 'Saving review upload...' : 'Save review upload' }}</button><button type="button" class="baseline-button baseline-button--secondary" (click)="attemptClose()">Cancel</button></div>
           <p class="review-small">Need help? WhatsApp or call +254-111-133-300. This preview does not replace the signed, verified production submission process.</p>
         </form>
-        @if (discardOpen) { <div class="review-error" role="alert"><strong>Discard this upload?</strong><p>The selected files and unfinished sections will be removed.</p><div class="review-actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="discardOpen = false">Keep editing</button><button type="button" class="baseline-button baseline-button--secondary" (click)="close.emit()">Discard upload</button></div></div> }
+        @if (discardOpen) { <div class="review-error" id="review-discard-confirmation" tabindex="-1" role="alert"><strong>Discard this upload?</strong><p>The selected files and unfinished sections will be removed.</p><div class="review-actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="discardOpen = false">Keep editing</button><button type="button" class="baseline-button baseline-button--secondary" (click)="close.emit()">Discard upload</button></div></div> }
       }
     </app-review-dialog>
   `,
@@ -56,7 +56,7 @@ let nextGroupId = 0
 export class ReviewUploadComponent implements OnInit {
   readonly store = inject(InvoiceReviewStore)
   private readonly auth = inject(AuthService)
-  private readonly element = inject(ElementRef<HTMLElement>)
+  private readonly element: ElementRef<HTMLElement> = inject(ElementRef)
   @Input() role: InvoiceRole = 'supplier'
   @Input() relationshipId = ''
   @Output() close = new EventEmitter<void>()
@@ -71,7 +71,6 @@ export class ReviewUploadComponent implements OnInit {
   error = ''
   notice = ''
   receipt: UploadReceipt | null = null
-  private receiptUrl = ''
   ngOnInit(): void { this.groups = [this.newGroup(this.relationshipId)] }
   get counterpart(): string { return this.role === 'supplier' ? 'Buyer' : 'Supplier' }
   get uploadRelationships() { return this.store.relationshipsFor(this.role).filter(r => this.store.canUpload(r, this.role)) }
@@ -126,7 +125,11 @@ export class ReviewUploadComponent implements OnInit {
   showError(message: string): void { this.error=message; setTimeout(() => this.element.nativeElement.querySelector<HTMLElement>('#review-upload-error')?.focus()) }
   attemptClose(): void {
     if (this.receipt) { this.close.emit(); return }
-    if (this.groups.some(g => g.files.length || g.pod.length || g.dueDate) || this.groups.length > 1) { this.discardOpen = true; return }
+    if (this.groups.some(g => g.files.length || g.pod.length || g.dueDate) || this.groups.length > 1) {
+      this.discardOpen = true
+      setTimeout(() => this.element.nativeElement.querySelector<HTMLElement>('#review-discard-confirmation')?.focus())
+      return
+    }
     this.close.emit()
   }
   done(): void { if (this.receipt) this.saved.emit(this.receipt) }
