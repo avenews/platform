@@ -1,4 +1,4 @@
-import { Component, Input, OnChanges, inject } from '@angular/core'
+import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, inject } from '@angular/core'
 import { InvoiceReviewStore, ReviewPeriod } from './invoice-review.store'
 import { ReviewHelpComponent } from './review-help.component'
 
@@ -30,12 +30,17 @@ import { ReviewHelpComponent } from './review-help.component'
     </section>
   `,
 })
-export class ReviewPaymentDetailsComponent implements OnChanges {
+export class ReviewPaymentDetailsComponent implements OnChanges, OnDestroy {
   @Input({required:true}) period!: ReviewPeriod
   readonly store = inject(InvoiceReviewStore)
+  private readonly cdr = inject(ChangeDetectorRef)
+  private copyAttempt = 0
+  private destroyed = false
+  private timeout: ReturnType<typeof setTimeout> | undefined
   method: 'bank' | 'mpesa' = 'bank'
   message = ''
-  ngOnChanges(): void { this.method = 'bank'; this.message = '' }
+  ngOnChanges(): void { this.method = 'bank'; this.message = ''; this.copyAttempt++; clearTimeout(this.timeout) }
+  ngOnDestroy(): void { this.destroyed = true; clearTimeout(this.timeout) }
   get account() { return this.store.relationship(this.period.relationshipId).clearing }
   get fields(): {label:string; value:string; help:string}[] {
     const account = this.account
@@ -54,7 +59,21 @@ export class ReviewPaymentDetailsComponent implements OnChanges {
     ]
   }
   async copy(value: string, label: string): Promise<void> {
-    try { await navigator.clipboard.writeText(value); this.message = `${label} copied.` }
-    catch { this.message = `Copy was blocked by your browser. Select and copy this ${label.toLowerCase()}: ${value}` }
+    const attempt = ++this.copyAttempt
+    clearTimeout(this.timeout)
+    const update = (message: string): void => {
+      if (this.destroyed || attempt !== this.copyAttempt) return
+      this.message = message
+      this.cdr.markForCheck()
+    }
+    this.message = `Copying ${label.toLowerCase()}...`
+    const fallback = `Copy was blocked by your browser. Select and copy this ${label.toLowerCase()}: ${value}`
+    this.timeout = setTimeout(() => update(fallback), 2500)
+    try {
+      if (!navigator.clipboard?.writeText) throw new Error('Clipboard unavailable')
+      await navigator.clipboard.writeText(value)
+      update(`${label} copied.`)
+    } catch { update(fallback) }
+    finally { if (attempt === this.copyAttempt) clearTimeout(this.timeout) }
   }
 }
