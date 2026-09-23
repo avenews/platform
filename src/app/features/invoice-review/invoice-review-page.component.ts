@@ -147,7 +147,7 @@ export class InvoiceReviewPageComponent implements OnChanges {
     ]
   }
   get relationshipRows(): ReviewRow[] {
-    return this.relationships.map(r => {
+    return this.relationships.map((r): ReviewRow => {
       const periods=this.store.relationshipPeriods(r), unpaid=periods.filter(p=>this.store.amountToPay(p)>0).sort((a,b)=>a.dueDate.localeCompare(b.dueDate))
       const actions=[{key:'relationship',label:'View details'},...(this.store.canUpload(r,this.role)?[{key:'upload',label:'Upload invoices',primary:true}]:[])]
       if(this.role==='supplier') return {id:r.id,open:'relationship',cells:{name:{text:r.buyer,secondary:r.kind},available:{text:formatKes(this.store.relationshipAvailable(r)),sort:this.store.relationshipAvailable(r)},uploads:{text:this.uploadLabel(r)},status:{text:this.store.relationshipAvailable(r)>0?'Available':'Unavailable',status:true}},actions}
