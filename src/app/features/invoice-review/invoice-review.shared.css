@@ -1,4 +1,5 @@
 :host{display:block;min-width:0}
+.portal-page[data-invoice-review-role]{padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))}
 .review-stack{display:grid;gap:24px;min-width:0}
 .review-hero{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;flex-wrap:wrap}
 .review-hero>div{display:grid;gap:6px;min-width:0;flex:1 1 280px}
