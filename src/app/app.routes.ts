@@ -4,6 +4,11 @@ import { authGuard } from './core/auth/auth.guard'
 import { ExperienceShellComponent } from './layouts/experience-shell/experience-shell.component'
 import { PortalShellComponent } from './layouts/portal-shell/portal-shell.component'
 
+// The entry component opts in only Invoice Financing and Partner Buyer screens.
+// All other experiences render their original, unchanged page components.
+const experienceReviewPage = () => import('./features/invoice-review/experience-review-entry.component')
+  .then(module => module.ExperienceReviewEntryComponent)
+
 export const routes: Routes = [
   {
     path: 'login',
@@ -23,57 +28,14 @@ export const routes: Routes = [
     canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'home' },
-      {
-        path: 'home',
-        loadComponent: () =>
-          import('./features/contextual-home/contextual-home.component')
-            .then(module => module.ContextualHomeComponent),
-      },
-      {
-        path: 'request-funds',
-        loadComponent: () =>
-          import('./features/funds-request-hub/funds-request-hub.component')
-            .then(module => module.FundsRequestHubComponent),
-      },
-      {
-        path: 'invoices',
-        loadComponent: () =>
-          import('./features/customer-invoices/customer-invoices.component')
-            .then(module => module.CustomerInvoicesComponent),
-      },
-      {
-        path: 'financing/period/:periodId',
-        loadComponent: () =>
-          import('./features/invoice-period/invoice-period.component')
-            .then(module => module.InvoicePeriodComponent),
-      },
-      {
-        path: 'financing',
-        loadComponent: () =>
-          import('./features/contextual-financing/contextual-financing.component')
-            .then(module => module.ContextualFinancingComponent),
-      },
-      {
-        path: 'invoice-uploads',
-        data: { section: 'invoice-uploads' },
-        loadComponent: () =>
-          import('./features/partner-workspace/partner-workspace.component')
-            .then(module => module.PartnerWorkspaceComponent),
-      },
-      {
-        path: 'obligations',
-        data: { section: 'obligations' },
-        loadComponent: () =>
-          import('./features/partner-workspace/partner-workspace.component')
-            .then(module => module.PartnerWorkspaceComponent),
-      },
-      {
-        path: 'suppliers',
-        data: { section: 'suppliers' },
-        loadComponent: () =>
-          import('./features/partner-workspace/partner-workspace.component')
-            .then(module => module.PartnerWorkspaceComponent),
-      },
+      { path: 'home', data: { reviewSection: 'home' }, loadComponent: experienceReviewPage },
+      { path: 'request-funds', data: { reviewSection: 'request-funds' }, loadComponent: experienceReviewPage },
+      { path: 'invoices', data: { reviewSection: 'invoices' }, loadComponent: experienceReviewPage },
+      { path: 'financing/period/:periodId', data: { reviewSection: 'period' }, loadComponent: experienceReviewPage },
+      { path: 'financing', data: { reviewSection: 'financing' }, loadComponent: experienceReviewPage },
+      { path: 'invoice-uploads', data: { section: 'invoice-uploads', reviewSection: 'invoice-uploads' }, loadComponent: experienceReviewPage },
+      { path: 'obligations', data: { section: 'obligations', reviewSection: 'obligations' }, loadComponent: experienceReviewPage },
+      { path: 'suppliers', data: { section: 'suppliers', reviewSection: 'suppliers' }, loadComponent: experienceReviewPage },
       {
         path: 'support',
         loadComponent: () =>
@@ -128,20 +90,17 @@ export const routes: Routes = [
         path: 'manage-users',
         canActivate: [adminGuard],
         loadComponent: () =>
-          import('./features/manage-users/manage-users.component')
-            .then(module => module.ManageUsersComponent),
+          import('./features/manage-users/manage-users.component').then(module => module.ManageUsersComponent),
       },
       {
         path: 'design-lab',
         loadComponent: () =>
-          import('./features/design-lab/design-lab.component')
-            .then(module => module.DesignLabComponent),
+          import('./features/design-lab/design-lab.component').then(module => module.DesignLabComponent),
       },
       {
         path: 'changelog',
         loadComponent: () =>
-          import('./features/changelog/changelog.component')
-            .then(module => module.ChangelogComponent),
+          import('./features/changelog/changelog.component').then(module => module.ChangelogComponent),
       },
       {
         path: 'support',
