@@ -1,8 +1,6 @@
 name: Invoice portal review checks
 
 on:
-  push:
-    branches: [stefan-invoice-partner-review]
   pull_request:
     branches: [stefan]
 
@@ -16,12 +14,13 @@ concurrency:
 
 jobs:
   invoice-review:
+    if: github.head_ref == 'stefan-invoice-partner-review'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -40,18 +39,29 @@ jobs:
           set -o pipefail
           node scripts/test-invoice-review.mjs 2>&1 | tee review-evidence/domain.log
       - name: Install Chromium
-        if: ${{ hashFiles('invoice-review.playwright.config.mjs') != '' }}
         run: npx playwright install --with-deps chromium
       - name: Responsive interaction checks
-        if: ${{ hashFiles('invoice-review.playwright.config.mjs') != '' }}
         run: |
           set -o pipefail
           npx playwright test --config invoice-review.playwright.config.mjs 2>&1 | tee review-evidence/interactions.log
+      - name: Resolve exact-head Netlify Deploy Preview
+        id: preview
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          REVIEW_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          REVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/wait-invoice-review-preview.mjs
+      - name: Verify deployed desktop, tablet and mobile journeys
+        env:
+          REVIEW_BASE_URL: ${{ steps.preview.outputs.url }}
+        run: |
+          set -o pipefail
+          npx playwright test --config invoice-review.playwright.config.mjs 2>&1 | tee review-evidence/deployed-interactions.log
       - name: Preserve review evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: invoice-review-evidence-${{ github.event.pull_request.head.sha || github.sha }}
+          name: invoice-review-evidence-${{ github.event.pull_request.head.sha }}
           path: |
             review-evidence
             review-test-results
