@@ -23,7 +23,7 @@ export interface ReviewRow { id: string; cells: Record<string, ReviewCell>; acti
             @for (column of columns; track column.key) {
               <th scope="col" [attr.aria-sort]="ariaSort(column.key)">{{ column.label }}<app-review-help [label]="column.label" [text]="column.help" /></th>
             }
-            <th scope="col">Action<app-review-help label="Action" text="Actions available for this record. An invoice file can only be opened when a file is attached." /></th>
+            <th scope="col">Action<app-review-help label="Action" [text]="actionHelp" /></th>
           </tr></thead>
           <tbody>
             @for (row of pageItems; track row.id) {
@@ -46,8 +46,6 @@ export interface ReviewRow { id: string; cells: Record<string, ReviewCell>; acti
                   }
                 </div></td>
               </tr>
-            } @empty {
-              <tr><td [attr.colspan]="columns.length + 1"><div class="empty"><strong>{{ rows.length ? 'No matching records' : emptyTitle }}</strong><p>{{ rows.length ? 'Try changing your search or filters.' : emptyMessage }}</p></div></td></tr>
             }
           </tbody>
         </table>
@@ -74,8 +72,11 @@ export interface ReviewRow { id: string; cells: Record<string, ReviewCell>; acti
               }
             </div> }
           </article>
-        } @empty { <div class="empty"><strong>{{ rows.length ? 'No matching records' : emptyTitle }}</strong><p>{{ rows.length ? 'Try changing your search or filters.' : emptyMessage }}</p></div> }
+        }
       </div>
+      @if (!filteredRows.length) {
+        <div class="empty" role="status"><strong>{{ rows.length ? 'No matching records' : emptyTitle }}</strong><p>{{ rows.length ? 'Try changing your search or filters.' : emptyMessage }}</p></div>
+      }
       @if (filteredRows.length) {
         <nav class="table-pagination" [attr.aria-label]="label + ' pagination'">
           <p aria-live="polite">Showing <strong>{{ start + 1 }}-{{ end }}</strong> of {{ filteredRows.length }}</p>
@@ -87,7 +88,7 @@ export interface ReviewRow { id: string; cells: Record<string, ReviewCell>; acti
     </div>
   `,
   styles: [`
-    :host{display:block;min-width:0}.table-stack{display:grid;gap:16px;min-width:0}.table-toolbar{display:flex;gap:20px;align-items:center;flex-wrap:wrap}.table-toolbar h2{font-size:18px;line-height:1.4;margin:0;margin-right:auto;color:#0d343f}.table-toolbar app-customer-filter-bar{flex:1;min-width:0}.table-scroll{max-width:100%;overflow:auto;border:1px solid #e1e7eb;border-radius:10px;background:#fff}.review-table{width:100%;min-width:700px;border-collapse:collapse}.review-table th{font-size:11px;line-height:1.5;white-space:nowrap}.review-table td{font-size:13px;line-height:1.5;vertical-align:middle;overflow-wrap:anywhere}.review-table small,.mobile-record small{display:block;color:#66788a;font-size:12px;line-height:1.5;margin-top:3px}.review-table td.numeric{font-variant-numeric:tabular-nums}.primary-cell{font-weight:650;color:#0d343f}.table-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.table-actions .baseline-button{min-height:40px;white-space:nowrap;font-size:12px;padding:9px 12px}.is-overdue{background:#fff5f5}.is-clickable{cursor:pointer}.is-clickable:hover{background:#f0f9fa}.is-clickable:focus-visible{outline:2px solid #12b4c6;outline-offset:-2px}.upload-action{background:var(--av-color-success,#39c173)!important;border-color:var(--av-color-success,#39c173)!important;color:#fff!important}.status-pill{display:inline-block;padding:5px 10px;border-radius:24px;background:#f1f3f6;color:#66788a;font-size:11px;line-height:1.4;font-weight:650;white-space:nowrap}.status-pill[data-tone=danger]{background:#ffebeb;color:#c2352d}.status-pill[data-tone=success]{background:#ebfcf1;color:#008650}.status-pill[data-tone=info]{background:#e7f9fb;color:#007f92}.status-pill[data-tone=warning]{background:#fff6df;color:#89610d}.empty{text-align:center;padding:28px 16px;line-height:1.6;color:#0d343f}.empty p{margin:5px 0 0;font-size:13px;color:#66788a}.mobile-records{display:none}.table-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:#66788a}.table-pagination p{margin:0}.table-pagination>div{display:flex;gap:10px;align-items:center}.table-pagination .baseline-button{min-height:44px;min-width:44px;padding:8px}.table-pagination .baseline-button:disabled{opacity:.5}.mobile-record{border:1px solid #e1e7eb;border-radius:10px;padding:16px;min-width:0;background:#fff}.mobile-record.is-overdue{background:#fff5f5}.mobile-record header{display:flex;justify-content:space-between;gap:10px}.mobile-record header>div{min-width:0;overflow-wrap:anywhere}.mobile-record header strong{color:#0d343f;font-size:15px}.mobile-record dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}.mobile-record dl>div{min-width:0}.mobile-record dt{font-size:11px;color:#66788a;line-height:1.5;display:flex;align-items:center}.mobile-record dd{margin:3px 0 0;font-size:13px;color:#0d343f;overflow-wrap:anywhere}.mobile-record .table-actions .baseline-button{flex:1;min-height:44px}.table-actions a:focus-visible,.table-actions button:focus-visible{outline:2px solid #12b4c6;outline-offset:2px}@media(max-width:767px){.table-scroll{display:none}.mobile-records{display:grid;gap:12px}.table-toolbar{display:grid;gap:14px}.table-toolbar app-customer-filter-bar{width:100%}.table-pagination{flex-wrap:wrap;gap:12px}.table-pagination>div{margin-left:auto}}@media(max-width:359px){.mobile-record dl{grid-template-columns:1fr}}
+    :host{display:block;min-width:0}.table-stack{display:grid;gap:16px;min-width:0}.table-toolbar{display:flex;gap:20px;align-items:center;flex-wrap:wrap}.table-toolbar h2{font-size:18px;line-height:1.4;margin:0;margin-right:auto;color:#0d343f}.table-toolbar app-customer-filter-bar{flex:1;min-width:0}.table-scroll{max-width:100%;overflow:auto;border:1px solid #e1e7eb;border-radius:10px;background:#fff}.review-table{width:100%;min-width:760px;border-collapse:collapse}.review-table th{font-size:11px;line-height:1.5;white-space:nowrap}.review-table td{font-size:13px;line-height:1.5;vertical-align:middle;overflow-wrap:anywhere}.review-table small,.mobile-record small{display:block;color:#66788a;font-size:12px;line-height:1.5;margin-top:3px}.review-table td.numeric{font-variant-numeric:tabular-nums}.primary-cell{font-weight:650;color:#0d343f}.table-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.table-actions .baseline-button{min-height:44px;white-space:nowrap;font-size:12px;padding:9px 12px}.is-overdue{background:#fff5f5}.is-clickable{cursor:pointer}.is-clickable:hover{background:#f0f9fa}.is-clickable:focus-visible{outline:2px solid #12b4c6;outline-offset:-2px}.upload-action{background:var(--av-color-success,#39c173)!important;border-color:var(--av-color-success,#39c173)!important;color:#fff!important}.status-pill{display:inline-block;padding:5px 10px;border-radius:24px;background:#f1f3f6;color:#66788a;font-size:11px;line-height:1.4;font-weight:650;white-space:nowrap}.status-pill[data-tone=danger]{background:#ffebeb;color:#c2352d}.status-pill[data-tone=success]{background:#ebfcf1;color:#008650}.status-pill[data-tone=info]{background:#e7f9fb;color:#007f92}.status-pill[data-tone=warning]{background:#fff6df;color:#89610d}.empty{text-align:center;padding:28px 16px;line-height:1.6;color:#0d343f}.empty p{margin:5px 0 0;font-size:13px;color:#66788a}.mobile-records{display:none}.table-pagination{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:12px;color:#66788a}.table-pagination p{margin:0}.table-pagination>div{display:flex;gap:10px;align-items:center}.table-pagination .baseline-button{min-height:44px;min-width:44px;padding:8px}.table-pagination .baseline-button:disabled{opacity:.5}.mobile-record{border:1px solid #e1e7eb;border-radius:10px;padding:16px;min-width:0;background:#fff}.mobile-record.is-overdue{background:#fff5f5}.mobile-record header{display:flex;justify-content:space-between;gap:10px}.mobile-record header>div{min-width:0;overflow-wrap:anywhere}.mobile-record header strong{color:#0d343f;font-size:15px}.mobile-record dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}.mobile-record dl>div{min-width:0}.mobile-record dt{font-size:11px;color:#66788a;line-height:1.5;display:flex;align-items:center}.mobile-record dd{margin:3px 0 0;font-size:13px;color:#0d343f;overflow-wrap:anywhere}.mobile-record .table-actions .baseline-button{flex:1;min-height:44px}.table-actions a:focus-visible,.table-actions button:focus-visible{outline:2px solid #12b4c6;outline-offset:2px}@media(min-width:768px) and (max-width:1100px){.table-toolbar{flex-direction:column;align-items:stretch}.table-toolbar app-customer-filter-bar{width:100%}}@media(max-width:767px){.table-scroll{display:none}.mobile-records{display:grid;gap:12px}.table-toolbar{display:grid;gap:14px}.table-toolbar app-customer-filter-bar{width:100%}.table-pagination{flex-wrap:wrap;gap:12px}.table-pagination>div{margin-left:auto}}@media(max-width:359px){.mobile-record dl{grid-template-columns:1fr}}
   `],
 })
 export class ReviewTableComponent implements OnChanges {
@@ -109,18 +110,28 @@ export class ReviewTableComponent implements OnChanges {
     if (changes['contextKey']) { this.search = ''; this.status = ''; this.sort = ''; this.page = 1 }
     this.page = Math.min(this.page, this.totalPages)
   }
+  get actionHelp(): string {
+    if (this.label === 'invoices') return 'Open the attached source invoice file. Invoices without a file remain visible but have no file-opening action.'
+    if (this.label === 'payments') return 'Open this payment’s invoice balance, clearing-account instructions and linked invoices. Opening payment details does not transfer money.'
+    if (this.label === 'financing periods') return 'Open this period’s Overview and Invoices tabs. Request funds is available only where eligible financing remains.'
+    return 'Open the selected record for its details. Invoice upload actions appear only where you are responsible for uploading.'
+  }
   get filters(): CustomerFilterField[] {
     const column = this.columns.find(c => c.key === this.filterColumn)
     if (!column) return []
-    return [{key: 'status', label: column.label, allLabel: 'All ' + column.label.toLowerCase() + (column.label === 'Status' ? 'es' : ''),
+    const allLabel = /status$/i.test(column.label) ? 'All statuses' : 'All upload owners'
+    return [{key: 'status', label: column.label, allLabel,
       options: [...new Set(this.rows.map(r => r.cells[this.filterColumn]?.text).filter(Boolean))].sort().map(value => ({value, label: value}))}]
   }
   get filterValues(): Readonly<Record<string,string>> { return {status: this.status} }
   get sortOptions(): CustomerSortOption[] {
-    return this.columns.filter(c => c.sortable !== false).flatMap(c => [
-      {value: `${c.key}:asc`, label: `${c.label}: ${c.numeric ? 'low to high' : 'ascending'}`},
-      {value: `${c.key}:desc`, label: `${c.label}: ${c.numeric ? 'high to low' : 'descending'}`},
-    ])
+    return this.columns.filter(c => c.sortable !== false).flatMap(c => {
+      const date = /date|saved at/i.test(c.label)
+      return [
+        {value: `${c.key}:asc`, label: `${c.label}: ${c.numeric ? 'low to high' : date ? 'earliest' : 'A-Z'}`},
+        {value: `${c.key}:desc`, label: `${c.label}: ${c.numeric ? 'high to low' : date ? 'latest' : 'Z-A'}`},
+      ]
+    })
   }
   get filteredRows(): ReviewRow[] {
     const q = this.search.trim().toLowerCase()
