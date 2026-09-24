@@ -2,8 +2,9 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { FormsModule } from '@angular/forms'
 import { Router } from '@angular/router'
 import { PortalActionIconComponent } from './portal-action-icon.component'
+import { INVOICE_UPLOAD_LEGAL } from '../core/experience/invoice-upload-legal.data'
 import { AuthService } from '../core/auth/auth.service'
-import { InvoiceDocumentsStore, INVOICE_EXTENSIONS, INVOICE_DECLARATION, invoiceParties, canUploadFor, type InvoicePortalRole, type UploadSection, type InvoiceSubmission } from '../core/experience/invoice-portal.data'
+import { InvoiceDocumentsStore, INVOICE_EXTENSIONS, INVOICE_DELIVERY_DECLARATION, invoiceParties, canUploadFor, type InvoicePortalRole, type UploadSection, type InvoiceSubmission } from '../core/experience/invoice-portal.data'
 import { InvoicePartySelectComponent } from './invoice-party-select.component'
 import { InvoiceDialogFocusDirective } from './invoice-dialog-focus.directive'
 @Component({selector:'app-invoice-upload',standalone:true,imports:[FormsModule,InvoicePartySelectComponent,InvoiceDialogFocusDirective,PortalActionIconComponent],templateUrl:'./invoice-upload.component.html',styleUrl:'./invoice-upload.component.css'})
@@ -16,7 +17,8 @@ export class InvoiceUploadComponent implements OnInit {
  readonly store=inject(InvoiceDocumentsStore)
  private readonly auth=inject(AuthService)
  private readonly router=inject(Router)
- readonly declaration=INVOICE_DECLARATION
+ readonly deliveryDeclaration=INVOICE_DELIVERY_DECLARATION
+ readonly legal=INVOICE_UPLOAD_LEGAL
  confirmedAt=''
  sections:UploadSection[]=[];confirmed=false;error='';discard=false;receipt:InvoiceSubmission|null=null;saving=false
  private sequence=0

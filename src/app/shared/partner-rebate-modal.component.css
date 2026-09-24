@@ -1,0 +1,16 @@
+:host{display:contents}
+.invoice-rebate-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}
+.invoice-rebate-modal{width:min(100%,960px);max-height:88dvh;display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}
+.invoice-rebate-modal>.baseline-modal__head{flex:0 0 auto}
+.invoice-rebate-body{min-height:0;overflow-y:auto;overscroll-behavior:contain;display:grid;align-content:start;gap:16px}
+.invoice-rebate-body>p{margin:0}
+.invoice-rebate-matching{font-size:13px;color:var(--av-color-text-muted,#66788a)}
+.invoice-rebate-cards{display:none}
+.invoice-rebate-pagination{margin-top:0;gap:12px}
+.invoice-rebate-pagination .baseline-pagination__controls{flex-wrap:wrap;justify-content:center}
+@media(max-width:767px){
+  .invoice-rebate-backdrop{align-items:flex-end;padding:0}
+  .invoice-rebate-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0}
+  .invoice-rebate-body>.baseline-table-wrap{display:none}
+  .invoice-rebate-cards{display:grid;gap:12px}
+}

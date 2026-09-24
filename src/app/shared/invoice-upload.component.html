@@ -64,7 +64,7 @@
         </section>
         <label class="invoice-upload-confirmation">
           <input type="checkbox" [ngModel]="confirmed" (ngModelChange)="confirmationChanged($event)" />
-          <span>{{declaration}}</span>
+          <span>{{deliveryDeclaration}} I acknowledge the <a [href]="legal.privacyNoticeUrl" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Privacy Notice</a> and <a [href]="legal.fundsRequestTermsUrl" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Terms &amp; Conditions</a>.</span>
         </label>
         @if (error) { <p class="invoice-upload-error" role="alert">{{error}}</p> }
         <button type="button" class="baseline-button baseline-button--primary invoice-upload-action" [disabled]="saving" (click)="submit()">{{saving?'Submitting...':'Submit invoices'}}</button>

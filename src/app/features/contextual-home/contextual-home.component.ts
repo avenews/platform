@@ -1,7 +1,7 @@
 import { PartnerWorkspaceComponent } from '../partner-workspace/partner-workspace.component'
 import { PARTNER_PERIODS } from '../../core/experience/partner-workspace.data'
 import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
-import { InvoiceDialogFocusDirective } from '../../shared/invoice-dialog-focus.directive'
+import { PartnerRebateModalComponent } from '../../shared/partner-rebate-modal.component'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import {
@@ -102,7 +102,7 @@ const PARTNER_HOME_PAYMENTS: readonly PartnerHomePayment[] = [
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
-  imports: [InvoiceDialogFocusDirective,
+  imports: [PartnerRebateModalComponent,
     PrototypeExplainerComponent, InvoiceHelpComponent, InvoiceUploadComponent, PartnerWorkspaceComponent,
     CustomerFilterBarComponent,
     CustomerFinancingPeriodModalComponent,

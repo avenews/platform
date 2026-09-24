@@ -19,11 +19,11 @@ test('responsibility sits below both buyer names, never in the action area',asyn
   await page.screenshot({path:info.outputPath('buyer-name-responsibility.png'),fullPage:true})
 })
 
-test('shared uploader has one plain confirmation and no branding footer or legal sentence',async({page},info)=>{
+test('shared uploader has one linked confirmation and no branding footer or legal sentence',async({page},info)=>{
   for(const role of ['invoice-financing/home','invoice-partner/invoice-uploads']){
     await goto(page,role);await page.getByRole('button',{name:'Upload invoices',exact:true}).first().click();const modal=page.getByRole('dialog')
     await expect(modal.locator('.invoice-upload-confirmation')).toHaveText(declaration)
-    await expect(modal.locator('footer,.invoice-upload-terms')).toHaveCount(0);await expect(modal.getByRole('link')).toHaveCount(0)
+    await expect(modal.locator('footer,.invoice-upload-terms')).toHaveCount(0);await expect(modal.getByRole('link')).toHaveCount(2)
     await expect(modal).not.toContainText('This service is powered by');await expect(modal).not.toContainText('Read the Funds Request')
     await expect(modal.getByRole('heading',{name:'Uploader Instructions'})).toBeVisible()
     await modal.getByRole('button',{name:'Submit invoices',exact:true}).scrollIntoViewIfNeeded()

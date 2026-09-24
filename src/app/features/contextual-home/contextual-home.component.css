@@ -511,11 +511,7 @@
 .invoice-explanation{display:grid;gap:8px;padding:18px 20px;border:1px solid var(--av-color-primary-border,#bdeff3);border-radius:12px;background:var(--av-color-primary-subtle,#eefbfc)}
 .invoice-explanation h2{margin:0;font-size:18px;color:var(--av-color-text-heading)}
 .invoice-explanation p{margin:0;font-size:13px;line-height:1.65;color:var(--av-color-text-heading)}
-.invoice-rebate-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}
-.invoice-rebate-modal{width:min(100%,960px);max-height:88dvh;display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}
-.invoice-rebate-body{min-height:0;overflow:auto;display:grid;gap:16px}.invoice-rebate-body>p{margin:0}
-.invoice-rebate-cards{display:none}
-@media(max-width:767px){.invoice-rebate-backdrop{align-items:flex-end;padding:0}.invoice-rebate-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0}.invoice-rebate-body>.baseline-table-wrap{display:none}.invoice-rebate-cards{display:grid;gap:12px}}
+
 
 /* Preserve the conditional invoice-upload action on mobile as well. */
 @media(max-width:767px){[data-product-context="invoice-financing"] .contextual-home__primary--hero[data-action="invoice-upload"]{display:inline-flex}}

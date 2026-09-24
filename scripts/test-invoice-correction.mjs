@@ -1,7 +1,7 @@
 import { build } from 'esbuild'
 import { readFileSync, rmSync } from 'node:fs'
 import assert from 'node:assert/strict'
-await build({stdin:{contents:`import '@angular/compiler'; export * from './src/app/core/experience/invoice-portal.data'; export * from './src/app/core/experience/customer-product-workspace.data'; export * from './src/app/core/experience/partner-workspace.data'; export {InvoicePartySelectComponent} from './src/app/shared/invoice-party-select.component'; export {createEnvironmentInjector,runInInjectionContext,ElementRef} from '@angular/core';`,resolveDir:process.cwd()},outfile:'.invoice-correction-domain.mjs',bundle:true,platform:'node',format:'esm',packages:'external'})
+await build({stdin:{contents:`import '@angular/compiler'; export * from './src/app/core/experience/invoice-portal.data'; export * from './src/app/core/experience/customer-product-workspace.data'; export * from './src/app/core/experience/partner-workspace.data'; export * from './src/app/core/experience/partner-rebates.data'; export {InvoicePartySelectComponent} from './src/app/shared/invoice-party-select.component'; export {createEnvironmentInjector,runInInjectionContext,ElementRef} from '@angular/core';`,resolveDir:process.cwd()},outfile:'.invoice-correction-domain.mjs',bundle:true,platform:'node',format:'esm',packages:'external'})
 const d=await import('../.invoice-correction-domain.mjs')
 let count=0
 function test(name,fn){fn();count++;console.log('PASS '+name)}
@@ -66,6 +66,40 @@ test('invalid calendar dates, oversize files and too many sections are rejected'
   assert.throws(()=>store.validate([{...section,dueDate:'2026-02-31'}],'supplier'))
   assert.throws(()=>store.validate([{...section,invoices:[new File([new Uint8Array(10*1024*1024+1)],'large.pdf')]}],'supplier'))
   assert.throws(()=>store.validate(Array.from({length:21},(_,i)=>({...section,id:i})),'supplier'))
+})
+test('shared rebate queries and supplier details reconcile with the same ledger',()=>{
+  const result=d.queryPartnerRebates(d.PARTNER_REBATES)
+  assert.deepEqual(result.totals,{collected:350000,earned:3100,paid:500,due:2600})
+  for(const row of d.PARTNER_REBATES)assert.equal(d.partnerRebateForSupplier(row.supplierId),row)
+  assert.equal(d.partnerRebateForSupplier('not-a-supplier'),undefined)
+  assert.equal(result.items.length,5);assert.equal(result.count,8);assert.equal(result.pages,2)
+})
+test('rebate search filters the full 1000-supplier ledger before paginating',()=>{
+  const rows=Array.from({length:1000},(_,i)=>({supplierId:String(i),supplier:`Supplier ${String(i).padStart(4,'0')}`,rate:0.01,collected:100000,earned:1000,paid:i%2?500:1000,due:i%2?500:0}))
+  const untouched=rows.map(r=>r.supplierId)
+  const result=d.queryPartnerRebates(rows,{page:100,balance:'due',sort:'supplier-asc'})
+  assert.equal(result.count,500);assert.equal(result.page,100);assert.equal(result.items.length,5);assert.ok(result.pageNumbers.length<=5)
+  assert.equal(result.items.at(-1).supplier,'Supplier 0999')
+  const searched=d.queryPartnerRebates(rows,{search:'Supplier 0999',page:100})
+  assert.equal(searched.count,1);assert.equal(searched.page,1);assert.equal(searched.items[0],rows[999]);assert.equal(searched.matchingTotals.due,500);assert.equal(searched.totals.due,250000)
+  assert.deepEqual(rows.map(r=>r.supplierId),untouched)
+})
+test('rebate balance filters distinguish due, paid and no earnings without inventing status pills',()=>{
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{balance:'due'}).count,2)
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{balance:'none'}).count,6)
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{balance:'paid'}).count,0)
+  const row={...d.PARTNER_REBATES[0],earned:1000,paid:1000,due:0}
+  assert.equal(d.queryPartnerRebates([row],{balance:'paid'}).count,1)
+  const empty=d.queryPartnerRebates(d.PARTNER_REBATES,{search:'missing supplier',page:999})
+  assert.equal(empty.start,0);assert.equal(empty.end,0);assert.equal(empty.page,1);assert.equal(empty.totals.due,2600);assert.equal(empty.matchingTotals.due,0)
+})
+test('rebate sorting, page bounds and cent precision are deterministic',()=>{
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{sort:'supplier-asc'}).items[0].supplier,'Coastline Produce Ltd')
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{sort:'earned-desc'}).items[0].supplier,'Nairobi Fresh Traders Ltd')
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{page:-2}).page,1)
+  assert.equal(d.queryPartnerRebates(d.PARTNER_REBATES,{page:999}).page,2)
+  assert.deepEqual(d.rebateTotals([{...d.PARTNER_REBATES[0],collected:1,earned:0.1,paid:0,due:0.1},{...d.PARTNER_REBATES[0],collected:2,earned:0.2,paid:0,due:0.2}]),{collected:3,earned:0.3,paid:0,due:0.3})
+  assert.deepEqual(d.queryPartnerRebates([]).items,[])
 })
 console.log(`${count} correction domain checks passed.`)
 rmSync('.invoice-correction-domain.mjs')

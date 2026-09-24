@@ -1,5 +1,7 @@
 import { AvTabsComponent, type TabItem } from '@avenews/design-system/angular'
 import { PortalTabsAccessibilityDirective } from '../../shared/portal-tabs-accessibility.directive'
+import { PartnerRebateModalComponent } from '../../shared/partner-rebate-modal.component'
+import { partnerRebateForSupplier } from '../../core/experience/partner-rebates.data'
 import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
@@ -19,7 +21,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 @Component({
   selector: 'app-partner-workspace',
   standalone: true,
-  imports: [AvTabsComponent, PortalTabsAccessibilityDirective, PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
+  imports: [PartnerRebateModalComponent, AvTabsComponent, PortalTabsAccessibilityDirective, PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
   templateUrl: './partner-workspace.component.html',
   styleUrl: './partner-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +33,8 @@ export class PartnerWorkspaceComponent {
   @Input() embeddedPayments=false
   readonly documents=inject(InvoiceDocumentsStore)
   readonly relationshipTerms=invoiceRelationshipTerms
+  readonly rebateForSupplier=partnerRebateForSupplier
+  rebateOpen=false
   readonly formatDate = formatDate
   readonly formatKes = formatKes
 
@@ -282,6 +286,7 @@ export class PartnerWorkspaceComponent {
   primaryPeriodStatus(period: PartnerPeriod): string { return period.paymentStatusKey === 'overdue' ? period.paymentStatus : period.periodStatus }
   primaryPeriodTone(period: PartnerPeriod): string { return period.paymentStatusKey === 'overdue' ? period.paymentTone : period.periodTone }
 
+  openRebates(): void { this.closeDetailModals(); this.rebateOpen = true }
   openUpload(): void { this.closeDetailModals(); this.uploadOpen = true }
   closeUpload(): void { this.uploadOpen = false }
   completeUpload(): void { this.uploadOpen = false; this.toast = 'Invoice batch received. Eligible invoices will update the matching Supplier periods.' }
@@ -333,6 +338,7 @@ export class PartnerWorkspaceComponent {
     return 3
   }
   private closeDetailModals(): void {
+    this.rebateOpen = false
     this.selectedBatch = null
     this.selectedSupplier = null
     this.selectedPeriod = null

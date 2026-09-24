@@ -533,3 +533,7 @@
 /* Use the installed design-system tabs without replacing either table. */
 .partner-invoice-tabs{display:block;min-width:0}
 .partner-invoice-panel[hidden]{display:none!important}
+
+[data-partner-section="suppliers"] .partner-workspace-hero{flex-wrap:wrap}
+.partner-workspace-hero>.partner-workspace-hero__actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+@media(max-width:767px){.partner-workspace-hero>.partner-workspace-hero__actions{display:grid;grid-template-columns:1fr;width:100%}}

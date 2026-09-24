@@ -12,6 +12,7 @@ import { AvTooltipComponent } from '@avenews/design-system/angular'
     /* The host-injected review toolbar must not intercept modal actions.
        Only Netlify review chrome is hidden, and only while an invoice dialog is open.
        Portal styling and the toolbar's normal closed-dialog position are unchanged. */
+    body:has(app-partner-rebate-modal [aria-modal="true"]) [data-netlify-deploy-id],
     body:has(app-invoice-upload [aria-modal="true"]) [data-netlify-deploy-id],
     body:has([data-product-context="invoice-financing"]):has(app-customer-financing-period-modal [aria-modal="true"]) [data-netlify-deploy-id],
     body:has(app-partner-workspace [aria-modal="true"]) [data-netlify-deploy-id]{visibility:hidden!important;pointer-events:none!important}

@@ -72,7 +72,7 @@
     }
 
     @case ('suppliers') {
-      <section class="partner-workspace-hero"><div><h1>Suppliers</h1><p>Choose a supplier to view financing periods, payments and available financing.</p></div><button type="button" class="baseline-button baseline-button--secondary" (click)="openUpload()">Upload invoices</button></section>
+      <section class="partner-workspace-hero"><div><h1>Suppliers</h1><p>Choose a supplier to view financing periods, payments and available financing.</p></div><div class="partner-workspace-hero__actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="openRebates()">Rebate breakdown</button><button type="button" class="baseline-button baseline-button--secondary" data-action="upload-invoices" (click)="openUpload()">Upload invoices</button></div></section>
       <section class="baseline-section partner-list-section" aria-labelledby="partner-suppliers-title">
         <div class="partner-list-toolbar">
           <div class="baseline-section-heading"><div><h2 id="partner-suppliers-title">Supplier financing</h2></div></div>
@@ -162,7 +162,12 @@
           </section>
         } @else {
           <div class="partner-modal-status"><span>{{ supplier.identifier }} · Last invoice upload {{ supplier.lastUpload }}</span><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.status }}</span></div>
-          <dl class="partner-detail-grid"><div><dt>Max Financing</dt><dd>{{ formatKes(supplier.maxFinancing) }}</dd></div><div><dt>Financing Used</dt><dd>{{ formatKes(supplier.used) }}</dd></div><div><dt>Financing Available</dt><dd>{{ formatKes(supplier.available) }}</dd></div><div><dt>Payments Due</dt><dd>{{ formatKes(supplierPaymentDue(supplier)) }}</dd></div></dl>
+          <dl class="partner-detail-grid"><div><dt>Max Financing</dt><dd>{{ formatKes(supplier.maxFinancing) }}</dd></div><div><dt>Financing Used</dt><dd>{{ formatKes(supplier.used) }}</dd></div><div><dt>Financing Available</dt><dd>{{ formatKes(supplier.available) }}</dd></div><div><dt>Payments Due</dt><dd>{{ formatKes(supplierPaymentDue(supplier)) }}</dd></div>
+            @if (rebateForSupplier(supplier.id); as rebate) {
+              <div class="partner-supplier-rebate"><dt>Rebate earned<app-invoice-help text="Your total rebate earned on principal collected for this supplier, including amounts already paid to you." /></dt><dd>{{formatKes(rebate.earned)}}</dd></div>
+              <div class="partner-supplier-rebate"><dt>Rebate due<app-invoice-help text="Your earned rebate for this supplier less rebate payments already made to you. Separate from the supplier's financing and payments." /></dt><dd>{{formatKes(rebate.due)}}</dd></div>
+            }
+          </dl>
           <h3>Relationship terms</h3><dl class="partner-detail-grid">@for(term of relationshipTerms(supplier.id,'partner');track term.label){<div [class.partner-detail-grid__wide]="term.label==='Settlement'"><dt>{{term.label}}</dt><dd>{{term.value}}</dd></div>}</dl>
           <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openSupplierPeriods()">View financing periods ({{ periodsForSupplier(supplier).length }})</button>
         }
@@ -176,3 +181,5 @@
 }
 
 @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
+
+@if(rebateOpen){<app-partner-rebate-modal (close)="rebateOpen=false" />}

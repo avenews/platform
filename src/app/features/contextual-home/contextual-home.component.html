@@ -245,16 +245,4 @@
 }
 
 @if(invoiceUploadOpen){<app-invoice-upload (close)="invoiceUploadOpen=false" />}
-@if(rebateOpen){
- <div class="baseline-modal-backdrop invoice-rebate-backdrop" role="presentation" (click)="rebateOpen=false">
-  <section class="baseline-modal invoice-rebate-modal" invoiceDialogFocus (dialogEscape)="rebateOpen=false" role="dialog" aria-modal="true" aria-labelledby="rebate-title" (click)="$event.stopPropagation()">
-   <header class="baseline-modal__head"><h2 id="rebate-title">Rebate breakdown</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="rebateOpen=false">&times;</button></header>
-   <div class="baseline-modal__body invoice-rebate-body"><p>Total rebate due: <strong>{{formatKes(rebateDue)}}</strong></p>
-    <div class="baseline-table-wrap"><table class="baseline-table"><thead><tr><th>Supplier<app-invoice-help text="The supplier relationship that generated the rebate." /></th><th>Principal collected<app-invoice-help text="Financed principal collected by Avenews. Not invoice value or disbursements." /></th><th>Rebate rate<app-invoice-help text="The rebate rate configured for this supplier relationship." /></th><th>Earned<app-invoice-help text="Principal collected multiplied by the rebate rate." /></th><th>Paid<app-invoice-help text="Rebate already paid to you." /></th><th>Due<app-invoice-help text="Earned rebate less rebate already paid." /></th></tr></thead><tbody>
-     @for(rebate of rebates;track rebate.supplierId){<tr><td>{{rebate.supplier}}</td><td>{{formatKes(rebate.collected)}}</td><td>{{rebate.rate*100}}%</td><td>{{formatKes(rebate.earned)}}</td><td>{{formatKes(rebate.paid)}}</td><td><strong>{{formatKes(rebate.due)}}</strong></td></tr>}
-    </tbody></table></div>
-    <div class="invoice-rebate-cards">@for(rebate of rebates;track rebate.supplierId){<article class="baseline-record-card"><strong>{{rebate.supplier}}</strong><div class="baseline-metrics"><span class="baseline-metric"><small>Principal collected</small><strong>{{formatKes(rebate.collected)}}</strong></span><span class="baseline-metric"><small>Rebate rate</small><strong>{{rebate.rate*100}}%</strong></span><span class="baseline-metric"><small>Earned</small><strong>{{formatKes(rebate.earned)}}</strong></span><span class="baseline-metric"><small>Paid</small><strong>{{formatKes(rebate.paid)}}</strong></span><span class="baseline-metric"><small>Due</small><strong>{{formatKes(rebate.due)}}</strong></span></div></article>}</div>
-   </div>
-  </section>
- </div>
-}
+@if(rebateOpen){<app-partner-rebate-modal (close)="rebateOpen=false" />}
