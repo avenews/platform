@@ -1,0 +1,63 @@
+name: Stage Invoice Financing refinements
+on:
+  push:
+    branches: [stefan-invoice-financing-refinements]
+    paths: [.github/workflows/refinement-apply.yml]
+permissions:
+  contents: write
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify and stage source edits as a Git tree
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,base64,lzma,hashlib,urllib.request,subprocess
+          from pathlib import Path
+          root=Path.cwd()
+          prefix='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','Content-Type':'application/json','X-GitHub-Api-Version':'2022-11-28'}
+          def api(path,data=None):
+              request=urllib.request.Request(prefix+path,headers=headers,data=None if data is None else json.dumps(data).encode(),method='GET' if data is None else 'POST')
+              with urllib.request.urlopen(request,timeout=60) as response:return json.load(response)
+          parts=[]
+          for sha in ['c587601df5996c9139b911a02b3532fd855ad1ed','d00d23eaa206e8504f65a5b390ab241c69df8a4a']:
+              blob=api('/git/blobs/'+sha)
+              parts.append(base64.b64decode(blob['content']).decode())
+          raw=lzma.decompress(base64.b64decode(''.join(parts)))
+          assert hashlib.sha256(raw).hexdigest()=='2fd99450282215ebd99b7937cba70173fd7045e05aa9a24908eb111b2d2e2ac0','Payload checksum mismatch'
+          edits=json.loads(raw)
+          entries=[]
+          manifest={}
+          for name,change in edits.items():
+              path=root/name
+              assert path.resolve().is_relative_to(root) and not name.startswith(('.git/','.github/')),'Invalid application path'
+              if 'new' in change:
+                  assert not path.exists(),name+' already exists'
+                  content=change['new']
+              else:
+                  old=path.read_bytes()
+                  assert hashlib.sha256(old).hexdigest()==change['sha256'],name+' baseline differs'
+                  lines=old.decode().splitlines(keepends=True)
+                  for start,end,replacement in reversed(change['edits']):lines[start:end]=[replacement]
+                  content=''.join(lines)
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(content)
+              entries.append({'path':name,'mode':'100644','type':'blob','content':content})
+              manifest[name]=hashlib.sha256(content.encode()).hexdigest()
+          base_tree=subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip()
+          tree=api('/git/trees',{'base_tree':base_tree,'tree':entries})
+          result={'tree':tree['sha'],'parent':os.environ['GITHUB_SHA'],'fallback':'da90e73d33f11a09864bca968518b6b1fa6a2b20','branch_updated':False,'files':manifest}
+          Path('/tmp/refinement-tree.json').write_text(json.dumps(result,indent=2))
+          print(json.dumps(result,indent=2))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: invoice-refinement-tree
+          path: /tmp/refinement-tree.json
+          retention-days: 2
