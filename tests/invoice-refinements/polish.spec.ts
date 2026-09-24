@@ -64,7 +64,7 @@ test('tab switches retain invoice search, sorting and pagination and history det
   if(page.viewportSize()!.width<768)await panel.getByRole('button',{name:'Apply',exact:true}).click()
   // Use the existing Clear filters control, then check that a non-first page survives a tab switch.
   if(page.viewportSize()!.width<768)await panel.getByRole('button',{name:'Filters',exact:true}).click()
-  await panel.getByRole('button',{name:'Clear filters',exact:true}).first().click()
+  await panel.locator('.customer-filter-clear:visible,.customer-filter-panel__clear:visible').click()
   if(page.viewportSize()!.width<768)await panel.getByRole('button',{name:'Apply',exact:true}).click()
   await panel.locator('.baseline-pagination__controls button').filter({hasText:/^2$/}).click()
   await page.getByRole('tab',{name:'Upload history',exact:true}).click();await page.getByRole('tab',{name:'Invoices',exact:true}).click()
