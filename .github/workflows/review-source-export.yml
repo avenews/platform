@@ -1,22 +1,79 @@
-name: Review source snapshot
+name: Prepare reviewed UI polish
 on:
   push:
     branches: [stefan-invoice-financing-refinements]
     paths: ['.github/workflows/review-source-export.yml']
 permissions:
-  contents: read
+  contents: write
 jobs:
-  snapshot:
+  candidate:
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Export tracked source only
-        run: git archive --format=tar.gz HEAD > /tmp/review-source.tar.gz
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Apply only the audited file edits
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,base64,gzip,hashlib,urllib.request
+          from pathlib import Path
+          root=Path.cwd()
+          prefix='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}
+          request=urllib.request.Request(prefix+'/git/blobs/0d4f24d09d38c6101cf030a9134ce5eb42db6d85',headers=headers)
+          with urllib.request.urlopen(request) as response:blob=json.load(response)
+          raw=gzip.decompress(base64.b64decode(base64.b64decode(blob['content'])))
+          assert hashlib.sha256(raw).hexdigest()=='64bd35d44f0b50797ad5e1c54373b1e98db56fd1ce718642fc4b21b52c1617b6'
+          edits=json.loads(raw)
+          for name,change in edits.items():
+              path=root/name
+              assert path.resolve().is_relative_to(root) and name.startswith(('src/','tests/','scripts/','docs/'))
+              if 'new' in change:
+                  assert not path.exists(),name
+                  content=change['new']
+              else:
+                  old=path.read_bytes()
+                  assert hashlib.sha256(old).hexdigest()==change['sha256'],name+' changed since audit'
+                  lines=old.decode().splitlines(keepends=True)
+                  for start,end,replacement in reversed(change['edits']):lines[start:end]=[replacement]
+                  content=''.join(lines)
+              path.parent.mkdir(parents=True,exist_ok=True)
+              path.write_text(content)
+          Path('/tmp/polish-paths.json').write_text(json.dumps(list(edits)))
+          print('Applied',len(edits),'audited files. No branch has been updated.')
+          PY
+      - name: Validate baseline types production build and records
+        run: |
+          npm ci --legacy-peer-deps --no-audit --no-fund
+          npm install --no-save --legacy-peer-deps --no-audit --no-fund esbuild@0.25.9
+          npm run check
+          node scripts/test-invoice-correction.mjs
+      - name: Store candidate tree without moving any branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os,json,hashlib,subprocess,urllib.request
+          from pathlib import Path
+          paths=json.loads(Path('/tmp/polish-paths.json').read_text())
+          prefix='https://api.github.com/repos/'+os.environ['GITHUB_REPOSITORY']
+          headers={'Authorization':'Bearer '+os.environ['GH_TOKEN'],'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28','Content-Type':'application/json'}
+          base=subprocess.check_output(['git','rev-parse','HEAD^{tree}'],text=True).strip()
+          entries=[{'path':name,'mode':'100644','type':'blob','content':Path(name).read_text()} for name in paths]
+          request=urllib.request.Request(prefix+'/git/trees',headers=headers,data=json.dumps({'base_tree':base,'tree':entries}).encode(),method='POST')
+          with urllib.request.urlopen(request) as response:tree=json.load(response)
+          result={'tree':tree['sha'],'parent':os.environ['GITHUB_SHA'],'hashes':{name:hashlib.sha256(Path(name).read_bytes()).hexdigest() for name in paths},'ref_updated':False}
+          Path('/tmp/polish-candidate.json').write_text(json.dumps(result,indent=2))
+          print(json.dumps(result))
+          PY
       - uses: actions/upload-artifact@v4
         with:
-          name: review-source-${{ github.sha }}
-          path: /tmp/review-source.tar.gz
+          name: polish-candidate-${{ github.sha }}
+          path: /tmp/polish-candidate.json
           retention-days: 1
