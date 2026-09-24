@@ -1,0 +1,74 @@
+<div class="baseline-modal-backdrop invoice-upload-backdrop" role="presentation" (click)="requestClose()">
+  <section class="baseline-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" invoiceDialogFocus (dialogEscape)="requestClose()" (click)="$event.stopPropagation()">
+    <header class="baseline-modal__head"><h2 id="invoice-upload-title">Upload invoices</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="requestClose()">&times;</button></header>
+    <div class="baseline-modal__body invoice-upload-body">
+      @if (discard) {
+        <p>Discard the invoices you have added?</p>
+        <div class="invoice-upload-actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="discard=false">Keep editing</button><button type="button" class="baseline-button baseline-button--primary" (click)="close.emit()">Discard</button></div>
+      } @else if (receipt) {
+        <section class="invoice-upload-result" role="status" aria-live="polite">
+          <h3>Invoices added</h3>
+          <p>{{receipt.sections.length}} {{receipt.sections.length===1?'set of invoices is':'sets of invoices are'}} awaiting review.</p>
+          <h3>What happens next</h3>
+          <ol>
+            <li>Avenews reviews the invoices and supporting documents.</li>
+            <li>Eligible, approved invoices create or update a financing period for the same supplier, buyer and due date.</li>
+            <li>{{role==='supplier'?'You can request funds':'The supplier can request funds'}} when that period has financing available and its Funds Request window is open.</li>
+          </ol>
+          <p>Uploading invoices does not guarantee financing approval.</p>
+        </section>
+        <div class="invoice-upload-actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="viewInvoices()">View invoices</button><button type="button" class="baseline-button baseline-button--primary" (click)="close.emit()">Done</button></div>
+      } @else if (!availableParties.length) {
+        <p>{{role==='supplier'?'Your buyers manage invoice uploads. No buyers are currently assigned to you for uploading.':'No suppliers are currently assigned to you for uploading.'}}</p>
+        <button type="button" class="baseline-button baseline-button--secondary" (click)="close.emit()">Close</button>
+      } @else {
+        <p>Add invoices for the same {{label.toLowerCase()}} and due date in each section.</p>
+        @for (section of sections; track section.id; let i=$index) {
+          <section class="invoice-upload-group" [attr.aria-label]="'Upload section '+(i+1)">
+            <div class="invoice-upload-group__head"><h3>Invoice{{sections.length>1?' '+(i+1):''}}</h3><div><button type="button" class="invoice-text-action" (click)="copy(section)" [disabled]="sections.length>=20" [attr.aria-label]="'Copy section '+(i+1)">Copy</button><button type="button" class="invoice-text-action" [disabled]="sections.length===1" (click)="remove(section)" [attr.aria-label]="'Remove section '+(i+1)">Remove</button></div></div>
+            <div class="invoice-upload-fields">
+              <app-invoice-party-select [parties]="parties" [role]="role" [label]="label" [value]="section.partyId" (valueChange)="partyChanged(section,$event)" />
+              <div class="baseline-field"><label [for]="'invoice-due-'+section.id">Invoice(s) payment due date</label><input class="baseline-control" type="date" [id]="'invoice-due-'+section.id" [(ngModel)]="section.dueDate" (ngModelChange)="changed()" /></div>
+            </div>
+            <div class="baseline-field">
+              <label [for]="'invoice-files-'+section.id">Invoice files</label>
+              <label class="invoice-file-chooser" [for]="'invoice-files-'+section.id">
+                <span>Choose file(s)</span><app-portal-action-icon name="upload" />
+                <input type="file" multiple [id]="'invoice-files-'+section.id" [attr.aria-label]="'Choose invoice files for section '+(i+1)" [attr.aria-describedby]="'invoice-formats-'+section.id" [accept]="accept" (change)="addFiles(section,'invoices',$event)" />
+              </label>
+              <small [id]="'invoice-formats-'+section.id">Up to 10 files, 10 MB each. PDF, JPG, PNG, XLS, XLSX or CSV.</small>
+            </div>
+            @for (file of section.invoices; track $index) { <div class="invoice-upload-file"><span>{{file.name}}</span><button type="button" class="invoice-text-action" [attr.aria-label]="'Remove '+file.name" (click)="removeFile(section,'invoices',$index)">Remove</button></div> }
+            @if (requiresPod(section)) {
+              <div class="baseline-field">
+                <label [for]="'delivery-files-'+section.id">Proof of Delivery</label>
+                <label class="invoice-file-chooser" [for]="'delivery-files-'+section.id">
+                  <span>Choose file(s)</span><app-portal-action-icon name="upload" />
+                  <input type="file" multiple [id]="'delivery-files-'+section.id" [attr.aria-label]="'Choose Proof of Delivery files for section '+(i+1)" [attr.aria-describedby]="'delivery-formats-'+section.id" accept=".pdf,.jpg,.jpeg,.png" (change)="addFiles(section,'delivery',$event)" />
+                </label>
+                <small [id]="'delivery-formats-'+section.id">Attach the matching delivery documents. Up to 10 files, 10 MB each. PDF, JPG or PNG.</small>
+              </div>
+              @for (file of section.delivery; track $index) { <div class="invoice-upload-file"><span>{{file.name}}</span><button type="button" class="invoice-text-action" [attr.aria-label]="'Remove '+file.name" (click)="removeFile(section,'delivery',$index)">Remove</button></div> }
+            }
+          </section>
+        }
+        <button type="button" class="baseline-button baseline-button--secondary" (click)="add()" [disabled]="sections.length>=20">+ Add another section</button>
+        <section class="invoice-upload-instructions" aria-labelledby="invoice-uploader-instructions">
+          <h3 id="invoice-uploader-instructions">Uploader Instructions</h3>
+          <ol>
+            <li>Upload invoices for the same {{label.toLowerCase()}} and payment due date in each section.</li>
+            <li>Select the payment due date that applies to all invoices in that section.</li>
+            @if (needsDeliveryInstructions) { <li>Attach the matching Proof of Delivery wherever it is required.</li> }
+            <li>To upload invoices for another {{label.toLowerCase()}} or due date, click <strong>+ Add another section</strong>.</li>
+          </ol>
+        </section>
+        <label class="invoice-upload-confirmation">
+          <input type="checkbox" [ngModel]="confirmed" (ngModelChange)="confirmationChanged($event)" />
+          <span>{{deliveryDeclaration}} I acknowledge the <a [href]="legal.privacyNoticeUrl" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Privacy Notice</a> and <a [href]="legal.fundsRequestTermsUrl" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Terms &amp; Conditions</a>.</span>
+        </label>
+        @if (error) { <p class="invoice-upload-error" role="alert">{{error}}</p> }
+        <button type="button" class="baseline-button baseline-button--primary invoice-upload-action" [disabled]="saving" (click)="submit()">{{saving?'Submitting...':'Submit invoices'}}</button>
+      }
+    </div>
+  </section>
+</div>

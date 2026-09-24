@@ -1,0 +1,55 @@
+<div class="baseline-modal-backdrop invoice-rebate-backdrop" role="presentation" (click)="close.emit()">
+  <section class="baseline-modal invoice-rebate-modal" invoiceDialogFocus (dialogEscape)="close.emit()" role="dialog" aria-modal="true" aria-labelledby="rebate-title" (click)="$event.stopPropagation()">
+    <header class="baseline-modal__head"><h2 id="rebate-title">Rebate breakdown</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="close.emit()">&times;</button></header>
+    <div class="baseline-modal__body invoice-rebate-body">
+      <p class="invoice-rebate-total">Total rebate due: <strong>{{formatKes(result.totals.due)}}</strong></p>
+      <app-customer-filter-bar [searchValue]="search" searchPlaceholder="Search suppliers" searchAriaLabel="Search rebate suppliers"
+        [filters]="filterFields" [values]="filterValues" [sortOptions]="sortOptions" [sortValue]="sort" [showActiveSummary]="true"
+        (searchValueChange)="onSearch($event)" (valuesChange)="onFilters($event)" (sortValueChange)="onSort($event)" />
+      @if (result.narrowed) {
+        <p class="invoice-rebate-matching" role="status">{{result.count}} of {{result.totalCount}} suppliers match. Matching rebate due: <strong>{{formatKes(result.matchingTotals.due)}}</strong></p>
+      }
+      <div class="baseline-table-wrap"><table class="baseline-table invoice-rebate-table" aria-label="Rebates by supplier">
+        <thead><tr>
+          <th>Supplier<app-invoice-help text="The supplier relationship that generated the rebate." /></th>
+          <th>Principal collected<app-invoice-help text="Financed principal collected by Avenews. Not invoice value or disbursements." /></th>
+          <th>Rebate rate<app-invoice-help text="The rebate rate configured for this supplier relationship." /></th>
+          <th>Earned<app-invoice-help text="Principal collected multiplied by the rebate rate, including rebates already paid." /></th>
+          <th>Paid<app-invoice-help text="Rebate already paid to you." /></th>
+          <th>Due<app-invoice-help text="Earned rebate less rebate already paid." /></th>
+        </tr></thead>
+        <tbody>
+          @for (rebate of result.items; track rebate.supplierId) {
+            <tr><td>{{rebate.supplier}}</td><td>{{formatKes(rebate.collected)}}</td><td>{{rebate.rate*100}}%</td><td>{{formatKes(rebate.earned)}}</td><td>{{formatKes(rebate.paid)}}</td><td><strong>{{formatKes(rebate.due)}}</strong></td></tr>
+          } @empty {
+            <tr><td colspan="6"><div class="baseline-empty"><strong>{{rows.length ? 'No matching suppliers' : 'No rebates yet'}}</strong><p>{{rows.length ? 'Change your search or clear the filters.' : 'Rebates will appear when principal is collected for an eligible supplier relationship.'}}</p></div></td></tr>
+          }
+        </tbody>
+      </table></div>
+      <div class="invoice-rebate-cards">
+        @for (rebate of result.items; track rebate.supplierId) {
+          <article class="baseline-record-card"><strong>{{rebate.supplier}}</strong><div class="baseline-metrics">
+            <span class="baseline-metric"><small>Principal collected</small><strong>{{formatKes(rebate.collected)}}</strong></span>
+            <span class="baseline-metric"><small>Rebate rate</small><strong>{{rebate.rate*100}}%</strong></span>
+            <span class="baseline-metric"><small>Earned</small><strong>{{formatKes(rebate.earned)}}</strong></span>
+            <span class="baseline-metric"><small>Paid</small><strong>{{formatKes(rebate.paid)}}</strong></span>
+            <span class="baseline-metric"><small>Due</small><strong>{{formatKes(rebate.due)}}</strong></span>
+          </div></article>
+        } @empty {
+          <div class="baseline-empty"><strong>{{rows.length ? 'No matching suppliers' : 'No rebates yet'}}</strong><p>{{rows.length ? 'Change your search or clear the filters.' : 'Rebates will appear when principal is collected for an eligible supplier relationship.'}}</p></div>
+        }
+      </div>
+      <div class="baseline-pagination invoice-rebate-pagination">
+        <p role="status" aria-live="polite">Showing <strong>{{result.start}}-{{result.end}}</strong> of {{result.count}} suppliers</p>
+        <div class="baseline-pagination__controls" role="navigation" aria-label="Rebate pages">
+          <button type="button" aria-label="Previous rebate page" [disabled]="result.page===1" (click)="changePage(result.page-1)">&#8249;</button>
+          @for (number of result.pageNumbers; track number; let i=$index) {
+            @if (i>0 && number-result.pageNumbers[i-1]>1) { <span aria-hidden="true">&hellip;</span> }
+            <button type="button" [attr.aria-label]="'Rebate page '+number" [class.is-active]="number===result.page" [attr.aria-current]="number===result.page?'page':null" (click)="changePage(number)">{{number}}</button>
+          }
+          <button type="button" aria-label="Next rebate page" [disabled]="result.page===result.pages" (click)="changePage(result.page+1)">&#8250;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

@@ -1,3 +1,7 @@
+import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
+import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
+import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
+import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -41,8 +45,8 @@ const RELATIONSHIP_PAGE_COPY: Record<CustomerProductId, RelationshipPageCopy> = 
 @Component({
   selector: 'app-contextual-financing',
   standalone: true,
-  imports: [
-    PrototypeExplainerComponent,
+  imports: [PortalActionIconComponent, 
+    PrototypeExplainerComponent, InvoiceHelpComponent, InvoiceUploadComponent,
     CustomerFinancingPeriodModalComponent,
     CustomerFilterBarComponent,
   ],
@@ -79,6 +83,7 @@ export class ContextualFinancingComponent implements OnDestroy {
   periodPage = 1
   readonly periodPageSize = 10
 
+  readonly relationshipTerms=invoiceRelationshipTerms
   readonly formatDate = formatDate
   readonly formatKes = formatKes
   readonly filterFields: readonly CustomerFilterField[] = [
@@ -412,13 +417,7 @@ export class ContextualFinancingComponent implements OnDestroy {
     this.resetRelationshipPeriodList()
   }
 
-  private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean {
-    const dueDate = new Date(`${period.repaymentDueDate}T00:00:00`)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const days = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
-    return days >= 7 && days <= 60
-  }
+  private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean { return invoiceCanRequest(period) }
 
   private restoreRelationship(): void {
     if (!this.returnRelationship) return

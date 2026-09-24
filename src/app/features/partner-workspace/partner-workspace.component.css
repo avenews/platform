@@ -525,3 +525,29 @@
     grid-template-columns: 1fr;
   }
 }
+
+.partner-period-invoices{min-width:0;border-top:1px solid var(--av-color-surface-border,#e1e7eb);padding-top:16px}.partner-period-invoices summary{cursor:pointer;font-weight:700;font-size:16px;color:var(--av-color-text-heading);padding:4px 0}.partner-period-invoices[open] summary{margin-bottom:16px}.partner-invoice-records{min-width:0;display:grid;gap:16px}
+
+.partner-modal__body{align-content:start;grid-auto-rows:max-content}.partner-detail-grid{min-width:0;grid-auto-rows:minmax(min-content,auto)}.partner-detail-grid>div{min-width:0}.partner-detail-grid dd{overflow-wrap:anywhere}
+
+/* Use the installed design-system tabs without replacing either table. */
+.partner-invoice-tabs{display:block;min-width:0}
+.partner-invoice-panel[hidden]{display:none!important}
+
+[data-partner-section="suppliers"] .partner-workspace-hero{flex-wrap:wrap}
+.partner-workspace-hero>.partner-workspace-hero__actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}
+@media(max-width:767px){.partner-workspace-hero>.partner-workspace-hero__actions{display:grid;grid-template-columns:1fr;width:100%}}
+
+
+/* Full-width final rows own their divider, including an unpaired row above. */
+.partner-detail-grid > .partner-detail-grid__wide:not(:first-child) {
+  border-top: 1px solid var(--av-color-surface-border, #e1e7eb);
+}
+.partner-detail-grid > div:has(+ .partner-detail-grid__wide:last-child) {
+  border-bottom: 0;
+}
+@media (min-width: 768px) {
+  .partner-detail-grid > div:nth-last-child(3):nth-child(odd):has(+ div + .partner-detail-grid__wide:last-child) {
+    border-bottom: 0;
+  }
+}

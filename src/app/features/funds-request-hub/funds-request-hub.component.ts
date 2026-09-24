@@ -1,3 +1,5 @@
+import { invoiceCanRequest } from '../../core/experience/invoice-portal.data'
+import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 import {
@@ -18,7 +20,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 @Component({
   selector: 'app-funds-request-hub',
   standalone: true,
-  imports: [CustomerFilterBarComponent],
+  imports: [CustomerFilterBarComponent, InvoiceHelpComponent],
   template: `
     <div class="portal-page request-hub">
       <section class="request-hub__hero"><div><h1>Request funds</h1><p>{{ intro }}</p></div></section>
@@ -41,13 +43,13 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
           />
 
           @if (workspace?.id === 'invoice-financing') {
-            <div class="baseline-table-wrap"><table class="baseline-table request-hub__table"><thead><tr><th>Buyer</th><th>Invoice Due Date</th><th>Available Financing</th><th>Status</th><th>Action</th></tr></thead><tbody>
+            <div class="baseline-table-wrap"><table class="baseline-table request-hub__table"><thead><tr><th>Buyer<app-invoice-help label="Buyer" text="The buyer associated with this financing period." /></th><th>Invoice(s) Due Date<app-invoice-help label="Invoice(s) Due Date" text="The agreed buyer payment date for the invoices in this period." /></th><th>Available Financing<app-invoice-help label="Available Financing" text="The additional amount available to request from this eligible financing period." /></th><th>Status<app-invoice-help label="Status" text="The current financing status." /></th><th>Action<app-invoice-help label="Action" text="Start a Funds Request for the selected eligible period." /></th></tr></thead><tbody>
               @for (period of periodPageItems; track period.id) {
                 <tr><td><span class="baseline-financing-cell"><strong>{{ period.relationshipName }}</strong><span>{{ period.reference }}</span></span></td><td>{{ formatDate(period.repaymentDueDate, true) }}</td><td><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></td><td><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></td><td><button type="button" class="baseline-button baseline-button--primary" (click)="requestFromPeriod(period)">Request funds</button></td></tr>
               } @empty { <tr><td colspan="5"><div class="baseline-empty"><strong>No matching financing periods</strong><p>Try changing your search or filters.</p></div></td></tr> }
             </tbody></table></div>
             <div class="baseline-cards request-hub__cards">
-              @for (period of periodPageItems; track period.id) { <article class="baseline-record-card"><div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ period.relationshipName }}</strong><span>{{ period.reference }}</span></span><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Invoice Due Date</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span><span class="baseline-metric"><small>Available Financing</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span></div><button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="requestFromPeriod(period)">Request funds</button></article> }
+              @for (period of periodPageItems; track period.id) { <article class="baseline-record-card"><div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ period.relationshipName }}</strong><span>{{ period.reference }}</span></span><span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span></div><div class="baseline-metrics"><span class="baseline-metric"><small>Invoice(s) Due Date</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span><span class="baseline-metric"><small>Available Financing</small><strong>{{ formatKes(period.availableToWithdraw ?? 0) }}</strong></span></div><button type="button" class="baseline-button baseline-button--primary baseline-button--block" (click)="requestFromPeriod(period)">Request funds</button></article> }
             </div>
             @if (filteredPeriods.length) { <div class="baseline-pagination"><p>Showing <strong>{{ periodRangeStart }}-{{ periodRangeEnd }}</strong> of {{ filteredPeriods.length }} financing periods</p><div class="baseline-pagination__controls"><button type="button" [disabled]="page===1" (click)="changePage(page-1)">‹</button>@for (n of pageNumbers; track n) { <button type="button" [class.is-active]="n===page" (click)="changePage(n)">{{ n }}</button> }<button type="button" [disabled]="page===totalPages" (click)="changePage(page+1)">›</button></div></div> }
           } @else {
@@ -105,5 +107,5 @@ export class FundsRequestHubComponent {
   requestFromRelationship(r:CustomerRelationship){if(!this.canRequest(r))return;if(r.fundsRequestUrl){const opened=window.open(r.fundsRequestUrl,'_blank','noopener,noreferrer');if(opened)opened.opener=null;else this.toast='Your browser blocked the Funds Request tab. Allow pop-ups and try again.';return}this.toast=`Funds Request started for ${r.name}.`}
   requestFromPeriod(p:CustomerFinancingPeriod){if(!this.canRequestFromPeriod(p))return;this.toast=`You can request up to ${formatKes(p.availableToWithdraw??0)} from this financing period.`}
   openAclRequest(){const opened=window.open(ACL_FUNDS_REQUEST_DEMO_URL,'_blank','noopener,noreferrer');if(opened)opened.opener=null;else this.toast='Your browser blocked the Funds Request tab. Allow pop-ups and try again.'}
-  private canRequestFromPeriod(p:CustomerFinancingPeriod){if((p.availableToWithdraw??0)<=0)return false;if(p.statusKey!=='live'&&p.statusKey!=='requested')return false;const d=new Date(`${p.repaymentDueDate}T00:00:00`),t=new Date();t.setHours(0,0,0,0);const days=Math.ceil((d.getTime()-t.getTime())/86_400_000);return days>=7&&days<=60}
+  private canRequestFromPeriod(p:CustomerFinancingPeriod){return invoiceCanRequest(p)}
 }

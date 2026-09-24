@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core'
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { PageScrollService } from './core/experience/page-scroll.service'
 import { RouterOutlet } from '@angular/router'
 
 @Component({
@@ -8,4 +9,4 @@ import { RouterOutlet } from '@angular/router'
   template: '<router-outlet />',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AppComponent {}
+export class AppComponent { private readonly pageScroll = inject(PageScrollService) }

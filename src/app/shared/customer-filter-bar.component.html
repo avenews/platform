@@ -127,4 +127,7 @@
       </section>
     }
   </div>
+  @if (showActiveSummary && activeSummary) {
+    <div class="customer-filter-summary" role="status" aria-live="polite"><span>Showing: {{activeSummary}}</span><button type="button" (click)="clearAllFilters()">Clear filters</button></div>
+  }
 </div>

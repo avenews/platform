@@ -1,3 +1,9 @@
+import { PartnerWorkspaceComponent } from '../partner-workspace/partner-workspace.component'
+import { PARTNER_PERIODS } from '../../core/experience/partner-workspace.data'
+import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
+import { PartnerRebateModalComponent } from '../../shared/partner-rebate-modal.component'
+import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
+import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -96,8 +102,8 @@ const PARTNER_HOME_PAYMENTS: readonly PartnerHomePayment[] = [
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
-  imports: [
-    PrototypeExplainerComponent,
+  imports: [PartnerRebateModalComponent,
+    PrototypeExplainerComponent, InvoiceHelpComponent, InvoiceUploadComponent, PartnerWorkspaceComponent,
     CustomerFilterBarComponent,
     CustomerFinancingPeriodModalComponent,
   ],
@@ -121,12 +127,21 @@ export class ContextualHomeComponent implements OnDestroy {
   searchQuery = ''
   statusFilter = ''
   dueDateFilter = ''
-  private availabilityFilter = ''
   sort = ''
   page = 1
   readonly pageSize = 10
   selectedPeriod: CustomerFinancingPeriod | null = null
   toast = ''
+  invoiceUploadOpen=false
+  rebateOpen=false
+  readonly invoiceFacility=INVOICE_FACILITY
+  readonly rebates=PARTNER_REBATES
+  get canUploadInvoices():boolean{return supplierInvoiceParties().some(p=>p.uploader==='supplier')}
+  get invoiceEligiblePeriods(){return this.workspace?.periods.filter(invoiceCanRequest)??[]}
+  get invoiceOutstanding():number{return (this.workspace?.periods??[]).filter(p=>!!p.disbursementDate).reduce((n,p)=>n+p.outstandingBalance,0)}
+  get invoiceAvailable():number{return Math.min(Math.max(0,this.invoiceFacility.approvedLimit-this.invoiceOutstanding),this.invoiceEligiblePeriods.reduce((n,p)=>n+(p.availableToWithdraw??0),0))}
+  get rebateDue():number{return this.rebates.reduce((n,r)=>n+r.due,0)}
+  get partnerAmountDue():number{return PARTNER_PERIODS.filter(p=>p.paymentStatusKey!=='paid').reduce((n,p)=>n+p.amountToPay,0)}
 
   readonly aclFundsRequestDemoUrl = ACL_FUNDS_REQUEST_DEMO_URL
   readonly partnerHomePayments = PARTNER_HOME_PAYMENTS
@@ -160,7 +175,7 @@ export class ContextualHomeComponent implements OnDestroy {
         key: 'status',
         label: 'Status',
         allLabel: 'All statuses',
-        options: Array.from(statuses, ([value, label]) => ({ value, label })),
+        options: [...(this.workspace.id==='invoice-financing'?[{value:'available-to-request',label:'Available to request'},{value:'outstanding',label:'Outstanding financing'}]:[]),...Array.from(statuses, ([value, label]) => ({ value, label }))],
       },
       {
         key: 'dueDate',
@@ -216,9 +231,8 @@ export class ContextualHomeComponent implements OnDestroy {
     const product = this.workspace
 
     const items = product.periods
-      .filter(period => !this.statusFilter || period.statusKey === this.statusFilter)
+      .filter(period => !this.statusFilter || (this.statusFilter==='available-to-request' ? this.canRequestFromPeriod(period) : this.statusFilter==='outstanding' ? !!period.disbursementDate && period.outstandingBalance>0 : period.statusKey===this.statusFilter))
       .filter(period => this.matchesDueFilter(period))
-      .filter(period => !this.availabilityFilter || this.canRequestFromPeriod(period))
       .filter(period => {
         if (!query) return true
         const displayedName = product.id === 'acl' ? period.reference : period.relationshipName
@@ -260,7 +274,7 @@ export class ContextualHomeComponent implements OnDestroy {
     if (!this.workspace) return
     if (this.workspace.id === 'acl') { this.openAclFundsRequest(); return }
     if (this.workspace.id === 'invoice-financing') {
-      void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'invoices'), { queryParams: { action: 'upload' } })
+      this.invoiceUploadOpen=this.canUploadInvoices
       return
     }
     void this.router.navigate(this.experienceService.routeFor(this.workspace.id, 'request-funds'))
@@ -284,7 +298,7 @@ export class ContextualHomeComponent implements OnDestroy {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = ''
-    this.availabilityFilter = 'available-to-withdraw'
+    this.statusFilter = 'available-to-request'
     this.sort = ''
     this.page = 1
     this.selectedPeriod = null
@@ -292,11 +306,12 @@ export class ContextualHomeComponent implements OnDestroy {
     this.scrollToFinancing()
   }
 
+  filterOutstanding():void {this.resetFilters();this.statusFilter='outstanding';this.selectedPeriod=null;this.cdr.markForCheck();this.scrollToFinancing()}
+
   filterPaymentsDue(): void {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = 'payments-due'
-    this.availabilityFilter = ''
     this.sort = ''
     this.page = 1
     this.selectedPeriod = null
@@ -331,17 +346,14 @@ export class ContextualHomeComponent implements OnDestroy {
   onFilterValuesChange(values: Record<string, string>): void {
     this.statusFilter = values['status'] ?? ''
     this.dueDateFilter = values['dueDate'] ?? ''
-    this.availabilityFilter = ''
     this.page = 1
   }
   onSearchValueChange(value: string): void {
     this.searchQuery = value
-    this.availabilityFilter = ''
     this.page = 1
   }
   onSortValueChange(value: string): void {
     this.sort = value
-    this.availabilityFilter = ''
     this.page = 1
   }
   changePage(page: number): void { this.page = Math.min(Math.max(1, page), this.totalPages) }
@@ -357,16 +369,11 @@ export class ContextualHomeComponent implements OnDestroy {
   private periodSortName(period: CustomerFinancingPeriod): string { return this.workspace?.id === 'acl' ? period.reference : period.relationshipName }
   private periodSortAmount(period: CustomerFinancingPeriod): number { return this.workspace?.id === 'invoice-financing' ? (period.availableToWithdraw ?? 0) : period.amountFinanced }
 
-  private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean {
-    const dueDate = new Date(`${period.repaymentDueDate}T00:00:00`)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const daysToDue = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
-    return daysToDue >= 7 && daysToDue <= 60
-  }
+  private isWithinInvoiceFundingWindow(period: CustomerFinancingPeriod): boolean { return invoiceCanRequest(period) }
 
   private matchesDueFilter(period: CustomerFinancingPeriod): boolean {
     if (!this.dueDateFilter) return true
+    if (this.dueDateFilter === 'outstanding') return !!period.disbursementDate && period.outstandingBalance > 0
     if (this.dueDateFilter === 'payments-due') return period.paymentAttention !== null
     if (this.dueDateFilter === 'overdue') return period.paymentAttention === 'overdue'
     if (this.dueDateFilter === 'upcoming') return period.paymentAttention === 'upcoming'
@@ -383,7 +390,6 @@ export class ContextualHomeComponent implements OnDestroy {
     this.searchQuery = ''
     this.statusFilter = ''
     this.dueDateFilter = ''
-    this.availabilityFilter = ''
     this.sort = ''
     this.page = 1
   }

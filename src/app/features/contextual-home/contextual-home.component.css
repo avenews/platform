@@ -506,3 +506,15 @@
     align-items: flex-start;
   }
 }
+
+/* Additive invoice explanation and rebate content; original cards/tables unchanged. */
+.invoice-explanation{display:grid;gap:8px;padding:18px 20px;border:1px solid var(--av-color-primary-border,#bdeff3);border-radius:12px;background:var(--av-color-primary-subtle,#eefbfc)}
+.invoice-explanation h2{margin:0;font-size:18px;color:var(--av-color-text-heading)}
+.invoice-explanation p{margin:0;font-size:13px;line-height:1.65;color:var(--av-color-text-heading)}
+
+
+/* Preserve the conditional invoice-upload action on mobile as well. */
+@media(max-width:767px){[data-product-context="invoice-financing"] .contextual-home__primary--hero[data-action="invoice-upload"]{display:inline-flex}}
+
+/* The added rebate action must not shift sibling metric labels or values. */
+.contextual-metrics[aria-label="Partner summary"]>.contextual-metric{align-content:start}

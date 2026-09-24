@@ -61,7 +61,7 @@ const INVOICE_FINANCING_NAV: readonly ExperienceNavItem[] = [
   { segment: 'home', label: 'Home', icon: 'home', exact: true },
   { segment: 'financing', label: 'Buyers', icon: 'building', exact: false },
   { segment: 'request-funds', label: 'Funds Request', icon: 'wallet', exact: false },
-  { segment: 'invoices', label: 'Invoice Uploader', icon: 'receipt', exact: false },
+  { segment: 'invoices', label: 'Invoices', icon: 'receipt', exact: false },
 ]
 
 const INFX_NAV: readonly ExperienceNavItem[] = [

@@ -1,3 +1,7 @@
+import { PortalActionIconComponent } from './portal-action-icon.component'
+import { CustomerInvoicesComponent } from '../features/customer-invoices/customer-invoices.component'
+import { inject } from '@angular/core'
+import { InvoiceDocumentsStore, invoiceCanRequest } from '../core/experience/invoice-portal.data'
 import {
   ChangeDetectionStrategy,
   Component,
@@ -35,6 +39,7 @@ const MPESA_DETAILS = [
 @Component({
   selector: 'app-customer-financing-period-modal',
   standalone: true,
+  imports: [PortalActionIconComponent, CustomerInvoicesComponent],
   template: `
     @if (period && !repaymentOpen && !documentsOpen) {
       <div class="baseline-modal-backdrop customer-period-backdrop" role="presentation" (click)="close.emit()">
@@ -43,7 +48,7 @@ const MPESA_DETAILS = [
             <div class="customer-period-modal__heading">
               @if (backLabel) {
                 <button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="back.emit()">
-                  <span aria-hidden="true">←</span><span>{{ backLabel }}</span>
+                  <app-portal-action-icon name="arrow-left" /><span>{{ backLabel }}</span>
                 </button>
               }
               <div><p class="page-eyebrow">Financing period details</p><h2 [id]="period.id + '-title'">{{ period.reference }}</h2></div>
@@ -81,9 +86,6 @@ const MPESA_DETAILS = [
               <div><dt>{{ outstandingLabel }}</dt><dd>{{ formatKes(period.outstandingBalance) }}</dd></div>
             </dl>
 
-            @if (canRequestFunds) {
-              <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
-            }
 
             @if (period.instalments.length) {
               <section class="customer-instalments" aria-label="Repayment schedule">
@@ -101,12 +103,19 @@ const MPESA_DETAILS = [
               </section>
             }
 
-            <div class="customer-period-footer-actions" [class.is-single]="period.outstandingBalance <= 0">
+            <div class="customer-period-footer-actions" [class.is-single]="!canRequestFunds && period.outstandingBalance <= 0" [class.has-three]="canRequestFunds && period.outstandingBalance > 0">
+            @if (canRequestFunds) {
+              <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
+            }
+
               <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openDocuments()">Files</button>
               @if (period.outstandingBalance > 0) {
                 <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openRepayment()">{{ repaymentActionLabel }}</button>
               }
             </div>
+            @if(productId==='invoice-financing'){
+              <details class="invoice-period-area"><summary>Invoices ({{periodInvoices.length}})</summary><app-customer-invoices [embedded]="true" [periodId]="period.id" /></details>
+            }
           </div>
         </section>
       </div>
@@ -117,7 +126,7 @@ const MPESA_DETAILS = [
         <section class="baseline-modal customer-period-modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="period.id + '-documents-title'" (click)="$event.stopPropagation()">
           <header class="baseline-modal__head customer-period-modal__head">
             <div class="customer-period-modal__heading">
-              <button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="closeDocuments()"><span aria-hidden="true">←</span><span>Back</span></button>
+              <button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="closeDocuments()"><app-portal-action-icon name="arrow-left" /><span>Back</span></button>
               <div><p class="page-eyebrow">Documents</p><h2 [id]="period.id + '-documents-title'">Files</h2><small>{{ period.reference }}</small></div>
             </div>
             <button type="button" class="baseline-modal__close" aria-label="Close" (click)="close.emit()">&times;</button>
@@ -138,7 +147,7 @@ const MPESA_DETAILS = [
       <div class="baseline-modal-backdrop customer-period-backdrop" role="presentation" (click)="closeRepayment()">
         <section class="baseline-modal customer-period-modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="period.id + '-repayment-title'" (click)="$event.stopPropagation()">
           <header class="baseline-modal__head customer-period-modal__head">
-            <div class="customer-period-modal__heading"><button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="closeRepayment()"><span aria-hidden="true">←</span><span>Back</span></button><div><p class="page-eyebrow">{{ repaymentEyebrow }}</p><h2 [id]="period.id + '-repayment-title'">{{ period.reference }}</h2></div></div>
+            <div class="customer-period-modal__heading"><button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="closeRepayment()"><app-portal-action-icon name="arrow-left" /><span>Back</span></button><div><p class="page-eyebrow">{{ repaymentEyebrow }}</p><h2 [id]="period.id + '-repayment-title'">{{ period.reference }}</h2></div></div>
             <button type="button" class="baseline-modal__close" aria-label="Close" (click)="close.emit()">&times;</button>
           </header>
           <div class="baseline-modal__body customer-period-modal__body">
@@ -162,6 +171,10 @@ const MPESA_DETAILS = [
   `,
   styles: [`
     :host { display: contents; }
+    .invoice-period-area{min-width:0;border-top:1px solid var(--av-color-surface-border,#e1e7eb);padding-top:16px}
+    .invoice-period-area summary{cursor:pointer;font-weight:700;font-size:16px;color:var(--av-color-text-heading);padding:4px 0}
+    .invoice-period-area[open] summary{margin-bottom:16px}
+
     .customer-period-backdrop { display:flex; align-items:center; justify-content:center; padding:24px; }
     .customer-period-modal { width:min(100%,720px); max-height:min(88dvh,860px); display:flex; flex-direction:column; overflow:hidden; margin:0; border-radius:14px; }
     .customer-period-modal__head { flex:0 0 auto; }
@@ -184,6 +197,11 @@ const MPESA_DETAILS = [
     .customer-period-footer-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
     .customer-period-footer-actions.is-single { grid-template-columns:1fr; }
     .customer-period-request { margin:0; }
+    .customer-period-footer-actions.has-three{grid-template-columns:repeat(3,minmax(0,1fr))}
+    .customer-modal-back{display:inline-flex;align-items:center;gap:8px}
+    .customer-settlement-card>div{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.7fr)}
+    .customer-settlement-card>div>strong{min-width:0;text-align:right;overflow-wrap:anywhere}
+
     .customer-overdue { display:grid; gap:10px; padding:14px; border:1px solid #efb4b4; border-radius:10px; background:#fff4f4; }
     .customer-overdue p,.customer-overdue h3 { margin:0; }
     .customer-overdue h3 { color:var(--av-color-text-heading,#0d343f); font-size:16px; }
@@ -214,6 +232,7 @@ const MPESA_DETAILS = [
       .customer-period-backdrop { align-items:flex-end; padding:0; }
       .customer-period-modal { width:100%; max-height:92dvh; border-radius:18px 18px 0 0; border-bottom:0; }
       .customer-period-modal__body { gap:14px; }
+      .customer-period-footer-actions,.customer-period-footer-actions.has-three{grid-template-columns:1fr}
       .customer-period-details { grid-template-columns:1fr; grid-auto-rows:minmax(62px,auto); }
       .customer-period-details > div,.customer-period-details > div:last-child:nth-child(odd) { grid-column:auto; border-right:0; }
       .customer-period-details > div { border-bottom:1px solid var(--av-color-surface-border,#e1e7eb); }
@@ -224,6 +243,8 @@ const MPESA_DETAILS = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CustomerFinancingPeriodModalComponent implements OnChanges {
+  private readonly invoiceStore=inject(InvoiceDocumentsStore)
+  get periodInvoices(){return this.period?this.invoiceStore.periodInvoices(this.period.id,'supplier'):[]}
   @Input() period: CustomerFinancingPeriod | null = null
   @Input() productId = ''
   @Input() dueDateLabel = 'Repayment Due Date'
@@ -263,7 +284,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   }
 
   get periodDocuments() {
-    return this.period ? documentsForPeriod(this.period.id) : []
+    return this.period ? [...documentsForPeriod(this.period.id),...this.invoiceStore.deliveryFiles().filter(f=>f.periodId===this.period?.id)] : []
   }
 
   get overdueInstalments(): readonly CustomerInstalment[] {
@@ -274,11 +295,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     if (this.productId !== 'invoice-financing' || !this.period) return false
     if ((this.period.availableToWithdraw ?? 0) <= 0) return false
     if (this.period.statusKey !== 'live' && this.period.statusKey !== 'requested') return false
-    const dueDate = new Date(`${this.period.repaymentDueDate}T00:00:00`)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    const daysToDue = Math.ceil((dueDate.getTime() - today.getTime()) / 86_400_000)
-    return daysToDue >= 7 && daysToDue <= 60
+    return invoiceCanRequest(this.period)
   }
 
   get repaymentActionLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Payment details' : 'Repayment details' }

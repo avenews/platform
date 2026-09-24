@@ -40,6 +40,7 @@ export class CustomerFilterBarComponent implements OnChanges {
 
   readonly panelId = `customer-filter-panel-${CustomerFilterBarComponent.nextPanelId++}`
 
+  @Input() showActiveSummary = false
   @Input() searchValue = ''
   @Input() searchPlaceholder = 'Search'
   @Input() searchAriaLabel = 'Search records'
@@ -69,6 +70,10 @@ export class CustomerFilterBarComponent implements OnChanges {
       || this.sortValue
       || this.filters.some(filter => Boolean(this.values[filter.key])),
     )
+  }
+
+  get activeSummary(): string {
+    return this.filters.map(field => field.options.find(option => option.value === this.values[field.key])?.label).filter(Boolean).join(' / ')
   }
 
   valueFor(key: string): string {

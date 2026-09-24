@@ -1,6 +1,6 @@
 @if (period; as currentPeriod) {
   <div class="portal-page baseline-page invoice-period-page" [attr.data-period-status]="currentPeriod.status">
-    <button type="button" class="invoice-period-back" (click)="back()">Back to Invoice Financing</button>
+    <button type="button" class="invoice-period-back" (click)="back()"><app-portal-action-icon name="arrow-left" /><span>Back to Invoice Financing</span></button>
 
     <section class="invoice-period-hero baseline-card">
       <div class="invoice-period-hero__copy">
@@ -203,5 +203,5 @@
 
   @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
 } @else {
-  <div class="portal-page baseline-empty"><strong>Financing period not found</strong><p>This demo does not contain the requested financing period.</p><button type="button" class="baseline-button baseline-button--secondary" (click)="back()">Back to Invoice Financing</button></div>
+  <div class="portal-page baseline-empty"><strong>Financing period not found</strong><p>This demo does not contain the requested financing period.</p><button type="button" class="baseline-button baseline-button--secondary" (click)="back()"><app-portal-action-icon name="arrow-left" /><span>Back to Invoice Financing</span></button></div>
 }
