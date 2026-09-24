@@ -1,0 +1,21 @@
+name: Rebate review source
+on:
+  push:
+    branches: [stefan-invoice-financing-refinements]
+    paths: ['.github/workflows/rebate-source-check.yml']
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: git archive --format=tar.gz HEAD > /tmp/rebate-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rebate-source-${{ github.sha }}
+          path: /tmp/rebate-source.tar.gz
+          retention-days: 1
