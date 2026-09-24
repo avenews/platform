@@ -1,0 +1,20 @@
+name: Invoice refinement source
+on:
+  push:
+    branches: [stefan-invoice-financing-refinements]
+    paths: [.github/workflows/refinement-source.yml]
+permissions:
+  contents: read
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - run: git archive HEAD | gzip > /tmp/invoice-refinement-source.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: invoice-refinement-source
+          path: /tmp/invoice-refinement-source.tar.gz
+          retention-days: 2
