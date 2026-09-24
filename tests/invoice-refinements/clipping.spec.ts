@@ -85,6 +85,7 @@ test('rebate tooltips render past the last grid row and Escape keeps the modal o
     await expect(modal).toBeVisible()
   }
   const trigger = modal.locator('.partner-supplier-rebate').last().locator('.av-tooltip__btn')
+  await modal.getByRole('button', {name:'Close',exact:true}).focus()
   await trigger.focus()
   await visibleBubble(page, trigger)
   await modal.getByRole('button', {name:'Close',exact:true}).click()
