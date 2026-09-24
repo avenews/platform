@@ -1,3 +1,4 @@
+import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { CustomerInvoicesComponent } from '../customer-invoices/customer-invoices.component'
@@ -16,7 +17,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 @Component({
   selector: 'app-partner-workspace',
   standalone: true,
-  imports: [CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
+  imports: [PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
   templateUrl: './partner-workspace.component.html',
   styleUrl: './partner-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

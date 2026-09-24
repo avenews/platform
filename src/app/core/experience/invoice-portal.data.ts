@@ -1,4 +1,5 @@
 import { Injectable, OnDestroy, signal } from '@angular/core'
+import { INVOICE_UPLOAD_LEGAL } from './invoice-upload-legal.data'
 import { customerWorkspaceById, type CustomerFinancingPeriod } from './customer-product-workspace.data'
 import { invoiceFinancingInvoices, type FinancingDocument } from './financing-documents.data'
 import { PARTNER_SUPPLIERS, PARTNER_PERIODS } from './partner-workspace.data'
@@ -8,12 +9,14 @@ export interface InvoiceParty { id: string; name: string; uploader: 'supplier' |
 export interface RelationshipTerm { label: string; value: string }
 export interface ClearingAccount { bank: string; name: string; number: string; branch?: string; branchCode?: string; paybill?: string; accountReference?: string }
 export interface UploadSection { id: number; partyId: string; dueDate: string; invoices: File[]; delivery: File[] }
-export interface InvoiceSubmission { id: string; createdAt: string; actorId: string; actor: string; declaration: string; sections: {partyId: string; dueDate: string; invoices: string[]; delivery: string[]}[] }
+export interface InvoiceSubmission { id: string; createdAt: string; actorId: string; actor: string; declaration: string; confirmedAt: string; privacyNoticeAcknowledged: boolean; privacyNoticeUrl: string; fundsRequestTermsUrl: string; sections: {partyId: string; dueDate: string; invoices: string[]; delivery: string[]}[] }
 
 // Explicit prototype facility configuration, not the sum of buyer sub-limits.
 // Production supplies the approved customer limit separately from period balances.
 export const INVOICE_FACILITY = { approvedLimit: 3_000_000 }
 export const INVOICE_DECLARATION = 'I confirm that all submitted invoices reflect completed deliveries, not pre-delivery or disputed invoices.'
+export const INVOICE_EXTENSIONS = ['pdf','jpg','jpeg','png','xls','xlsx','csv'] as const
+export const DELIVERY_EXTENSIONS = ['pdf','jpg','jpeg','png'] as const
 export const INVOICE_FILE_POLICY = {maxGroups: 20, maxFiles: 10, maxBytes: 10 * 1024 * 1024}
 
 export function invoiceCanRequest(period: CustomerFinancingPeriod): boolean {
@@ -102,7 +105,7 @@ export class InvoiceDocumentsStore implements OnDestroy {
       const prefix=`Section ${i+1}: `
       const party=invoiceParties(role).find(p=>p.id===s.partyId)
       if(!party || !canUploadFor(party,role)) throw new Error(prefix+`choose a ${role==='supplier'?'buyer':'supplier'} you upload for.`)
-      if(!/^\d{4}-\d{2}-\d{2}$/.test(s.dueDate) || !Number.isFinite(Date.parse(s.dueDate+'T00:00:00Z'))) throw new Error(prefix+'select a valid invoice due date.')
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(s.dueDate) || !Number.isFinite(Date.parse(s.dueDate+'T00:00:00Z')) || new Date(s.dueDate+'T00:00:00Z').toISOString().slice(0,10)!==s.dueDate) throw new Error(prefix+'select a valid invoice due date.')
       const key=`${s.partyId}:${s.dueDate}`
       if(keys.has(key)) throw new Error(prefix+'use one section for the same buyer, supplier and due date. Combine the files in that section.')
       keys.add(key)
@@ -112,7 +115,7 @@ export class InvoiceDocumentsStore implements OnDestroy {
       for(const files of [s.invoices,s.delivery]) {
         const names=new Set<string>()
         for(const file of files) {
-          const formats=role==='partner'&&files===s.invoices?['pdf','jpg','jpeg','png','csv','xlsx']:['pdf','jpg','jpeg','png']
+          const formats:readonly string[]=files===s.invoices?INVOICE_EXTENSIONS:DELIVERY_EXTENSIONS
           if(!formats.includes(file.name.split('.').pop()?.toLowerCase()??'') || !file.size || file.size>INVOICE_FILE_POLICY.maxBytes) throw new Error(prefix+'check the file format and the 10 MB maximum size.')
           const fingerprint=`${file.name}:${file.size}:${file.lastModified}`
           if(names.has(fingerprint)) throw new Error(prefix+'remove the duplicate file.')
@@ -121,10 +124,10 @@ export class InvoiceDocumentsStore implements OnDestroy {
       }
     }
   }
-  save(sections:UploadSection[],role:InvoicePortalRole,actorId:string,actor:string,confirmed:boolean): InvoiceSubmission {
+  save(sections:UploadSection[],role:InvoicePortalRole,actorId:string,actor:string,confirmed:boolean,confirmedAt=new Date().toISOString()): InvoiceSubmission {
     this.validate(sections,role)
-    if(!confirmed || !actorId || !actor) throw new Error('Confirm that the invoices are for completed, undisputed deliveries.')
-    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,
+    if(!confirmed || !actorId || !actor || !Number.isFinite(Date.parse(confirmedAt))) throw new Error('Confirm that the invoices are for completed, undisputed deliveries.')
+    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,confirmedAt,privacyNoticeAcknowledged:true,...INVOICE_UPLOAD_LEGAL,
       sections:sections.map(s=>({partyId:s.partyId,dueDate:s.dueDate,invoices:s.invoices.map(f=>f.name),delivery:s.delivery.map(f=>f.name)}))}
     const invoices:FinancingDocument[]=[],delivery:FinancingDocument[]=[]
     for(const s of sections) {

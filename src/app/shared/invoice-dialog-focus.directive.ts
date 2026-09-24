@@ -9,7 +9,7 @@ export class InvoiceDialogFocusDirective implements AfterViewInit, OnDestroy {
   @HostListener('keydown',['$event']) key(event:KeyboardEvent):void {
     if(event.key==='Escape'){event.preventDefault();event.stopPropagation();this.dialogEscape.emit();return}
     if(event.key!=='Tab')return
-    const items=Array.from(this.el.nativeElement.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea,[tabindex="0"]')).filter(e=>e.getClientRects().length)
+    const items=Array.from(this.el.nativeElement.querySelectorAll<HTMLElement>('button:not([disabled]),a[href],input:not([disabled]),select:not([disabled]),textarea,[tabindex="0"]')).filter(e=>e.getClientRects().length&&e.tabIndex>=0)
     const first=items[0],last=items[items.length-1]
     if(event.shiftKey&&document.activeElement===first){event.preventDefault();last?.focus()}
     if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first?.focus()}

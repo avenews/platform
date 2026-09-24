@@ -74,6 +74,7 @@
         </div>
 
         <app-customer-filter-bar
+          [showActiveSummary]="true"
           [searchValue]="searchQuery"
           [searchPlaceholder]="searchPlaceholder"
           [searchAriaLabel]="'Search all values in ' + product.heading + ' financing'"
@@ -92,7 +93,7 @@
           <thead>
             <tr>
               <th [attr.title]="product.id === 'invoice-financing' ? null : 'Financing reference and supplier or buyer.'">Reference@if(product.id==='invoice-financing'){<app-invoice-help text="Financing reference and supplier or buyer." />}</th>
-              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Date this financing is due for repayment.'">{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}@if(product.id==='invoice-financing'){<app-invoice-help [text]="product.id === 'invoice-financing' ? 'Invoice due date for this financing period.' : 'Date this financing is due for repayment.'" />}</th>
+              <th [attr.title]="product.id === 'invoice-financing' ? null : 'Date this financing is due for repayment.'">{{ product.id === 'invoice-financing' ? 'Invoice(s) Due Date' : product.dueDateColumnLabel }}@if(product.id==='invoice-financing'){<app-invoice-help [text]="product.id === 'invoice-financing' ? 'The payment due date shared by the invoice(s) in this financing period.' : 'Date this financing is due for repayment.'" />}</th>
               <th [attr.title]="product.id === 'invoice-financing' ? null : 'Amount financed by Avenews.'">{{ product.id === 'invoice-financing' ? 'Available Financing' : 'Amount Financed' }}@if(product.id==='invoice-financing'){<app-invoice-help [text]="product.id === 'invoice-financing' ? 'Additional financing currently available.' : 'Amount financed by Avenews.'" />}</th>
               <th [attr.title]="product.id === 'invoice-financing' ? null : 'Current financing status.'">Status@if(product.id==='invoice-financing'){<app-invoice-help text="Current financing status." />}</th>
               <th [attr.title]="product.id === 'invoice-financing' ? null : 'Amount still outstanding.'">{{ product.outstandingColumnLabel }}@if(product.id==='invoice-financing'){<app-invoice-help text="Amount still outstanding." />}</th>
@@ -171,7 +172,7 @@
                 <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
               </div>
               <div class="baseline-metrics">
-                <span class="baseline-metric"><small>{{ product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
+                <span class="baseline-metric"><small>{{ product.id === 'invoice-financing' ? 'Invoice(s) Due Date' : product.dueDateColumnLabel }}</small><strong>{{ formatDate(period.repaymentDueDate, true) }}</strong></span>
                 <span class="baseline-metric"><small>{{ product.id === 'invoice-financing' ? 'Available Financing' : 'Amount Financed' }}</small><strong>{{ formatKes(product.id === 'invoice-financing' ? (period.availableToWithdraw ?? 0) : period.amountFinanced) }}</strong></span>
                 <span class="baseline-metric"><small>{{ product.outstandingColumnLabel }}</small><strong>{{ formatKes(period.outstandingBalance) }}</strong></span>
               </div>
@@ -231,7 +232,7 @@
   <app-customer-financing-period-modal
     [period]="selectedPeriod"
     [productId]="product.id"
-    [dueDateLabel]="product.id === 'invoice-financing' ? 'Invoice Due Date' : product.dueDateColumnLabel"
+    [dueDateLabel]="product.id === 'invoice-financing' ? 'Invoice(s) Due Date' : product.dueDateColumnLabel"
     [totalRepaidLabel]="product.totalRepaidColumnLabel"
     [outstandingLabel]="product.outstandingColumnLabel"
     (requestFunds)="requestFundsForPeriod($event)"

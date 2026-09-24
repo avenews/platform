@@ -1,4 +1,4 @@
-name: Invoice portal baseline corrections
+name: Invoice Financing refinements
 on:
   pull_request:
     branches: [stefan]
@@ -6,11 +6,11 @@ permissions:
   contents: read
   statuses: read
 concurrency:
-  group: invoice-correction-${{ github.event.pull_request.number }}
+  group: invoice-refinements-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 jobs:
-  correction:
-    if: github.head_ref == 'stefan-invoice-partner-review'
+  refinements:
+    if: github.head_ref == 'stefan-invoice-financing-refinements'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -22,25 +22,30 @@ jobs:
         with:
           node-version: 22
           cache: npm
-      - run: |
+      - name: Install application and browser-test dependencies
+        run: |
           npm ci --legacy-peer-deps --no-audit --no-fund
           npm install --no-save --legacy-peer-deps --no-audit --no-fund @playwright/test@1.55.0 esbuild@0.25.9
       - name: Baseline, typecheck and production build
         run: |
-          mkdir -p correction-evidence
+          mkdir -p refinement-evidence
           set -o pipefail
-          npm run check 2>&1 | tee correction-evidence/build.log
-      - name: Original records and new behaviour checks
+          npm run check 2>&1 | tee refinement-evidence/build.log
+      - name: Record preservation, validation and selection checks
         run: |
           set -o pipefail
-          node scripts/test-invoice-correction.mjs 2>&1 | tee correction-evidence/domain.log
+          node scripts/test-invoice-correction.mjs 2>&1 | tee refinement-evidence/domain.log
       - run: npx playwright install --with-deps chromium
-      - name: Original styling and responsive interaction checks
+      - name: Original-screen regression checks against fallback 85
         env:
-          REFERENCE_BASE_URL: https://deploy-preview-77--avenews-platform.netlify.app
+          REFERENCE_BASE_URL: https://deploy-preview-85--avenews-platform.netlify.app
         run: |
           set -o pipefail
-          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee correction-evidence/local.log
+          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee refinement-evidence/regression-local.log
+      - name: New uploader, filters, navigation and responsive modal checks
+        run: |
+          set -o pipefail
+          npx playwright test --config invoice-refinements.playwright.config.mjs 2>&1 | tee refinement-evidence/refinements-local.log
       - name: Wait for exact-head Netlify preview
         id: preview
         env:
@@ -48,18 +53,26 @@ jobs:
           REVIEW_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           REVIEW_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: node scripts/wait-invoice-review-preview.mjs
-      - name: Verify the deployed corrections against preview 77
+      - name: Deployed original-screen regression checks
         env:
           REVIEW_BASE_URL: ${{ steps.preview.outputs.url }}
-          REFERENCE_BASE_URL: https://deploy-preview-77--avenews-platform.netlify.app
+          REFERENCE_BASE_URL: https://deploy-preview-85--avenews-platform.netlify.app
         run: |
           set -o pipefail
-          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee correction-evidence/deployed.log
+          npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee refinement-evidence/regression-deployed.log
+      - name: Deployed uploader, filters, navigation and modal checks
+        env:
+          REVIEW_BASE_URL: ${{ steps.preview.outputs.url }}
+        run: |
+          set -o pipefail
+          npx playwright test --config invoice-refinements.playwright.config.mjs 2>&1 | tee refinement-evidence/refinements-deployed.log
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: invoice-correction-${{ github.event.pull_request.head.sha }}
+          name: invoice-refinements-${{ github.event.pull_request.head.sha }}
           path: |
+            refinement-evidence
+            refinement-results
             correction-evidence
             correction-results
           retention-days: 14

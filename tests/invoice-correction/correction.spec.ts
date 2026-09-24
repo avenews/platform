@@ -39,7 +39,7 @@ test('original period overview and Files remain with invoices in a bottom area',
 test('buyer ownership and compact native uploader work without help icons',async({page},info)=>{
  await goto(page,'invoice-financing/home');await page.getByRole('button',{name:'Upload invoices',exact:true}).click();const modal=page.getByRole('dialog')
  await expect(modal.locator('av-tooltip')).toHaveCount(0);await modal.getByRole('combobox').focus();await expect(modal.getByRole('option').filter({hasText:'Twiga Foods'})).toHaveAttribute('aria-disabled','true');await choose(modal,'FreshProduce')
- await modal.getByRole('button',{name:'Continue',exact:true}).click();await modal.locator('input[type="date"]').fill('2026-09-30');await modal.locator('input[type="file"]').first().setInputFiles({name:'supplier-invoice.pdf',mimeType:'application/pdf',buffer:Buffer.from('invoice file')})
+ await expect(modal.getByRole('button',{name:'Continue',exact:true})).toHaveCount(0);await modal.locator('input[type="date"]').fill('2026-09-30');await modal.locator('input[type="file"]').first().setInputFiles({name:'supplier-invoice.pdf',mimeType:'application/pdf',buffer:Buffer.from('invoice file')})
  await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('alert')).toContainText('Proof of Delivery');await modal.locator('input[type="file"]').last().setInputFiles({name:'delivery.pdf',mimeType:'application/pdf',buffer:Buffer.from('delivery file')});await modal.getByRole('checkbox').check()
  await page.screenshot({path:info.outputPath('native-uploader.png'),fullPage:true})
  await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('status')).toContainText('Invoices added');await modal.getByRole('button',{name:'Done',exact:true}).click()
@@ -77,8 +77,8 @@ test('icon-only tooltips use the installed design system and requested dark bubb
  await goto(page,'invoice-financing/home');const help=page.locator('.customer-product-summary app-invoice-help').first();await expect(help.locator('av-tooltip')).toHaveCount(1);const btn=help.locator('button');const b=await btn.boundingBox();expect(b!.width).toBeLessThanOrEqual(20);expect(b!.height).toBeLessThanOrEqual(24);await btn.click();await expect(help.locator('.av-tooltip__bubble')).toBeVisible();await page.screenshot({path:info.outputPath('tooltip.png'),fullPage:true})
 })
 
-test('original card and invoice table visual properties match preview 77',async({page,browser})=>{
- const reference=process.env['REFERENCE_BASE_URL'];test.skip(!reference,'Reference comparison runs in CI against exact preview 77')
+test('original card and invoice table visual properties match the preserved fallback',async({page,browser})=>{
+ const reference=process.env['REFERENCE_BASE_URL'];test.skip(!reference,'Reference comparison runs in CI against the preserved fallback')
  const ref=await browser.newPage({viewport:page.viewportSize()!});await ref.addInitScript(s=>localStorage.setItem('av_customer_portal_session',JSON.stringify(s)),session)
  const style=async(p:Page,selector:string)=>p.locator(selector).first().evaluate(e=>{const s=getComputedStyle(e);return {background:s.backgroundColor,radius:s.borderRadius,padding:s.padding,border:s.border,font:s.font,fontWeight:s.fontWeight,shadow:s.boxShadow}})
  await goto(page,'invoice-financing/home');await ref.goto(reference+'/experience/invoice-financing/home');await expect(ref.locator('.customer-product-summary')).toBeVisible();await ref.evaluate(()=>document.fonts.ready)

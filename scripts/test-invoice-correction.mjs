@@ -23,7 +23,47 @@ test('main and period invoice views use the same records',()=>{const store=new d
 test('unassigned parties and wrong roles cannot upload',()=>{const store=new d.InvoiceDocumentsStore();assert.throws(()=>store.validate([{...section,partyId:'inf-twiga'}],'supplier'));assert.throws(()=>store.validate([section],'partner'))})
 test('delivery evidence, duplicate sections and file validation are enforced',()=>{const store=new d.InvoiceDocumentsStore();assert.throws(()=>store.validate([{...section,delivery:[]}],'supplier'));assert.throws(()=>store.validate([section,{...section,id:2}],'supplier'));assert.throws(()=>store.validate([{...section,invoices:[new File(['x'],'script.exe')]}],'supplier'));assert.throws(()=>store.validate([{...section,invoices:[file,file]}],'supplier'));assert.throws(()=>store.validate([{...section,invoices:[new File([],'empty.pdf')]}],'supplier'))})
 test('confirmation required and submission identity/time recorded without changing credit',()=>{const store=new d.InvoiceDocumentsStore();assert.throws(()=>store.save([section],'supplier','a','Amara',false));const receipt=store.save([section],'supplier','a','Amara',true);assert.equal(receipt.actorId,'a');assert.equal(receipt.declaration,d.INVOICE_DECLARATION);assert.ok(receipt.createdAt);assert.equal(store.periodInvoices('inf-fresh-cancelled','supplier').length,2);assert.equal(workspace.availableMetricValue,970000)})
-test('compact selector can search hundreds of relationships with bounded rendering',()=>{const injector=d.createEnvironmentInjector([{provide:d.ElementRef,useValue:{nativeElement:{contains:()=>false}}}]);d.runInInjectionContext(injector,()=>{const selector=new d.InvoicePartySelectComponent();selector.parties=Array.from({length:500},(_,i)=>({id:String(i),name:`Supplier ${i}`,uploader:'buyer',pod:false,sublimit:0}));selector.role='partner';assert.equal(selector.matches.length,30);selector.query='Supplier 499';assert.equal(selector.matches.length,1);assert.equal(selector.matches[0].id,'499')});injector.destroy()})
+test('compact selector can search hundreds of relationships with bounded rendering',()=>{const injector=d.createEnvironmentInjector([{provide:d.ElementRef,useValue:{nativeElement:{contains:()=>false,querySelector:()=>null}}}]);d.runInInjectionContext(injector,()=>{const selector=new d.InvoicePartySelectComponent();selector.parties=Array.from({length:500},(_,i)=>({id:String(i),name:`Supplier ${i}`,uploader:'buyer',pod:false,sublimit:0}));selector.role='partner';assert.equal(selector.matches.length,30);selector.query='Supplier 499';assert.equal(selector.matches.length,1);assert.equal(selector.matches[0].id,'499')});injector.destroy()})
 test('clearing account never substitutes general collection account',()=>{for(const s of d.PARTNER_SUPPLIERS){const a=d.clearingAccountFor(s.id);if(a)assert.notEqual(a.number,'2046346095')}assert.equal(d.clearingAccountFor('supplier-eldoret'),null)})
+
+test('spreadsheet invoice formats are accepted for both roles, but POD stays documentary',()=>{
+  const store=new d.InvoiceDocumentsStore()
+  for(const ext of ['xls','xlsx','csv']) {
+    const invoices=[new File(['sheet rows'],'invoices.'+ext)]
+    store.validate([{...section,invoices}],'supplier')
+    store.validate([{...section,partyId:d.partnerInvoiceParties()[0].id,invoices,delivery:[]}],'partner')
+    assert.throws(()=>store.validate([{...section,delivery:invoices}],'supplier'))
+  }
+})
+test('confirmation time and legal references are recorded without authorising a Funds Request',()=>{
+  const store=new d.InvoiceDocumentsStore(),confirmedAt='2026-09-24T08:00:00Z'
+  const receipt=store.save([section],'supplier','a','Amara',true,confirmedAt)
+  assert.equal(receipt.confirmedAt,confirmedAt)
+  assert.equal(receipt.privacyNoticeAcknowledged,true)
+  assert.ok(receipt.fundsRequestTermsUrl.includes('1sKfI46A5zjWpzkHsXXOoefbcRB3XK2eha_h0VjteOTM'))
+  assert.ok(receipt.privacyNoticeUrl.includes('1Majh4ZEQ26icfUSVVycA2e9J3JE0uw_i2syI1WTiZQY'))
+  assert.equal(receipt.fundsRequest,undefined)
+  assert.throws(()=>store.save([section],'supplier','a','Amara',true,''))
+})
+test('search and dismissal preserve the committed party; only permitted changed selections emit',()=>{
+  const injector=d.createEnvironmentInjector([{provide:d.ElementRef,useValue:{nativeElement:{contains:()=>false,querySelector:()=>null}}}])
+  d.runInInjectionContext(injector,()=>{
+    const selector=new d.InvoicePartySelectComponent()
+    selector.parties=[{id:'one',name:'Supplier one',uploader:'buyer'},{id:'two',name:'Supplier two',uploader:'buyer'},{id:'blocked',name:'Blocked',uploader:'supplier'}]
+    selector.role='partner';selector.value='one';selector.ngOnChanges()
+    const emitted=[];selector.valueChange.subscribe(value=>emitted.push(value))
+    selector.search('two');assert.equal(selector.value,'one');assert.deepEqual(emitted,[])
+    selector.dismiss();assert.equal(selector.query,'Supplier one')
+    selector.choose(selector.parties[0]);assert.deepEqual(emitted,[])
+    selector.choose(selector.parties[2]);assert.deepEqual(emitted,[])
+    selector.choose(selector.parties[1]);assert.deepEqual(emitted,['two'])
+  });injector.destroy()
+})
+test('invalid calendar dates, oversize files and too many sections are rejected',()=>{
+  const store=new d.InvoiceDocumentsStore()
+  assert.throws(()=>store.validate([{...section,dueDate:'2026-02-31'}],'supplier'))
+  assert.throws(()=>store.validate([{...section,invoices:[new File([new Uint8Array(10*1024*1024+1)],'large.pdf')]}],'supplier'))
+  assert.throws(()=>store.validate(Array.from({length:21},(_,i)=>({...section,id:i})),'supplier'))
+})
 console.log(`${count} correction domain checks passed.`)
 rmSync('.invoice-correction-domain.mjs')

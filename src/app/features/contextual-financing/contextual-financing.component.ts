@@ -1,3 +1,4 @@
+import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
 import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
@@ -44,7 +45,7 @@ const RELATIONSHIP_PAGE_COPY: Record<CustomerProductId, RelationshipPageCopy> = 
 @Component({
   selector: 'app-contextual-financing',
   standalone: true,
-  imports: [
+  imports: [PortalActionIconComponent, 
     PrototypeExplainerComponent, InvoiceHelpComponent, InvoiceUploadComponent,
     CustomerFinancingPeriodModalComponent,
     CustomerFilterBarComponent,
