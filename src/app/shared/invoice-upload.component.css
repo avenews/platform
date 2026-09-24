@@ -9,8 +9,5 @@
 .invoice-upload-instructions ol,.invoice-upload-result ol{margin:0;padding-left:20px}
 .invoice-upload-instructions li+li,.invoice-upload-result li+li{margin-top:4px}
 .invoice-upload-result p{margin:0;color:var(--av-color-text-muted)}
-.invoice-upload-body a{color:var(--av-color-action,#16b3c4);text-decoration:underline;text-underline-offset:2px}
 .invoice-upload-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
-.invoice-upload-footer{display:grid;justify-items:center;gap:8px;padding-top:16px;border-top:1px solid var(--av-color-surface-border);text-align:center;color:var(--av-color-text-muted);font-size:11px;line-height:1.6}
-.invoice-upload-footer img{object-fit:contain}.invoice-upload-footer p{margin:0;max-width:540px}
 @media(max-width:767px){.invoice-upload-actions{grid-template-columns:1fr}}

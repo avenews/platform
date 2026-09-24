@@ -9,12 +9,12 @@ export interface InvoiceParty { id: string; name: string; uploader: 'supplier' |
 export interface RelationshipTerm { label: string; value: string }
 export interface ClearingAccount { bank: string; name: string; number: string; branch?: string; branchCode?: string; paybill?: string; accountReference?: string }
 export interface UploadSection { id: number; partyId: string; dueDate: string; invoices: File[]; delivery: File[] }
-export interface InvoiceSubmission { id: string; createdAt: string; actorId: string; actor: string; declaration: string; confirmedAt: string; privacyNoticeAcknowledged: boolean; privacyNoticeUrl: string; fundsRequestTermsUrl: string; sections: {partyId: string; dueDate: string; invoices: string[]; delivery: string[]}[] }
+export interface InvoiceSubmission { id: string; createdAt: string; actorId: string; actor: string; declaration: string; confirmedAt: string; privacyNoticeAcknowledged: boolean; termsAcknowledged: boolean; privacyNoticeUrl: string; fundsRequestTermsUrl: string; sections: {partyId: string; dueDate: string; invoices: string[]; delivery: string[]}[] }
 
 // Explicit prototype facility configuration, not the sum of buyer sub-limits.
 // Production supplies the approved customer limit separately from period balances.
 export const INVOICE_FACILITY = { approvedLimit: 3_000_000 }
-export const INVOICE_DECLARATION = 'I confirm that all submitted invoices reflect completed deliveries, not pre-delivery or disputed invoices.'
+export const INVOICE_DECLARATION = 'I confirm that all submitted invoices reflect completed deliveries, not pre-delivery or disputed invoices. I acknowledge the Privacy Notice and Terms & Conditions.'
 export const INVOICE_EXTENSIONS = ['pdf','jpg','jpeg','png','xls','xlsx','csv'] as const
 export const DELIVERY_EXTENSIONS = ['pdf','jpg','jpeg','png'] as const
 export const INVOICE_FILE_POLICY = {maxGroups: 20, maxFiles: 10, maxBytes: 10 * 1024 * 1024}
@@ -127,7 +127,7 @@ export class InvoiceDocumentsStore implements OnDestroy {
   save(sections:UploadSection[],role:InvoicePortalRole,actorId:string,actor:string,confirmed:boolean,confirmedAt=new Date().toISOString()): InvoiceSubmission {
     this.validate(sections,role)
     if(!confirmed || !actorId || !actor || !Number.isFinite(Date.parse(confirmedAt))) throw new Error('Confirm that the invoices are for completed, undisputed deliveries.')
-    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,confirmedAt,privacyNoticeAcknowledged:true,...INVOICE_UPLOAD_LEGAL,
+    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,confirmedAt,privacyNoticeAcknowledged:true,termsAcknowledged:true,...INVOICE_UPLOAD_LEGAL,
       sections:sections.map(s=>({partyId:s.partyId,dueDate:s.dueDate,invoices:s.invoices.map(f=>f.name),delivery:s.delivery.map(f=>f.name)}))}
     const invoices:FinancingDocument[]=[],delivery:FinancingDocument[]=[]
     for(const s of sections) {

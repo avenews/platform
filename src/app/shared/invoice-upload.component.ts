@@ -2,7 +2,6 @@ import { Component, EventEmitter, Input, OnInit, Output, inject } from '@angular
 import { FormsModule } from '@angular/forms'
 import { Router } from '@angular/router'
 import { PortalActionIconComponent } from './portal-action-icon.component'
-import { INVOICE_UPLOAD_LEGAL } from '../core/experience/invoice-upload-legal.data'
 import { AuthService } from '../core/auth/auth.service'
 import { InvoiceDocumentsStore, INVOICE_EXTENSIONS, INVOICE_DECLARATION, invoiceParties, canUploadFor, type InvoicePortalRole, type UploadSection, type InvoiceSubmission } from '../core/experience/invoice-portal.data'
 import { InvoicePartySelectComponent } from './invoice-party-select.component'
@@ -13,10 +12,10 @@ export class InvoiceUploadComponent implements OnInit {
  @Input() partyId=''
  @Output() close=new EventEmitter<void>()
  @Output() submitted=new EventEmitter<InvoiceSubmission>()
+ @Output() invoicesRequested=new EventEmitter<void>()
  readonly store=inject(InvoiceDocumentsStore)
  private readonly auth=inject(AuthService)
  private readonly router=inject(Router)
- readonly legal=INVOICE_UPLOAD_LEGAL
  readonly declaration=INVOICE_DECLARATION
  confirmedAt=''
  sections:UploadSection[]=[];confirmed=false;error='';discard=false;receipt:InvoiceSubmission|null=null;saving=false
@@ -34,7 +33,7 @@ export class InvoiceUploadComponent implements OnInit {
  requiresPod(s:UploadSection):boolean{return this.parties.find(p=>p.id===s.partyId)?.pod??false}
  changed():void{this.confirmed=false;this.confirmedAt='';this.error=''}
  confirmationChanged(value:boolean):void{this.confirmed=value;this.confirmedAt=value?new Date().toISOString():''}
- viewInvoices():void{this.close.emit();void this.router.navigate(['/experience',this.role==='supplier'?'invoice-financing':'invoice-partner',this.role==='supplier'?'invoices':'invoice-uploads'])}
+ viewInvoices():void{this.invoicesRequested.emit();this.close.emit();void this.router.navigate(['/experience',this.role==='supplier'?'invoice-financing':'invoice-partner',this.role==='supplier'?'invoices':'invoice-uploads'])}
  partyChanged(s:UploadSection,value:string):void{if(s.partyId===value)return;s.partyId=value;s.delivery=[];this.changed()}
  addFiles(s:UploadSection,type:'invoices'|'delivery',event:Event):void{const input=event.target as HTMLInputElement;s[type]=[...s[type],...Array.from(input.files??[])];input.value='';this.changed()}
  removeFile(s:UploadSection,type:'invoices'|'delivery',index:number):void{s[type]=s[type].filter((_,i)=>i!==index);this.changed()}

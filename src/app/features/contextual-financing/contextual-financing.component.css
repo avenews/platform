@@ -403,7 +403,8 @@
   }
 }
 
-.invoice-upload-owner{font-size:12px;color:var(--av-color-text-muted,#66788a)}
+.relationship-buyer-identity{display:grid;gap:4px;min-width:0}
+.invoice-upload-owner{display:block;font-size:12px;font-weight:400;line-height:1.4;color:var(--av-color-text-muted,#66788a);overflow-wrap:anywhere}
 
 .relationship-modal__back{display:inline-flex;align-items:center;justify-content:center;gap:8px}
 .relationship-modal__body{align-content:start;grid-auto-rows:max-content}
@@ -413,5 +414,4 @@
 .relationship-modal__actions{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
 .relationship-modal__actions>.baseline-button:only-child{grid-column:1/-1}
 .relationship-modal__actions .relationship-periods-action{margin-top:0}
-.invoice-upload-owner{display:inline-flex;align-items:center;justify-content:center;min-height:44px;box-sizing:border-box;padding:0 12px;border:1px solid var(--av-color-surface-border,#e1e7eb);border-radius:var(--av-radius-md,8px);background:var(--av-color-surface-subtle,#f6f7f9);color:var(--av-color-text-muted,#66788a);font-weight:600;text-align:center;line-height:1.4;cursor:default}
-@media(max-width:767px){.relationship-modal__actions{grid-template-columns:1fr}.relationship-card__actions .invoice-upload-owner{flex:1 1 140px}.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1}}
+@media(max-width:767px){.relationship-modal__actions{grid-template-columns:1fr}.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1}}

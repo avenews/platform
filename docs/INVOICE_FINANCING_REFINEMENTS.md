@@ -43,3 +43,12 @@ This remains the original browser-only interaction prototype. Files and submissi
 Run `npm run check`, `node scripts/test-invoice-correction.mjs`, both Playwright suites, then both suites against the exact-head Netlify preview. Use #85 as the card/table visual-property reference. Required viewports: 1440x900, 768x1024, 390x844, 320x720.
 
 Local environment notes: TypeScript, Angular development compilation and domain checks run in the working container. Network restrictions block Google Fonts inlining and localhost Chromium navigation here, so production builds and browser checks run in the authorized GitHub Actions environment; do not claim those passed until their results are available.
+
+## Latest review polish - 24 September 2026
+
+Supersedes the earlier acceptance wording for the upload-owner indicator and legal footer only:
+- Both upload-responsibility descriptions are secondary text below the buyer name on desktop and mobile. The action column contains actions only; supplier-managed buyers retain Upload invoices.
+- Column-heading help icons move up 2px through the shared heading-only selector. Metric help, tables, row typography and payment modals are not redesigned.
+- Shared invoice uploader ends with its required confirmation and Submit invoices. Remove the branding/regulatory footer and the separate Funds Request Terms sentence. The plain confirmation reads: "I confirm that all submitted invoices reflect completed deliveries, not pre-delivery or disputed invoices. I acknowledge the Privacy Notice and Terms & Conditions." Its full text and both acknowledgement flags are recorded with the session receipt; legal-reference constants remain unchanged.
+- Partner Buyer Invoices uses the installed AvTabsComponent, underline variant: Invoices (default) and Upload history. Original tables, data and detail actions remain. Hidden panels remain mounted to preserve invoice filters, sorting and pagination. Arrow keys/Home/End and panel labelling are supplied by a narrow accessibility directive, not custom visual tabs. The uploader's View invoices action selects the correct panel.
+- Supplier Invoice Financing Invoices remains its existing flat table. No changes to Partner Home, Payments or financing figures. Continue on PR #86 and preserve #85.

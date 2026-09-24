@@ -40,6 +40,8 @@ test('confirmation time and legal references are recorded without authorising a 
   const receipt=store.save([section],'supplier','a','Amara',true,confirmedAt)
   assert.equal(receipt.confirmedAt,confirmedAt)
   assert.equal(receipt.privacyNoticeAcknowledged,true)
+  assert.equal(receipt.termsAcknowledged,true)
+  assert.ok(receipt.declaration.endsWith('I acknowledge the Privacy Notice and Terms & Conditions.'))
   assert.ok(receipt.fundsRequestTermsUrl.includes('1sKfI46A5zjWpzkHsXXOoefbcRB3XK2eha_h0VjteOTM'))
   assert.ok(receipt.privacyNoticeUrl.includes('1Majh4ZEQ26icfUSVVycA2e9J3JE0uw_i2syI1WTiZQY'))
   assert.equal(receipt.fundsRequest,undefined)

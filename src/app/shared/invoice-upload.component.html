@@ -64,16 +64,10 @@
         </section>
         <label class="invoice-upload-confirmation">
           <input type="checkbox" [ngModel]="confirmed" (ngModelChange)="confirmationChanged($event)" />
-          <span>{{declaration}} I acknowledge the <a [href]="legal.privacyNoticeUrl" target="_blank" rel="noopener noreferrer" (click)="$event.stopPropagation()">Privacy Notice</a>.</span>
+          <span>{{declaration}}</span>
         </label>
-        <p class="invoice-upload-terms">Read the <a [href]="legal.fundsRequestTermsUrl" target="_blank" rel="noopener noreferrer">Funds Request Terms &amp; Conditions</a>, which apply when a Funds Request is submitted.</p>
         @if (error) { <p class="invoice-upload-error" role="alert">{{error}}</p> }
         <button type="button" class="baseline-button baseline-button--primary invoice-upload-action" [disabled]="saving" (click)="submit()">{{saving?'Submitting...':'Submit invoices'}}</button>
-        <footer class="invoice-upload-footer">
-          <span>This service is powered by</span><img src="/brand/avenews-logo-new.svg" alt="Avenews" width="112" height="28" />
-          <p>Avenews is licensed and regulated by the Central Bank of Kenya as a Digital Credit Provider, and registered as a data controller under the Data Protection Act.</p>
-          <p><a [href]="legal.fundsRequestTermsUrl" target="_blank" rel="noopener noreferrer">Terms &amp; Conditions</a> <span aria-hidden="true"> &middot; </span> <a [href]="legal.privacyNoticeUrl" target="_blank" rel="noopener noreferrer">Privacy Notice</a></p>
-        </footer>
       }
     </div>
   </section>

@@ -529,3 +529,7 @@
 .partner-period-invoices{min-width:0;border-top:1px solid var(--av-color-surface-border,#e1e7eb);padding-top:16px}.partner-period-invoices summary{cursor:pointer;font-weight:700;font-size:16px;color:var(--av-color-text-heading);padding:4px 0}.partner-period-invoices[open] summary{margin-bottom:16px}.partner-invoice-records{min-width:0;display:grid;gap:16px}
 
 .partner-modal__body{align-content:start;grid-auto-rows:max-content}.partner-detail-grid{min-width:0;grid-auto-rows:minmax(min-content,auto)}.partner-detail-grid>div{min-width:0}.partner-detail-grid dd{overflow-wrap:anywhere}
+
+/* Use the installed design-system tabs without replacing either table. */
+.partner-invoice-tabs{display:block;min-width:0}
+.partner-invoice-panel[hidden]{display:none!important}

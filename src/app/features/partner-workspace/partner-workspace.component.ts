@@ -1,3 +1,5 @@
+import { AvTabsComponent, type TabItem } from '@avenews/design-system/angular'
+import { PortalTabsAccessibilityDirective } from '../../shared/portal-tabs-accessibility.directive'
 import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
@@ -17,7 +19,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 @Component({
   selector: 'app-partner-workspace',
   standalone: true,
-  imports: [PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
+  imports: [AvTabsComponent, PortalTabsAccessibilityDirective, PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
   templateUrl: './partner-workspace.component.html',
   styleUrl: './partner-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +35,16 @@ export class PartnerWorkspaceComponent {
   readonly formatKes = formatKes
 
   uploadOpen = this.section === 'invoice-uploads' && this.route.snapshot.queryParamMap.get('action') === 'upload'
+  readonly invoiceTabs: TabItem[] = [
+    { value: 'partner-invoices', label: 'Invoices' },
+    { value: 'partner-upload-history', label: 'Upload history' },
+  ]
+  invoiceTab = 'partner-invoices'
+
+  selectInvoiceTab(value: string): void {
+    if (this.invoiceTabs.some(tab => tab.value === value)) this.invoiceTab = value
+  }
+
   selectedBatch: UploadBatch | null = null
   selectedSupplier: PartnerSupplierRow | null = null
   selectedPeriod: PartnerPeriod | null = null

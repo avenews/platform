@@ -6,8 +6,19 @@
         <button type="button" class="baseline-button baseline-button--primary" data-action="upload-invoices" (click)="openUpload()">Upload invoices</button>
       </section>
 
-      <section class="baseline-section" aria-labelledby="upload-history-title">
-        <div class="baseline-section-heading"><div><h2 id="upload-history-title">Upload history</h2><p>See which suppliers and financing periods each upload updated.</p></div></div>
+      <av-tabs class="partner-invoice-tabs" portalTablistLabel="Invoice workspace"
+        [tabs]="invoiceTabs" [value]="invoiceTab" variant="underline"
+        (tabChange)="selectInvoiceTab($event)" />
+
+      <section class="baseline-section partner-invoice-panel partner-invoice-records"
+        id="av-tab-panel-partner-invoices" role="tabpanel" aria-labelledby="av-tab-partner-invoices"
+        [hidden]="invoiceTab !== 'partner-invoices'">
+        <app-customer-invoices role="partner" [embedded]="true" />
+      </section>
+      <section class="baseline-section partner-invoice-panel"
+        id="av-tab-panel-partner-upload-history" role="tabpanel" aria-labelledby="av-tab-partner-upload-history"
+        [hidden]="invoiceTab !== 'partner-upload-history'">
+        <div class="baseline-section-heading"><div><p>See which suppliers and financing periods each upload updated.</p></div></div>
         <div class="baseline-table-wrap"><table class="baseline-table partner-upload-table"><thead><tr><th>File<app-invoice-help label="File" text="The invoice file submitted in this upload." /></th><th>Uploaded<app-invoice-help label="Uploaded" text="When the invoice file was received." /></th><th>Suppliers<app-invoice-help label="Suppliers" text="The number of suppliers included in this upload." /></th><th>Status<app-invoice-help label="Status" text="The current availability or processing status of this record." /></th><th>Action<app-invoice-help label="Action" text="Open the selected record and its available actions." /></th></tr></thead><tbody>
           @for (batch of uploadBatches; track batch.id) {
             <tr class="partner-upload-row" tabindex="0" [attr.aria-label]="'View upload result for ' + batch.fileName" (click)="openBatch(batch)" (keydown.enter)="openBatch(batch)" (keydown.space)="openBatch(batch); $event.preventDefault()"><td><strong>{{ batch.fileName }}</strong></td><td>{{ batch.uploadedAt }}</td><td>{{ batch.supplierCount }}</td><td><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></td><td><button type="button" class="baseline-button baseline-button--secondary" (click)="openBatch(batch); $event.stopPropagation()">View</button></td></tr>
@@ -19,7 +30,6 @@
           }
         </div>
       </section>
-      <section class="baseline-section partner-invoice-records"><div class="baseline-section-heading"><h2>Supplier invoices</h2></div><app-customer-invoices role="partner" [embedded]="true" /></section>
     }
 
     @case ('obligations') {
@@ -95,7 +105,7 @@
   }
 </div>
 
-@if (uploadOpen) { <app-invoice-upload role="partner" (close)="closeUpload()" /> }
+@if (uploadOpen) { <app-invoice-upload role="partner" (close)="closeUpload()" (invoicesRequested)="selectInvoiceTab('partner-invoices')" /> }
 
 @if (selectedBatch; as batch) {
   <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeBatch()"><section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-batch-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><div><p class="page-eyebrow">Upload result</p><h2 id="partner-batch-title">{{ batch.fileName }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeBatch()">&times;</button></header><div class="baseline-modal__body partner-modal__body"><div class="partner-modal-status"><span>Uploaded {{ batch.uploadedAt }}</span><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></div><dl class="partner-detail-grid"><div><dt>Suppliers</dt><dd>{{ batch.supplierCount }}</dd></div><div><dt>Financing Periods Updated</dt><dd>{{ batch.periodCount }}</dd></div><div><dt>Imported</dt><dd>{{ batch.imported }}</dd></div><div><dt>Skipped</dt><dd>{{ batch.skipped }}</dd></div><div><dt>Failed</dt><dd>{{ batch.failed }}</dd></div><div><dt>Total Rows</dt><dd>{{ batch.imported + batch.skipped + batch.failed }}</dd></div></dl>@if (batch.failed > 0) { <div class="partner-attention-note">{{ batch.failed }} invoice rows need correction before they can update financing periods.</div> }</div></section></div>

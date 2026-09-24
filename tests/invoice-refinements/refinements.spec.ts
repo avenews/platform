@@ -1,7 +1,5 @@
 import { test, expect, type Page, type Locator } from '@playwright/test'
 const session = {contactId:'usr_001',contactFirstName:'Amara',contactLastName:'Osei',contactEmail:'amara@example.test',businessId:'biz_demo_001',businessName:'Kioko Agri Supplies Ltd',role:'admin'}
-const terms = 'https://docs.google.com/document/d/1sKfI46A5zjWpzkHsXXOoefbcRB3XK2eha_h0VjteOTM/edit?tab=t.0#heading=h.t4m1vp8ushhx'
-const privacy = 'https://docs.google.com/document/d/1Majh4ZEQ26icfUSVVycA2e9J3JE0uw_i2syI1WTiZQY/edit?tab=t.0#heading=h.t0r9ovjgdv4y'
 const file = (name:string) => ({name,mimeType:name.endsWith('pdf')?'application/pdf':'application/vnd.ms-excel',buffer:Buffer.from('review fixture')})
 const rows = (page:Page) => page.locator('.customer-activity-table tbody tr:visible,.customer-activity-cards .customer-financing-card:visible')
 const buyerRows = (page:Page) => page.locator('.relationship-table tbody tr:visible,.relationship-cards .relationship-card:visible')
@@ -28,15 +26,14 @@ test('direct uploader and stable dropdown retain buyer, evidence and confirmatio
   await page.screenshot({path:info.outputPath('stable-uploader.png'),fullPage:true})
 })
 
-test('dashed pickers, spreadsheet invoices, role-aware instructions and legal links',async({page},info) => {
+test('dashed pickers, spreadsheet invoices, instructions and simplified acknowledgement',async({page},info) => {
   await goto(page); const modal=await upload(page); await select(modal)
   await expect(modal.locator('.invoice-file-chooser')).toHaveCount(2)
   for (const chooser of await modal.locator('.invoice-file-chooser').all()) expect(await chooser.evaluate(e=>getComputedStyle(e).borderStyle)).toBe('dashed')
   const input=modal.locator('input[type="file"]').first(); for(const ext of ['.xls','.xlsx','.csv'])await expect(input).toHaveAttribute('accept',new RegExp(ext.replace('.','\\.')))
   await expect(modal.locator('.invoice-upload-instructions')).toContainText('same buyer and payment due date'); await expect(modal.locator('.invoice-upload-instructions')).toContainText('Proof of Delivery'); await expect(modal.locator('.invoice-upload-instructions')).toContainText('+ Add another section')
-  await expect(modal.getByRole('link',{name:'Funds Request Terms & Conditions',exact:true})).toHaveAttribute('href',terms); await expect(modal.getByRole('link',{name:'Privacy Notice',exact:true}).first()).toHaveAttribute('href',privacy)
-  for(const link of await modal.getByRole('link').all()) {await expect(link).toHaveAttribute('target','_blank');await expect(link).toHaveAttribute('rel',/noopener/)}
-  await expect(modal.locator('.invoice-upload-confirmation')).toContainText('completed deliveries, not pre-delivery or disputed invoices'); await expect(modal.locator('.invoice-upload-terms')).toContainText('when a Funds Request is submitted')
+  await expect(modal.locator('.invoice-upload-confirmation')).toContainText('completed deliveries, not pre-delivery or disputed invoices'); await expect(modal.locator('.invoice-upload-confirmation')).toContainText('I acknowledge the Privacy Notice and Terms & Conditions.')
+  await expect(modal.locator('.invoice-upload-footer,.invoice-upload-terms')).toHaveCount(0); await expect(modal.getByRole('link')).toHaveCount(0)
   await modal.locator('input[type="date"]').fill('2026-09-30'); await input.setInputFiles([file('one.xls'),file('two.xlsx'),file('three.csv')]); await modal.locator('input[type="file"]').last().setInputFiles(file('delivery.pdf'));await modal.getByRole('checkbox').check()
   await page.screenshot({path:info.outputPath('uploader-confirmation.png'),fullPage:true})
   await modal.getByRole('button',{name:'Submit invoices',exact:true}).click();await expect(modal.getByRole('status')).toContainText('Invoices added');await expect(modal.getByRole('status')).toContainText('What happens next');await expect(modal.getByRole('status')).toContainText('Eligible, approved invoices create or update');await expect(modal.getByRole('status')).toContainText('Funds Request window is open')
@@ -76,8 +73,8 @@ test('modal main actions share a desktop row and stack on mobile, with Lucide Ba
   await expect(modal).toContainText('Your Avenews Clearing Account');await page.screenshot({path:info.outputPath('payment-alignment.png'),fullPage:true})
 })
 
-test('buyer details show complete grids, full-width Settlement and a noninteractive upload-owner indicator',async({page},info) => {
-  await goto(page,'invoice-financing/financing');const twiga=buyerRows(page).filter({hasText:'Twiga Foods Ltd'});const owner=twiga.locator('.invoice-upload-owner');await expect(owner).toHaveAttribute('role','note');expect(await owner.evaluate(e=>getComputedStyle(e).borderStyle)).toBe('solid');await expect(twiga.getByRole('button',{name:'Upload invoices'})).toHaveCount(0)
+test('buyer details show complete grids, full-width Settlement and upload responsibility below the name',async({page},info) => {
+  await goto(page,'invoice-financing/financing');const twiga=buyerRows(page).filter({hasText:'Twiga Foods Ltd'});const owner=twiga.locator('.invoice-upload-owner');await expect(owner).toHaveAttribute('role','note');await expect(twiga.locator('.relationship-buyer-identity .invoice-upload-owner')).toContainText('Buyer uploads invoices');expect(await owner.evaluate(e=>getComputedStyle(e).borderStyle)).toBe('none');await expect(twiga.getByRole('button',{name:'Upload invoices'})).toHaveCount(0)
   await buyerRows(page).filter({hasText:'FreshProduce Kenya Ltd'}).getByRole('button',{name:'View more',exact:true}).click();const modal=page.getByRole('dialog')
   for(const grid of await modal.locator('.relationship-detail-grid').all()) {const dims=await grid.evaluate(e=>({height:e.clientHeight,scroll:e.scrollHeight,last:e.lastElementChild!.getBoundingClientRect().bottom,bottom:e.getBoundingClientRect().bottom}));expect(dims.scroll).toBeLessThanOrEqual(dims.height+2);expect(dims.last).toBeLessThanOrEqual(dims.bottom+1)}
   const settlement=modal.locator('.relationship-detail-grid__wide');await expect(settlement).toContainText('Settlement');const box=await settlement.boundingBox(),grid=await settlement.locator('..').boundingBox();expect(box!.width).toBeCloseTo(grid!.width-2,0)
