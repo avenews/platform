@@ -236,13 +236,15 @@ test('primary first-column typography is consistent across customer and partner 
 
 
 test('invoice financing summary-card actions scroll directly to the financing results on every viewport',async({page})=>{
+  const width=page.viewportSize()!.width
+  await page.setViewportSize({width,height:520})
   for(const label of ['View available periods','View outstanding periods','View payments due']){
     await goto(page,'invoice-financing/home')
     const target=page.locator('.customer-financing-results:visible,.customer-activity-cards:visible').first()
-    const before=await target.evaluate(el=>Math.round(el.getBoundingClientRect().top))
+    await expect(target).toBeVisible()
     await page.getByRole('button',{name:label,exact:true}).click()
     await expect.poll(()=>page.evaluate(()=>Math.round(window.scrollY)),{timeout:4000}).toBeGreaterThan(0)
-    await expect.poll(()=>target.evaluate(el=>Math.round(el.getBoundingClientRect().top)),{timeout:4000}).toBeLessThan(before-80)
+    await expect.poll(()=>target.evaluate(el=>Math.round(el.getBoundingClientRect().top)),{timeout:4000}).toBeLessThanOrEqual(width>=768?80:110)
   }
 })
 
