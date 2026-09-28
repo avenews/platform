@@ -154,7 +154,7 @@ test('modal detail values use the shared medium weight across customer and partn
     await row.click()
     const modal=page.getByRole('dialog')
     const values=modal.locator('.customer-period-details dd')
-    expect(await values.count()).toBeGreaterThan(0)
+    expect(await values.count(), `Expected financing detail values on ${path}`).toBeGreaterThan(0)
     for(const value of await values.all()) expect(await value.evaluate(e=>getComputedStyle(e).fontWeight)).toBe('500')
     await modal.getByRole('button',{name:'Close',exact:true}).click()
   }
