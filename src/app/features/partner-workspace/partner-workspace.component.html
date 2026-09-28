@@ -45,6 +45,7 @@
         <div class="partner-list-toolbar">
           <div class="baseline-section-heading"><div><h2 id="partner-payments-title">Supplier payments</h2></div></div>
           <app-customer-filter-bar
+            desktopAlignment="end"
             [searchValue]="paymentSearch"
             [searchPlaceholder]="'Search'"
             [searchAriaLabel]="'Search supplier payments'"
@@ -73,22 +74,19 @@
 
     @case ('suppliers') {
       <section class="partner-workspace-hero"><div><h1>Suppliers</h1><p>Choose a supplier to view financing periods, payments and available financing.</p></div><div class="partner-workspace-hero__actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="openRebates()">Rebate breakdown</button><button type="button" class="baseline-button baseline-button--secondary" data-action="upload-invoices" (click)="openUpload()">Upload invoices</button></div></section>
-      <section class="baseline-section partner-list-section" aria-labelledby="partner-suppliers-title">
-        <div class="partner-list-toolbar">
-          <div class="baseline-section-heading"><div><h2 id="partner-suppliers-title">Supplier financing</h2></div></div>
-          <app-customer-filter-bar
-            [searchValue]="supplierSearch"
-            [searchPlaceholder]="'Search'"
-            [searchAriaLabel]="'Search suppliers'"
-            [filters]="supplierFilterFields"
-            [values]="supplierFilterValues"
-            [sortOptions]="supplierSortOptions"
-            [sortValue]="supplierSort"
-            (searchValueChange)="onSupplierSearchValueChange($event)"
-            (valuesChange)="onSupplierFilterValuesChange($event)"
-            (sortValueChange)="onSupplierSortValueChange($event)"
-          />
-        </div>
+      <section class="baseline-section partner-list-section" aria-label="Suppliers">
+        <app-customer-filter-bar
+          [searchValue]="supplierSearch"
+          [searchPlaceholder]="'Search'"
+          [searchAriaLabel]="'Search suppliers'"
+          [filters]="supplierFilterFields"
+          [values]="supplierFilterValues"
+          [sortOptions]="supplierSortOptions"
+          [sortValue]="supplierSort"
+          (searchValueChange)="onSupplierSearchValueChange($event)"
+          (valuesChange)="onSupplierFilterValuesChange($event)"
+          (sortValueChange)="onSupplierSortValueChange($event)"
+        />
         <div class="baseline-table-wrap"><table class="baseline-table partner-suppliers-table"><thead><tr><th>Supplier<app-invoice-help label="Supplier" text="The supplier associated with this invoice or payment." /></th><th>Financing Available<app-invoice-help label="Financing Available" text="Additional financing the supplier can currently request." /></th><th>Active Periods<app-invoice-help label="Active Periods" text="The number of financing periods that remain active for this supplier." /></th><th>Next Payment<app-invoice-help label="Next Payment" text="The earliest payment due for this supplier, including overdue payments." /></th><th>Status<app-invoice-help label="Status" text="The current availability or processing status of this record." /></th><th>Action<app-invoice-help label="Action" text="Open the selected record and its available actions." /></th></tr></thead><tbody>
           @for (supplier of supplierPageItems; track supplier.id) {
             <tr class="partner-supplier-row" tabindex="0" [attr.aria-label]="'View supplier details for ' + supplier.business" (click)="openSupplier(supplier)" (keydown.enter)="openSupplier(supplier)" (keydown.space)="openSupplier(supplier); $event.preventDefault()"><td><button type="button" class="partner-supplier-name-button" (click)="openSupplier(supplier); $event.stopPropagation()"><span class="baseline-financing-cell"><strong>{{ supplier.business }}</strong><span>{{ supplier.identifier }}</span></span></button></td><td><strong>{{ formatKes(supplier.available) }}</strong></td><td>{{ activePeriodCount(supplier) }}</td><td>{{ nextPaymentLabel(supplier) }}</td><td><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.status }}</span></td><td><button type="button" class="baseline-button baseline-button--secondary partner-view-action" (click)="openSupplier(supplier); $event.stopPropagation()">View more</button></td></tr>
@@ -177,7 +175,7 @@
 }
 
 @if (selectedPeriod; as period) {
-  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closePeriod()"><section class="baseline-modal partner-modal partner-period-modal" role="dialog" aria-modal="true" aria-labelledby="partner-period-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><div class="partner-modal-heading">@if (returnSupplier) { <button type="button" class="baseline-button baseline-button--secondary partner-modal-back" (click)="backToSupplier()"><app-portal-action-icon name="arrow-left" /><span>{{ returnSupplierPeriodsOpen ? 'Back to financing periods' : 'Back to Supplier' }}</span></button> }<div><p class="page-eyebrow">Payment details</p><h2 id="partner-period-title">{{ period.reference }}</h2></div></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closePeriod()">&times;</button></header><div class="baseline-modal__body partner-modal__body">@if (supplierForPeriod(period); as supplier) { <div class="partner-payment-total"><span>Amount to pay</span><strong>{{ formatKes(period.amountToPay) }}</strong><small>{{ supplier.business }} · Due {{ formatDate(period.dueDate, true) }}</small></div><dl class="partner-detail-grid"><div><dt>Supplier</dt><dd>{{ supplier.business }}</dd></div><div><dt>Due Date</dt><dd>{{ formatDate(period.dueDate) }}</dd></div><div><dt>Financing Period Status</dt><dd>{{ period.periodStatus }}</dd></div><div><dt>Payment Status</dt><dd>{{ period.paymentStatus }}</dd></div><div><dt>Invoices</dt><dd>{{ period.invoiceCount }}</dd></div><div><dt>Invoice Value</dt><dd>{{ formatKes(period.invoiceValue) }}</dd></div><div><dt>Financing</dt><dd>{{ formatKes(period.financedAgainst) }}</dd></div><div><dt>Payment Destination</dt><dd>Your Avenews Clearing Account</dd></div><div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div></dl>@if (period.paymentStatusKey !== 'paid') { <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="copyPaymentReference(period.paymentReference)">Copy payment reference</button> }<app-clearing-account-details [supplierId]="supplier.id" [reference]="period.paymentReference" /><div class="partner-attention-note">Your payment is applied to this financing period. Avenews settles the financing and sends any remaining amount according to the supplier's financing agreement.</div><details class="partner-period-invoices"><summary>Invoices ({{documents.periodInvoices(period.id,'partner').length}})</summary><app-customer-invoices role="partner" [embedded]="true" [periodId]="period.id" /></details> }</div></section></div>
+  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closePeriod()"><section class="baseline-modal partner-modal partner-period-modal" role="dialog" aria-modal="true" aria-labelledby="partner-period-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><div class="partner-modal-heading">@if (returnSupplier) { <button type="button" class="baseline-button baseline-button--secondary partner-modal-back" (click)="backToSupplier()"><app-portal-action-icon name="arrow-left" /><span>{{ returnSupplierPeriodsOpen ? 'Back to financing periods' : 'Back to Supplier' }}</span></button> }<div><p class="page-eyebrow">Payment details</p><h2 id="partner-period-title">{{ period.reference }}</h2></div></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closePeriod()">&times;</button></header><div class="baseline-modal__body partner-modal__body">@if (supplierForPeriod(period); as supplier) { <div class="partner-payment-total"><span>Amount to pay</span><strong>{{ formatKes(period.amountToPay) }}</strong><small>{{ supplier.business }} · Due {{ formatDate(period.dueDate, true) }}</small></div><dl class="partner-detail-grid"><div><dt>Supplier</dt><dd>{{ supplier.business }}</dd></div><div><dt>Due Date</dt><dd>{{ formatDate(period.dueDate) }}</dd></div><div><dt>Financing Period Status</dt><dd>{{ period.periodStatus }}</dd></div><div><dt>Payment Status</dt><dd>{{ period.paymentStatus }}</dd></div><div><dt>Invoices</dt><dd>{{ period.invoiceCount }}</dd></div><div><dt>Invoice Value</dt><dd>{{ formatKes(period.invoiceValue) }}</dd></div><div><dt>Financing</dt><dd>{{ formatKes(period.financedAgainst) }}</dd></div><div><dt>Payment Destination</dt><dd>Your Avenews Clearing Account</dd></div><div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div></dl>@if (period.paymentStatusKey !== 'paid') { <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" [class.is-copied]="paymentReferenceCopied" (click)="copyPaymentReference(period.paymentReference)">{{ paymentReferenceCopied ? 'Copied' : 'Copy payment reference' }}</button> }<app-clearing-account-details [supplierId]="supplier.id" [reference]="period.paymentReference" /><div class="partner-attention-note">Your payment is applied to this financing period. Avenews settles the financing and sends any remaining amount according to the supplier's financing agreement.</div><details class="partner-period-invoices"><summary>Invoices ({{documents.periodInvoices(period.id,'partner').length}})</summary><app-customer-invoices role="partner" [embedded]="true" [periodId]="period.id" /></details> }</div></section></div>
 }
 
 @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
