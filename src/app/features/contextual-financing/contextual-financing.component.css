@@ -415,3 +415,6 @@
 .relationship-modal__actions>.baseline-button:only-child{grid-column:1/-1}
 .relationship-modal__actions .relationship-periods-action{margin-top:0}
 @media(max-width:767px){.relationship-modal__actions{grid-template-columns:1fr}.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1}}
+
+/* Modal detail values use the design-system medium weight for descriptions. */
+.relationship-modal .relationship-detail-grid dd{font-weight:500}
