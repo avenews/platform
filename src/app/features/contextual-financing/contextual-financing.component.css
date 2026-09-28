@@ -417,4 +417,4 @@
 @media(max-width:767px){.relationship-modal__actions{grid-template-columns:1fr}.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1}}
 
 /* Modal detail values use the design-system medium weight for descriptions. */
-.relationship-modal .relationship-detail-grid dd{font-weight:500}
+.relationship-modal .relationship-detail-grid dd{font-weight:var(--av-font-weight-medium,500)}
