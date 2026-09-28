@@ -84,7 +84,8 @@
 .relationship-name-button strong,
 .relationship-upload-source {
   color: var(--av-color-text-heading, #0d343f);
-  font-size: 13px;
+  font-size: var(--av-font-size-md, 14px);
+  font-weight: var(--av-font-weight-semibold, 600);
 }
 
 .relationship-name-button:hover strong,
@@ -415,6 +416,3 @@
 .relationship-modal__actions>.baseline-button:only-child{grid-column:1/-1}
 .relationship-modal__actions .relationship-periods-action{margin-top:0}
 @media(max-width:767px){.relationship-modal__actions{grid-template-columns:1fr}.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1}}
-
-/* Modal detail values use the design-system medium weight for descriptions. */
-.relationship-modal .relationship-detail-grid dd{font-weight:var(--av-font-weight-medium,500)}
