@@ -60,7 +60,7 @@ test('card-driven filters are visible, preserved through search and sort, and cl
   await expect(summary).toContainText('Available to request');await expect(rows(page)).toHaveCount(2)
   if(desktop){await expect(page.getByRole('button',{name:'Clear filters',exact:true}).first()).toBeEnabled();await page.getByRole('button',{name:'Clear filters',exact:true}).first().click()}else await summary.getByRole('button',{name:'Clear filters'}).click()
   await expect(rows(page)).toHaveCount(6);await expect(summary).toHaveCount(0)
-  for(const [button,label] of [['View outstanding periods','Outstanding financing'],['View payments due in Financing','Payments due']]) {await page.getByRole('button',{name:button,exact:true}).click();await expect(summary).toContainText(label);await expect(rows(page)).toHaveCount(2);await page.screenshot({path:info.outputPath(label+'.png'),fullPage:true});await summary.getByRole('button',{name:'Clear filters'}).click();await expect(rows(page)).toHaveCount(6)}
+  for(const [button,label] of [['View outstanding periods','Outstanding financing'],['View payments due in Financing','Payments due']]) {await page.getByRole('button',{name:button,exact:true}).click();await expect(summary).toContainText(label);await expect(rows(page)).toHaveCount(2);await page.screenshot({path:info.outputPath(label+'.png'),fullPage:true});if(desktop)await page.locator('.customer-filter-bar__desktop .customer-filter-clear:visible').click();else await summary.getByRole('button',{name:'Clear filters'}).click();await expect(rows(page)).toHaveCount(6)}
 })
 
 test('modal main actions share a desktop row and stack on mobile, with Lucide Back and aligned values',async({page},info) => {
