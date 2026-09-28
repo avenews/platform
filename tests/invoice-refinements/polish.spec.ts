@@ -238,7 +238,7 @@ test('primary first-column typography is consistent across customer and partner 
 test('invoice financing summary-card actions bring the financing results into view on every viewport',async({page})=>{
   const width=page.viewportSize()!.width
   await page.setViewportSize({width,height:640})
-  for(const label of ['View available periods','View outstanding periods','View payments due']){
+  for(const label of ['View available periods','View outstanding periods','View payments due in Financing']){
     await goto(page,'invoice-financing/home')
     const target=page.locator('.customer-financing-results:visible,.customer-activity-cards:visible').first()
     await expect(target).toBeVisible()
