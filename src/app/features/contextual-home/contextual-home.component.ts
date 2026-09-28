@@ -383,7 +383,11 @@ export class ContextualHomeComponent implements OnDestroy {
   private scrollToFinancing(): void {
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
-        document.getElementById('customer-financing-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        const section = document.getElementById('customer-financing-activity')
+        const table = section?.querySelector<HTMLElement>('.customer-financing-results')
+        const cards = section?.querySelector<HTMLElement>('.customer-activity-cards')
+        const target = table && getComputedStyle(table).display !== 'none' ? table : cards
+        target?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       })
     })
   }
