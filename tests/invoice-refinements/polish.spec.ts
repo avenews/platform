@@ -134,8 +134,17 @@ test('shared filters summarize search filters and sorting while headed toolbars 
   await goto(page,'invoice-partner/obligations')
   const paymentTable=page.locator('.partner-list-section .baseline-table-wrap')
   const paymentClear=page.locator('.partner-list-toolbar .customer-filter-clear:visible')
+  const paymentHeading=page.getByRole('heading',{name:'Supplier payments',exact:true})
+  const headingBefore=await paymentHeading.boundingBox()
   const paymentTableBox=await paymentTable.boundingBox(),paymentClearBox=await paymentClear.boundingBox()
   expect(Math.abs((paymentClearBox!.x+paymentClearBox!.width)-(paymentTableBox!.x+paymentTableBox!.width))).toBeLessThanOrEqual(3)
+  const paymentSort=page.locator('.partner-list-toolbar select[aria-label="Sort by"]:visible')
+  await paymentSort.selectOption({index:1})
+  const paymentSummary=page.locator('.partner-list-toolbar .customer-filter-summary')
+  await expect(paymentSummary).toBeVisible()
+  const headingAfter=await paymentHeading.boundingBox(),paymentSummaryBox=await paymentSummary.boundingBox()
+  expect(headingAfter!.y).toBeCloseTo(headingBefore!.y,0)
+  expect(Math.abs((paymentSummaryBox!.x+paymentSummaryBox!.width)-(paymentTableBox!.x+paymentTableBox!.width))).toBeLessThanOrEqual(3)
 
   await goto(page,'invoice-partner/suppliers')
   await expect(page.getByRole('heading',{name:'Supplier financing',exact:true})).toHaveCount(0)
@@ -222,5 +231,16 @@ test('primary first-column typography is consistent across customer and partner 
     const style=await primary.evaluate(e=>({size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))
     expect(style.size).toBe('14px')
     expect(style.weight).toBe('600')
+  }
+})
+
+
+test('invoice financing summary-card actions scroll directly to the financing results on every viewport',async({page})=>{
+  await goto(page,'invoice-financing/home')
+  const target=page.locator('#customer-financing-results')
+  for(const label of ['View available periods','View outstanding periods','View payments due']){
+    await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}))
+    await page.getByRole('button',{name:label,exact:true}).click()
+    await expect.poll(()=>target.evaluate(el=>Math.round(el.getBoundingClientRect().top)),{timeout:4000}).toBeLessThanOrEqual(120)
   }
 })
