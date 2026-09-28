@@ -245,3 +245,24 @@ test('invoice financing summary-card actions scroll directly to the financing re
     await expect.poll(()=>target.evaluate(el=>Math.round(el.getBoundingClientRect().top)),{timeout:4000}).toBeLessThan(before-80)
   }
 })
+
+
+test('active filter summary keeps a single clear action per viewport',async({page},testInfo)=>{
+  await goto(page,'invoice-partner/obligations')
+  const sort=page.locator('.partner-list-toolbar select[aria-label="Sort by"]:visible')
+  if(await sort.count()) await sort.selectOption({index:1})
+  else {
+    await page.getByRole('button',{name:'Filters',exact:true}).click()
+    await page.locator('.customer-filter-panel select[aria-label="Sort by"]').selectOption({index:1})
+    await page.getByRole('button',{name:'Apply',exact:true}).click()
+  }
+  const summary=page.locator('.partner-list-toolbar .customer-filter-summary')
+  await expect(summary).toBeVisible()
+  const inlineClear=summary.getByRole('button',{name:'Clear filters',exact:true})
+  if(testInfo.project.name==='desktop'||testInfo.project.name==='tablet'){
+    await expect(inlineClear).toBeHidden()
+    await expect(page.locator('.partner-list-toolbar .customer-filter-bar__desktop .customer-filter-clear')).toBeVisible()
+  }else{
+    await expect(inlineClear).toBeVisible()
+  }
+})
