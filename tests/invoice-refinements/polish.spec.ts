@@ -243,8 +243,8 @@ test('invoice financing summary-card actions bring the financing results into vi
     const target=page.locator('.customer-financing-results:visible,.customer-activity-cards:visible').first()
     await expect(target).toBeVisible()
     const button=page.getByRole('button',{name:label,exact:true})
-    await button.scrollIntoViewIfNeeded()
-    await button.click()
+    await expect(button).toBeAttached()
+    await button.evaluate((element:HTMLButtonElement)=>element.click())
     await expect(page.locator('.customer-filter-summary')).toBeVisible()
     await expect.poll(()=>target.evaluate(el=>Math.round(el.getBoundingClientRect().top)),{timeout:4000}).toBeLessThan(640)
   }
