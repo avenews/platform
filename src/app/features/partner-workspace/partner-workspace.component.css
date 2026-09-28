@@ -551,6 +551,3 @@
     border-bottom: 0;
   }
 }
-
-/* Keep descriptive modal values readable without headline-level emphasis. */
-.partner-modal .partner-detail-grid dd{font-weight:var(--av-font-weight-medium,500)}
