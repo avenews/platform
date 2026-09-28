@@ -92,7 +92,7 @@ test('second pass: file-count boundary blocks eleven invoices without losing fil
 test('second pass: copied sections require files and prevent duplicate buyer due-date groups', async ({ page }) => {
   const modal = await openUpload(page)
   await complete(modal)
-  await modal.getByRole('button', { name: 'Copy section 1', exact: true }).click()
+  await modal.getByRole('button', { name: 'Duplicate section 1', exact: true }).click()
   const second = modal.locator('.invoice-upload-group').nth(1)
   await expect(second.getByRole('combobox')).toHaveValue('FreshProduce Kenya Ltd')
   await expect(second.locator('.invoice-upload-file')).toHaveCount(0)
