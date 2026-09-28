@@ -196,3 +196,12 @@ select.baseline-control {
 .baseline-modal app-clearing-account-details .customer-payment-details strong {
   font-weight: var(--av-font-weight-medium, 500) !important;
 }
+
+
+/* Copy actions confirm success in place without moving surrounding content. */
+.baseline-button.is-copied {
+  border-color: var(--av-color-success, #39c173);
+  background: var(--av-color-success-subtle, #ecfdf3);
+  color: var(--av-color-success-text, #027a48);
+  filter: none;
+}
