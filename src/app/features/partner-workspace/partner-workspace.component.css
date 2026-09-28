@@ -417,13 +417,18 @@
 @media (min-width: 1024px) {
   .partner-list-toolbar {
     grid-template-columns: minmax(230px, .7fr) minmax(0, 1.8fr);
-    align-items: center;
+    align-items: start;
     column-gap: 24px;
   }
 
-  .partner-list-toolbar .baseline-section-heading,
+  .partner-list-toolbar .baseline-section-heading {
+    min-height: 44px;
+    align-self: start;
+    align-items: center;
+  }
+
   .partner-list-toolbar app-customer-filter-bar {
-    align-self: center;
+    align-self: start;
   }
 }
 
