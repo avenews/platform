@@ -25,7 +25,7 @@
         <p>Add invoices for the same {{label.toLowerCase()}} and due date in each section.</p>
         @for (section of sections; track section.id; let i=$index) {
           <section class="invoice-upload-group" [attr.aria-label]="'Upload section '+(i+1)">
-            <div class="invoice-upload-group__head"><h3>Invoice{{sections.length>1?' '+(i+1):''}}</h3><div><button type="button" class="invoice-text-action" (click)="copy(section)" [disabled]="sections.length>=20" [attr.aria-label]="'Copy section '+(i+1)">Copy</button><button type="button" class="invoice-text-action" [disabled]="sections.length===1" (click)="remove(section)" [attr.aria-label]="'Remove section '+(i+1)">Remove</button></div></div>
+            <div class="invoice-upload-group__head"><h3>Invoice{{sections.length>1?' '+(i+1):''}}</h3><div><button type="button" class="invoice-text-action" (click)="copy(section)" [disabled]="sections.length>=20" [attr.aria-label]="'Duplicate section '+(i+1)">Duplicate</button><button type="button" class="invoice-text-action" [disabled]="sections.length===1" (click)="remove(section)" [attr.aria-label]="'Remove section '+(i+1)">Remove</button></div></div>
             <div class="invoice-upload-fields">
               <app-invoice-party-select [parties]="parties" [role]="role" [label]="label" [value]="section.partyId" (valueChange)="partyChanged(section,$event)" />
               <div class="baseline-field"><label [for]="'invoice-due-'+section.id">Invoice(s) payment due date</label><input class="baseline-control" type="date" [id]="'invoice-due-'+section.id" [(ngModel)]="section.dueDate" (ngModelChange)="changed()" /></div>
