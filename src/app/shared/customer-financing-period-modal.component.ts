@@ -327,8 +327,8 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   closeRepayment(): void { this.repaymentOpen = false }
 
   async copy(value: string, label: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(value)
+    const copied = await this.writeToClipboard(value)
+    if (copied) {
       this.toast = `${label} copied.`
       this.copiedDetailLabel = label
       if (this.copyResetTimer) clearTimeout(this.copyResetTimer)
@@ -336,12 +336,30 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
         this.copiedDetailLabel = ''
         this.cdr.markForCheck()
       }, 1600)
-    } catch {
+    } else {
       this.copiedDetailLabel = ''
-      this.toast = `${label}: ${value}`
-    } finally {
-      this.cdr.markForCheck()
+      this.toast = `Select and copy ${label.toLowerCase()}: ${value}`
     }
+    this.cdr.markForCheck()
+  }
+
+  private async writeToClipboard(value: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value)
+        return true
+      }
+    } catch {}
+    const textarea = document.createElement('textarea')
+    textarea.value = value
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try { return document.execCommand('copy') }
+    catch { return false }
+    finally { textarea.remove() }
   }
 
   private resetCopiedDetail(): void {
