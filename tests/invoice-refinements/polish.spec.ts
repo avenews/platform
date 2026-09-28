@@ -98,3 +98,129 @@ test('column help icons are raised without changing card help or table typograph
   }
   await goto(page,'invoice-financing/financing');await page.screenshot({path:info.outputPath('heading-tooltip-alignment.png'),fullPage:true})
 })
+
+
+test('shared filters summarize search filters and sorting while headed toolbars align to the table edge',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000})
+
+  await goto(page,'invoice-financing/home')
+  const homeTable=page.locator('.customer-financing-activity .baseline-table-wrap')
+  const homeClear=page.locator('.customer-activity-toolbar .customer-filter-clear:visible')
+  const homeTableBox=await homeTable.boundingBox(),homeClearBox=await homeClear.boundingBox()
+  expect(Math.abs((homeClearBox!.x+homeClearBox!.width)-(homeTableBox!.x+homeTableBox!.width))).toBeLessThanOrEqual(3)
+
+  const homeSearch=page.locator('.customer-activity-toolbar .customer-filter-search input:visible')
+  await homeSearch.fill('Twiga')
+  const statusSelect=page.locator('.customer-activity-toolbar select[aria-label="Status"]:visible')
+  await statusSelect.selectOption({index:1})
+  const sortSelect=page.locator('.customer-activity-toolbar select[aria-label="Sort by"]:visible')
+  await sortSelect.selectOption({index:1})
+  const statusLabel=await statusSelect.locator('option:checked').textContent()
+  const sortLabel=await sortSelect.locator('option:checked').textContent()
+  const homeSummary=page.locator('.customer-activity-toolbar .customer-filter-summary')
+  await expect(homeSummary).toContainText('Search "Twiga"')
+  await expect(homeSummary).toContainText(statusLabel!.trim())
+  await expect(homeSummary).toContainText(sortLabel!.trim())
+
+  await goto(page,'invoice-financing/financing')
+  await page.locator('.relationship-section .customer-filter-search input:visible').fill('Fresh')
+  const buyerSort=page.locator('.relationship-section select[aria-label="Sort by"]:visible')
+  await buyerSort.selectOption({index:1})
+  const buyerSortLabel=await buyerSort.locator('option:checked').textContent()
+  const buyerSummary=page.locator('.relationship-section .customer-filter-summary')
+  await expect(buyerSummary).toContainText('Search "Fresh"')
+  await expect(buyerSummary).toContainText(buyerSortLabel!.trim())
+
+  await goto(page,'invoice-partner/obligations')
+  const paymentTable=page.locator('.partner-list-section .baseline-table-wrap')
+  const paymentClear=page.locator('.partner-list-toolbar .customer-filter-clear:visible')
+  const paymentTableBox=await paymentTable.boundingBox(),paymentClearBox=await paymentClear.boundingBox()
+  expect(Math.abs((paymentClearBox!.x+paymentClearBox!.width)-(paymentTableBox!.x+paymentTableBox!.width))).toBeLessThanOrEqual(3)
+
+  await goto(page,'invoice-partner/suppliers')
+  await expect(page.getByRole('heading',{name:'Supplier financing',exact:true})).toHaveCount(0)
+  const supplierSearch=page.locator('.partner-list-section .customer-filter-search input:visible')
+  const supplierTable=page.locator('.partner-list-section .baseline-table-wrap')
+  const supplierSearchBox=await supplierSearch.boundingBox(),supplierTableBox=await supplierTable.boundingBox()
+  expect(Math.abs(supplierSearchBox!.x-supplierTableBox!.x)).toBeLessThanOrEqual(3)
+})
+
+test('modal detail values use the shared medium weight across customer and partner experiences',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000})
+  for(const path of ['acl/home','abf/home','stf/home','infx/home','invoice-financing/home']){
+    await goto(page,path)
+    const row=page.locator('.customer-activity-table tbody tr:visible').first()
+    await expect(row).toBeVisible()
+    await row.click()
+    const modal=page.getByRole('dialog')
+    const values=modal.locator('.customer-period-details dd')
+    expect(await values.count()).toBeGreaterThan(0)
+    for(const value of await values.all()) expect(await value.evaluate(e=>getComputedStyle(e).fontWeight)).toBe('500')
+    await modal.getByRole('button',{name:'Close',exact:true}).click()
+  }
+
+  await goto(page,'invoice-financing/financing')
+  await page.locator('.relationship-table tbody tr:visible').first().click()
+  let modal=page.getByRole('dialog')
+  for(const value of await modal.locator('.relationship-detail-grid dd').all()) expect(await value.evaluate(e=>getComputedStyle(e).fontWeight)).toBe('500')
+  await modal.getByRole('button',{name:'Close',exact:true}).click()
+
+  await goto(page,'invoice-partner/suppliers')
+  await page.locator('.partner-suppliers-table tbody tr:visible').first().click()
+  modal=page.getByRole('dialog')
+  for(const value of await modal.locator('.partner-detail-grid dd').all()) expect(await value.evaluate(e=>getComputedStyle(e).fontWeight)).toBe('500')
+})
+
+test('copyable payment details confirm Copied inline and reset automatically',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000})
+
+  await goto(page,'acl/home')
+  await page.locator('.customer-activity-table tbody tr:visible').first().click()
+  let modal=page.getByRole('dialog')
+  const repayment=modal.getByRole('button',{name:'Repayment details',exact:true})
+  if(await repayment.count()){
+    await repayment.click()
+    modal=page.getByRole('dialog')
+    const copy=modal.locator('.customer-payment-details > div').first().getByRole('button')
+    await copy.click()
+    await expect(copy).toHaveText('Copied')
+    await expect(copy).toHaveText('Copy',{timeout:2500})
+  } else {
+    await modal.getByRole('button',{name:'Close',exact:true}).click()
+  }
+
+  await goto(page,'invoice-partner/obligations')
+  await page.locator('.partner-payments-table tbody tr:visible').first().click()
+  modal=page.getByRole('dialog')
+  const referenceCopy=modal.locator('.partner-copy-reference')
+  await referenceCopy.click()
+  await expect(referenceCopy).toHaveText('Copied')
+  await expect(referenceCopy).toHaveText('Copy payment reference',{timeout:2500})
+
+  const clearing=modal.locator('app-clearing-account-details')
+  const accountNumberRow=clearing.locator('.customer-payment-details > div').filter({hasText:'Account number'})
+  const accountCopy=accountNumberRow.getByRole('button')
+  await accountCopy.click()
+  await expect(accountCopy).toHaveText('Copied')
+  await expect(accountCopy).toHaveText('Copy',{timeout:2500})
+})
+
+test('primary first-column typography is consistent across customer and partner tables',async({page})=>{
+  await page.setViewportSize({width:1440,height:1000})
+  const checks=[
+    ['invoice-financing/home','.customer-activity-table tbody tr:visible td:first-child .baseline-financing-cell strong'],
+    ['invoice-financing/financing','.relationship-table tbody tr:visible td:first-child .relationship-name-button strong'],
+    ['invoice-financing/request-funds','.request-hub__table tbody tr:visible td:first-child .baseline-financing-cell strong'],
+    ['invoice-financing/invoices','.invoice-files-table tbody tr:visible td:first-child .baseline-financing-cell strong'],
+    ['invoice-partner/obligations','.partner-payments-table tbody tr:visible td:first-child .baseline-financing-cell strong'],
+    ['invoice-partner/suppliers','.partner-suppliers-table tbody tr:visible td:first-child .baseline-financing-cell strong'],
+  ] as const
+  for(const [path,selector] of checks){
+    await goto(page,path)
+    const primary=page.locator(selector).first()
+    await expect(primary).toBeVisible()
+    const style=await primary.evaluate(e=>({size:getComputedStyle(e).fontSize,weight:getComputedStyle(e).fontWeight}))
+    expect(style.size).toBe('14px')
+    expect(style.weight).toBe('600')
+  }
+})
