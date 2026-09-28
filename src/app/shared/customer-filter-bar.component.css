@@ -247,6 +247,11 @@
     flex: 0 0 auto;
     white-space: nowrap;
   }
+
+  .customer-filter-summary {
+    justify-content: flex-end;
+    text-align: right;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {
