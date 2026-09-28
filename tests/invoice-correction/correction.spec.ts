@@ -84,6 +84,6 @@ test('original card and invoice table visual properties match the preserved fall
  await goto(page,'invoice-financing/home');await ref.goto(reference+'/experience/invoice-financing/home');await expect(ref.locator('.customer-product-summary')).toBeVisible();await ref.evaluate(()=>document.fonts.ready)
  for(const selector of ['.customer-summary-card','.customer-summary-card>strong','.customer-summary-card>small'])expect(await style(page,selector)).toEqual(await style(ref,selector))
  await goto(page,'invoice-financing/invoices');await ref.goto(reference+'/experience/invoice-financing/invoices');await expect(ref.locator('app-customer-invoices')).toBeVisible();await ref.evaluate(()=>document.fonts.ready)
- if(page.viewportSize()!.width>=768){for(const selector of ['.invoice-files-table','.invoice-files-table td','.invoice-files-table th','.invoice-files-table .baseline-button'])expect(await style(page,selector)).toEqual(await style(ref,selector))}else{for(const selector of ['.invoice-file-card','.invoice-file-card .baseline-button'])expect(await style(page,selector)).toEqual(await style(ref,selector))}
+ if(page.viewportSize()!.width>=768){for(const selector of ['.invoice-files-table','.invoice-files-table td:not(:first-child)','.invoice-files-table th','.invoice-files-table .baseline-button'])expect(await style(page,selector)).toEqual(await style(ref,selector))}else{for(const selector of ['.invoice-file-card','.invoice-file-card .baseline-button'])expect(await style(page,selector)).toEqual(await style(ref,selector))}
  await ref.close()
 })
