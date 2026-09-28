@@ -119,8 +119,15 @@ test('second pass: empty filtered results remain clearable and a card action rep
   const summary = page.locator('.customer-filter-summary')
   await expect(summary).toContainText('Available to request')
   await expect(page.locator('.baseline-empty:visible').first()).toBeVisible()
-  await expect(summary.getByRole('button', { name: 'Clear filters' })).toBeEnabled()
-  await summary.getByRole('button', { name: 'Clear filters' }).click()
+  const desktop = page.viewportSize()!.width >= 768
+  if (desktop) {
+    const clear = page.locator('.customer-filter-bar__desktop .customer-filter-clear:visible')
+    await expect(clear).toBeEnabled()
+    await clear.click()
+  } else {
+    await expect(summary.getByRole('button', { name: 'Clear filters' })).toBeEnabled()
+    await summary.getByRole('button', { name: 'Clear filters' }).click()
+  }
   await expect(periods(page)).toHaveCount(6)
   await page.getByRole('button', { name: 'View available periods', exact: true }).click()
   await page.getByRole('button', { name: 'View payments due in Financing', exact: true }).click()
