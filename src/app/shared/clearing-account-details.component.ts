@@ -25,16 +25,22 @@ export class ClearingAccountDetailsComponent implements OnChanges, OnDestroy {
  get account(){return clearingAccountFor(this.supplierId)}
  get fields():{label:string;value:string}[]{const a=this.account;if(!a)return[];if(this.method==='mpesa'&&a.paybill)return[{label:'Paybill number',value:a.paybill},{label:'Account name',value:a.name},{label:'Account reference',value:a.accountReference??this.reference}];return[{label:'Bank',value:a.bank},{label:'Account name',value:a.name},{label:'Account number',value:a.number},...(a.branchCode?[{label:'Branch code',value:a.branchCode}]:[]),...(a.branch?[{label:'Branch name',value:a.branch}]:[])]}
  async copy(value:string,label:string):Promise<void>{
-  try{
-   await navigator.clipboard.writeText(value)
+  const copied=await this.writeToClipboard(value)
+  if(copied){
    this.message=label+' copied.'
    this.copiedLabel=label
    if(this.resetTimer)clearTimeout(this.resetTimer)
    this.resetTimer=setTimeout(()=>{this.copiedLabel='';this.cdr.markForCheck()},1600)
-  }catch{
+  }else{
    this.copiedLabel=''
    this.message='Select and copy '+label.toLowerCase()+': '+value
-  }finally{this.cdr.markForCheck()}
+  }
+  this.cdr.markForCheck()
+ }
+ private async writeToClipboard(value:string):Promise<boolean>{
+  try{if(navigator.clipboard?.writeText){await navigator.clipboard.writeText(value);return true}}catch{}
+  const textarea=document.createElement('textarea');textarea.value=value;textarea.setAttribute('readonly','');textarea.style.position='fixed';textarea.style.opacity='0';document.body.appendChild(textarea);textarea.select()
+  try{return document.execCommand('copy')}catch{return false}finally{textarea.remove()}
  }
  private clearCopiedState():void{if(this.resetTimer)clearTimeout(this.resetTimer);this.resetTimer=undefined;this.copiedLabel=''}
 }
