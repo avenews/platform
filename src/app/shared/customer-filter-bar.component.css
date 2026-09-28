@@ -226,6 +226,10 @@
     min-width: 0;
   }
 
+  .customer-filter-bar--end .customer-filter-bar__desktop {
+    justify-content: flex-end;
+  }
+
   .customer-filter-bar__desktop .customer-filter-search {
     flex: 0 1 220px;
     width: min(220px, 100%);
