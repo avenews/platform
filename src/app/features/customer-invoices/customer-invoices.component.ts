@@ -1,4 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
+import { InvoiceDocumentsStore, supplierInvoiceParties, type InvoicePortalRole } from '../../core/experience/invoice-portal.data'
+import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
+import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
+import { ChangeDetectionStrategy, Component, Input, OnChanges, inject } from '@angular/core'
 import { ActivatedRoute } from '@angular/router'
 import {
   invoiceFinancingInvoices,
@@ -14,13 +17,13 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 @Component({
   selector: 'app-customer-invoices',
   standalone: true,
-  imports: [CustomerFilterBarComponent],
+  imports: [CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent],
   template: `
-    <div class="portal-page invoice-workspace">
-      <section class="invoice-workspace__hero">
+    <div class="portal-page invoice-workspace" [class.invoice-workspace--embedded]="embedded">
+      @if (!embedded) { <section class="invoice-workspace__hero">
         <div><h1>Invoices</h1><p>View invoice files used for Invoice Financing and upload new invoices where you are responsible.</p></div>
-        <button type="button" class="baseline-button baseline-button--primary invoice-upload-action" data-action="invoice-upload" (click)="uploadOpen = true">Upload invoices</button>
-      </section>
+        @if (canUpload) { <button type="button" class="baseline-button baseline-button--primary invoice-upload-action" data-action="invoice-upload" (click)="uploadOpen = true">Upload invoices</button> }
+      </section> }
 
       <section class="baseline-section invoice-list" aria-label="Invoices">
         <div class="invoice-list__toolbar">
@@ -40,19 +43,19 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 
         <div class="baseline-table-wrap">
           <table class="baseline-table invoice-files-table">
-            <thead><tr><th>Invoice</th><th>Buyer</th><th>Due Date</th><th>Amount</th><th>Status</th><th>Action</th></tr></thead>
+            <thead><tr><th>Invoice<app-invoice-help label="Invoice" text="The invoice reference and its attached filename, when a file is available." /></th><th>{{ role === 'supplier' ? 'Buyer' : 'Supplier' }}<app-invoice-help label="Invoice party" text="The business linked to this invoice." /></th><th>Due Date<app-invoice-help label="Due Date" text="The agreed invoice payment due date." /></th><th>Amount<app-invoice-help label="Amount" text="The full invoice value, not the amount financed." /></th><th>Status<app-invoice-help label="Status" text="The current status of this invoice." /></th><th>Action<app-invoice-help label="Action" text="Open the attached invoice file. This action appears only when a file is available." /></th></tr></thead>
             <tbody>
               @for (invoice of pageItems; track invoice.id) {
                 <tr [class.invoice-row--overdue]="invoice.status === 'Overdue'">
-                  <td><span class="baseline-financing-cell"><strong>{{ invoice.reference }}</strong><span>{{ invoice.fileName }}</span></span></td>
+                  <td><span class="baseline-financing-cell"><strong>{{ invoice.reference }}</strong>@if (invoice.fileName) { <span>{{ invoice.fileName }}</span> }</span></td>
                   <td>{{ invoice.counterparty }}</td>
                   <td>{{ invoice.dueDate ? formatDate(invoice.dueDate, true) : '—' }}</td>
                   <td>{{ invoice.amount !== undefined ? formatKes(invoice.amount) : '—' }}</td>
                   <td><span class="baseline-status" [class]="'baseline-status ' + (invoice.statusTone ?? 'status-neutral')">{{ invoice.status ?? 'Uploaded' }}</span></td>
-                  <td><a class="baseline-button baseline-button--secondary" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a></td>
+                  <td>@if (invoice.fileUrl) { <a class="baseline-button baseline-button--secondary" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a> }</td>
                 </tr>
               } @empty {
-                <tr><td colspan="6"><div class="baseline-empty"><strong>No matching invoices</strong><p>Try changing your search or filters.</p></div></td></tr>
+                <tr><td colspan="6"><div class="baseline-empty"><strong>{{ embedded && !invoices.length ? 'No invoices linked to this period' : 'No matching invoices' }}</strong><p>{{ invoices.length ? 'Try changing your search or filters.' : 'Invoices will appear here when they are available.' }}</p></div></td></tr>
               }
             </tbody>
           </table>
@@ -63,9 +66,9 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
             <article class="baseline-record-card invoice-file-card" [class.invoice-file-card--overdue]="invoice.status === 'Overdue'">
               <div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ invoice.counterparty }}</strong><span>{{ invoice.reference }}</span></span><span class="baseline-status" [class]="'baseline-status ' + (invoice.statusTone ?? 'status-neutral')">{{ invoice.status ?? 'Uploaded' }}</span></div>
               <div class="baseline-metrics"><span class="baseline-metric"><small>Due Date</small><strong>{{ invoice.dueDate ? formatDate(invoice.dueDate, true) : '—' }}</strong></span><span class="baseline-metric"><small>Invoice Amount</small><strong>{{ invoice.amount !== undefined ? formatKes(invoice.amount) : '—' }}</strong></span></div>
-              <a class="baseline-button baseline-button--secondary baseline-button--block" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a>
+              @if (invoice.fileUrl) { <a class="baseline-button baseline-button--secondary baseline-button--block" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a> }
             </article>
-          } @empty { <div class="baseline-empty"><strong>No matching invoices</strong><p>Try changing your search or filters.</p></div> }
+          } @empty { <div class="baseline-empty"><strong>{{ embedded && !invoices.length ? 'No invoices linked to this period' : 'No matching invoices' }}</strong><p>{{ invoices.length ? 'Try changing your search or filters.' : 'Invoices will appear here when they are available.' }}</p></div> }
         </div>
 
         @if (filteredInvoices.length) {
@@ -74,30 +77,22 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
       </section>
     </div>
 
-    @if (uploadOpen) {
-      <div class="baseline-modal-backdrop invoice-upload-backdrop" role="presentation" (click)="uploadOpen = false">
-        <section class="baseline-modal invoice-upload-modal" role="dialog" aria-modal="true" aria-labelledby="invoice-upload-title" (click)="$event.stopPropagation()">
-          <header class="baseline-modal__head"><h2 id="invoice-upload-title">Upload invoices</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="uploadOpen = false">&times;</button></header>
-          <div class="baseline-modal__body invoice-upload-modal__body">
-            <p>Upload an invoice for a buyer where you provide the invoice information. Once approved, it will be added to the matching financing period.</p>
-            <div class="baseline-field"><label for="invoice-buyer">Buyer</label><select id="invoice-buyer" class="baseline-control"><option>FreshProduce Kenya Ltd</option></select></div>
-            <div class="baseline-field"><label for="invoice-file">Invoice file</label><input id="invoice-file" class="baseline-control" type="file" accept=".pdf,.png,.jpg,.jpeg,.xlsx,.csv"></div>
-            <div class="baseline-field"><label for="invoice-due">Invoice due date</label><input id="invoice-due" class="baseline-control" type="date"></div>
-            <div class="baseline-field"><label for="invoice-amount">Invoice amount</label><input id="invoice-amount" class="baseline-control" type="number" min="0" placeholder="KES"></div>
-            <button type="button" class="baseline-button baseline-button--primary baseline-button--block invoice-upload-action" data-action="invoice-upload" (click)="completeUpload()">Submit invoice</button>
-          </div>
-        </section>
-      </div>
-    }
+    @if (uploadOpen && !embedded && canUpload) { <app-invoice-upload [role]="role" (close)="uploadOpen=false" /> }
 
     @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
   `,
   styles: [`
-    :host{display:block}.invoice-workspace{gap:24px}.invoice-workspace__hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}.invoice-workspace__hero>div{display:grid;gap:6px}.invoice-workspace__hero h1,.invoice-workspace__hero p{margin:0}.invoice-workspace__hero h1{color:var(--av-color-text-heading,#0d343f);font-size:32px;line-height:1.15}.invoice-workspace__hero p,.invoice-upload-modal__body>p{max-width:760px;color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}.invoice-list{display:grid;gap:16px}.invoice-list__toolbar{display:flex;justify-content:flex-start;width:100%}.invoice-list__toolbar app-customer-filter-bar{width:100%}.invoice-upload-action{border-color:var(--av-color-success,#39c173)!important;background:var(--av-color-success,#39c173)!important;color:#fff!important}.invoice-files-table{min-width:860px}.invoice-files-cards{display:none}.invoice-row--overdue{background:#fff4f4}.invoice-file-card--overdue{border-color:#efb4b4;background:#fff4f4}.invoice-upload-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}.invoice-upload-modal{width:min(100%,620px);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}.invoice-upload-modal__body{min-height:0;overflow-y:auto;display:grid;gap:14px}.invoice-upload-modal__body>p{margin:0}@media(max-width:767px){.invoice-workspace{gap:20px}.invoice-workspace__hero{display:grid;gap:16px}.invoice-workspace__hero h1{font-size:26px}.invoice-workspace__hero .baseline-button{width:100%}.invoice-list{gap:14px}.baseline-table-wrap{display:none}.invoice-files-cards{display:grid;gap:12px}.invoice-upload-backdrop{align-items:flex-end;padding:0}.invoice-upload-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0}}
+    :host{display:block;min-width:0}.invoice-workspace--embedded{width:100%;margin:0}.invoice-workspace--embedded .baseline-pagination__controls{flex-wrap:wrap;justify-content:center}.invoice-workspace{gap:24px}.invoice-workspace__hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}.invoice-workspace__hero>div{display:grid;gap:6px}.invoice-workspace__hero h1,.invoice-workspace__hero p{margin:0}.invoice-workspace__hero h1{color:var(--av-color-text-heading,#0d343f);font-size:32px;line-height:1.15}.invoice-workspace__hero p,.invoice-upload-modal__body>p{max-width:760px;color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}.invoice-list{display:grid;gap:16px}.invoice-list__toolbar{display:flex;justify-content:flex-start;width:100%}.invoice-list__toolbar app-customer-filter-bar{width:100%}.invoice-upload-action{border-color:var(--av-color-success,#39c173)!important;background:var(--av-color-success,#39c173)!important;color:#fff!important}.invoice-files-table{min-width:860px}.invoice-files-cards{display:none}.invoice-row--overdue{background:#fff4f4}.invoice-file-card--overdue{border-color:#efb4b4;background:#fff4f4}.invoice-upload-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}.invoice-upload-modal{width:min(100%,620px);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}.invoice-upload-modal__body{min-height:0;overflow-y:auto;display:grid;gap:14px}.invoice-upload-modal__body>p{margin:0}@media(max-width:767px){.invoice-workspace{gap:20px}.invoice-workspace__hero{display:grid;gap:16px}.invoice-workspace__hero h1{font-size:26px}.invoice-workspace__hero .baseline-button{width:100%}.invoice-list{gap:14px}.baseline-table-wrap{display:none}.invoice-files-cards{display:grid;gap:12px}.invoice-upload-backdrop{align-items:flex-end;padding:0}.invoice-upload-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0}}
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CustomerInvoicesComponent {
+export class CustomerInvoicesComponent implements OnChanges {
+  @Input() embedded=false
+  @Input() periodId=''
+  @Input({transform:(value:InvoicePortalRole|undefined)=>value==='partner'?'partner':'supplier'}) role:InvoicePortalRole='supplier'
+  readonly invoiceStore=inject(InvoiceDocumentsStore)
+  get canUpload():boolean {return this.role==='partner'||supplierInvoiceParties().some(p=>p.uploader==='supplier')}
+  ngOnChanges():void{this.search='';this.status='';this.sort='';this.page=1}
   private readonly route = inject(ActivatedRoute)
   uploadOpen = this.route.snapshot.queryParamMap.get('action') === 'upload'
   toast = ''
@@ -108,21 +103,19 @@ export class CustomerInvoicesComponent {
   readonly pageSize = 10
   readonly formatDate = formatDate
   readonly formatKes = formatKes
-  readonly invoices: readonly FinancingDocument[] = invoiceFinancingInvoices()
+  get invoices(): readonly FinancingDocument[] {const items=this.role==='supplier'?this.invoiceStore.supplierInvoices():this.invoiceStore.partnerInvoices();return this.periodId?items.filter(i=>i.periodId===this.periodId):items}
 
-  readonly filterFields: readonly CustomerFilterField[] = [{ key: 'status', label: 'Status', allLabel: 'All statuses', options: [
-    { value: 'Overdue', label: 'Overdue' }, { value: 'Financed', label: 'Financed' }, { value: 'Eligible', label: 'Eligible' }, { value: 'Not financed', label: 'Not financed' },
-  ] }]
+  get filterFields(): readonly CustomerFilterField[] {return [{key:'status',label:'Status',allLabel:'All statuses',options:[...new Set(this.invoices.map(i=>i.status??'Uploaded'))].map(value=>({value,label:value}))}]}
 
-  readonly sortOptions: readonly CustomerSortOption[] = [
+  get sortOptions(): readonly CustomerSortOption[] { return [
     { value: 'invoice-asc', label: 'Invoice: A-Z' },
-    { value: 'buyer-asc', label: 'Buyer: A-Z' },
+    { value: 'buyer-asc', label: this.role==='partner'?'Supplier: A-Z':'Buyer: A-Z' },
     { value: 'due-asc', label: 'Due date: earliest' },
     { value: 'due-desc', label: 'Due date: latest' },
     { value: 'amount-desc', label: 'Amount: high to low' },
     { value: 'amount-asc', label: 'Amount: low to high' },
     { value: 'status-asc', label: 'Status: A-Z' },
-  ]
+  ] }
 
   get filterValues(): Readonly<Record<string,string>> { return { status: this.status } }
 
@@ -150,5 +143,5 @@ export class CustomerInvoicesComponent {
   onFilters(v:Record<string,string>){this.status=v['status']??'';this.page=1}
   onSort(v:string){this.sort=v;this.page=1}
   changePage(p:number){this.page=Math.min(Math.max(1,p),this.totalPages)}
-  completeUpload(): void { this.uploadOpen=false; this.toast='Invoice received. It will appear here after review.' }
+
 }

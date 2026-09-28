@@ -1,4 +1,4 @@
-<div class="customer-filter-bar">
+<div class="customer-filter-bar" [class.customer-filter-bar--end]="desktopAlignment === 'end'">
   <div class="customer-filter-bar__desktop" data-filter-layout="desktop">
     <label class="customer-filter-search" title="Search any value shown in this table">
       <span class="customer-filter-sr-only">{{ searchAriaLabel }}</span>
@@ -127,4 +127,7 @@
       </section>
     }
   </div>
+  @if (showActiveSummary && activeSummary) {
+    <div class="customer-filter-summary" role="status" aria-live="polite"><span>Showing: {{activeSummary}}</span><button type="button" (click)="clearAllFilters()">Clear filters</button></div>
+  }
 </div>

@@ -40,6 +40,8 @@ export class CustomerFilterBarComponent implements OnChanges {
 
   readonly panelId = `customer-filter-panel-${CustomerFilterBarComponent.nextPanelId++}`
 
+  @Input() showActiveSummary = true
+  @Input() desktopAlignment: 'start' | 'end' = 'start'
   @Input() searchValue = ''
   @Input() searchPlaceholder = 'Search'
   @Input() searchAriaLabel = 'Search records'
@@ -69,6 +71,19 @@ export class CustomerFilterBarComponent implements OnChanges {
       || this.sortValue
       || this.filters.some(filter => Boolean(this.values[filter.key])),
     )
+  }
+
+  get activeSummary(): string {
+    const parts: string[] = []
+    const query = this.searchValue.trim()
+    if (query) parts.push(`Search "${query}"`)
+    for (const field of this.filters) {
+      const label = field.options.find(option => option.value === this.values[field.key])?.label
+      if (label) parts.push(label)
+    }
+    const sortLabel = this.sortOptions.find(option => option.value === this.sortValue)?.label
+    if (sortLabel) parts.push(sortLabel)
+    return parts.join(' / ')
   }
 
   valueFor(key: string): string {

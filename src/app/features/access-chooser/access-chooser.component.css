@@ -104,9 +104,9 @@
 
 .access-card {
   min-width: 0;
-  min-height: 244px;
+  min-height: 0;
   display: grid;
-  grid-template-rows: auto auto minmax(46px, 1fr) auto auto;
+  grid-auto-rows: max-content;
   align-content: start;
   gap: 8px;
   padding: 20px;
@@ -127,7 +127,7 @@
   transform: translateY(-1px);
 }
 .access-card--partner {
-  min-height: 170px;
+  min-height: 0;
   border-color: var(--av-color-primary-border, #bdeff3);
   background: var(--av-color-surface, #fff);
 }
@@ -153,8 +153,8 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  padding-top: 12px;
-  border-top: 1px solid var(--av-color-surface-border, #edf0f2);
+  padding-top: 0;
+  border-top: 0;
 }
 
 .access-card__summary > span {

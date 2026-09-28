@@ -1,3 +1,4 @@
+import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
@@ -18,7 +19,7 @@ import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.co
 @Component({
   selector: 'app-invoice-period',
   standalone: true,
-  imports: [PrototypeExplainerComponent],
+  imports: [PortalActionIconComponent, PrototypeExplainerComponent],
   templateUrl: './invoice-period.component.html',
   styleUrl: './invoice-period.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -158,13 +158,18 @@
 @media (min-width: 1024px) {
   .customer-activity-toolbar {
     grid-template-columns: minmax(140px, .35fr) minmax(0, 1.65fr);
-    align-items: center;
+    align-items: start;
     column-gap: 24px;
   }
 
-  .customer-activity-toolbar .baseline-section-heading,
+  .customer-activity-toolbar .baseline-section-heading {
+    min-height: 44px;
+    align-self: start;
+    align-items: center;
+  }
+
   .customer-activity-toolbar app-customer-filter-bar {
-    align-self: center;
+    align-self: start;
   }
 }
 
@@ -201,5 +206,17 @@
   .partner-home-payment-cards {
     display: grid;
     gap: 12px;
+  }
+}
+
+
+.customer-financing-results,
+.customer-activity-cards {
+  scroll-margin-top: 16px;
+}
+
+@media (max-width: 767px) {
+  .customer-activity-cards {
+    scroll-margin-top: 72px;
   }
 }

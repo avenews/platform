@@ -14,6 +14,13 @@ export interface MockSession {
 
 const SESSION_KEY = 'av_customer_portal_session'
 
+const DEMO_CONTACT = {
+  contactId: 'usr_001',
+  contactFirstName: 'Winnie',
+  contactLastName: 'Oduor',
+  contactEmail: 'winnie.oduor@avenews-gt.com',
+} as const
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   getSession(): MockSession | null {
@@ -22,7 +29,17 @@ export class AuthService {
     if (!raw) return null
 
     try {
-      return JSON.parse(raw) as MockSession
+      const stored = JSON.parse(raw) as MockSession
+      const session: MockSession = { ...stored, ...DEMO_CONTACT }
+      if (
+        stored.contactId !== session.contactId ||
+        stored.contactFirstName !== session.contactFirstName ||
+        stored.contactLastName !== session.contactLastName ||
+        stored.contactEmail !== session.contactEmail
+      ) {
+        localStorage.setItem(SESSION_KEY, JSON.stringify(session))
+      }
+      return session
     } catch {
       localStorage.removeItem(SESSION_KEY)
       return null
@@ -35,10 +52,7 @@ export class AuthService {
 
   login(role: PortalRole): void {
     const session: MockSession = {
-      contactId: 'usr_001',
-      contactFirstName: 'Amara',
-      contactLastName: 'Osei',
-      contactEmail: 'amara.osei@kiokoagri.co.ke',
+      ...DEMO_CONTACT,
       businessId: 'biz_demo_001',
       businessName: 'Kioko Agri Supplies Ltd',
       role,
