@@ -43,7 +43,7 @@ test('dashed pickers, spreadsheet invoices, instructions and simplified acknowle
 test('uploader validation, remove files and repeatable sections remain intact',async({page}) => {
   await goto(page);const modal=await upload(page);await ready(modal)
   await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('alert')).toContainText('Confirm')
-  await modal.getByRole('button',{name:'Copy section 1',exact:true}).click();await expect(modal.locator('.invoice-upload-group')).toHaveCount(2);await expect(modal.locator('.invoice-upload-group').last().getByRole('combobox')).toHaveValue('FreshProduce Kenya Ltd')
+  await modal.getByRole('button',{name:'Duplicate section 1',exact:true}).click();await expect(modal.locator('.invoice-upload-group')).toHaveCount(2);await expect(modal.locator('.invoice-upload-group').last().getByRole('combobox')).toHaveValue('FreshProduce Kenya Ltd')
   await modal.getByRole('button',{name:'Remove section 2',exact:true}).click();await modal.getByRole('button',{name:'Remove invoice.xlsx',exact:true}).click();await expect(modal.locator('.invoice-upload-file').filter({hasText:'invoice.xlsx'})).toHaveCount(0)
   await modal.locator('input[type="file"]').first().setInputFiles(file('bad.exe'));await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('alert')).toContainText('file format')
   await modal.getByRole('button',{name:'Close',exact:true}).click();await expect(modal).toContainText('Discard the invoices');await modal.getByRole('button',{name:'Keep editing'}).click();await expect(modal).toContainText('bad.exe')
