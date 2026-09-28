@@ -1,6 +1,6 @@
 import { PortalActionIconComponent } from './portal-action-icon.component'
 import { CustomerInvoicesComponent } from '../features/customer-invoices/customer-invoices.component'
-import { inject } from '@angular/core'
+import { ChangeDetectorRef, inject } from '@angular/core'
 import { InvoiceDocumentsStore, invoiceCanRequest } from '../core/experience/invoice-portal.data'
 import {
   ChangeDetectionStrategy,
@@ -158,8 +158,8 @@ const MPESA_DETAILS = [
             } @else {
               <div class="customer-payment-methods" role="tablist" aria-label="Repayment method"><button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'bank'" [class.is-active]="repaymentMethod === 'bank'" (click)="repaymentMethod = 'bank'">Bank Transfer</button><button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'mpesa'" [class.is-active]="repaymentMethod === 'mpesa'" (click)="repaymentMethod = 'mpesa'">M-Pesa Paybill</button></div>
               <div class="customer-payment-details">
-                @for (item of repaymentMethod === 'bank' ? bankDetails : mpesaDetails; track item.label) { <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" (click)="copy(item.value, item.label)">Copy</button></div> }
-                @if (repaymentMethod === 'mpesa') { <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" (click)="copy(clientPhone, 'Account Number')">Copy</button></div> }
+                @for (item of repaymentMethod === 'bank' ? bankDetails : mpesaDetails; track item.label) { <div><span><small>{{ item.label }}</small><strong>{{ item.value }}</strong></span><button type="button" [class.is-copied]="copiedDetailLabel === item.label" (click)="copy(item.value, item.label)">{{ copiedDetailLabel === item.label ? 'Copied' : 'Copy' }}</button></div> }
+                @if (repaymentMethod === 'mpesa') { <div><span><small>Account Number</small><strong>{{ clientPhone }}</strong><em>Use your registered phone number</em></span><button type="button" [class.is-copied]="copiedDetailLabel === 'Account Number'" (click)="copy(clientPhone, 'Account Number')">{{ copiedDetailLabel === 'Account Number' ? 'Copied' : 'Copy' }}</button></div> }
               </div>
             }
           </div>
@@ -227,7 +227,8 @@ const MPESA_DETAILS = [
     .customer-payment-methods { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; padding:4px; border-radius:9px; background:var(--av-color-surface-subtle,#f6f7f9); }
     .customer-payment-methods button { min-height:42px; border:1px solid transparent; border-radius:7px; background:transparent; color:var(--av-color-text,#25384a); font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
     .customer-payment-methods button.is-active { border-color:var(--av-color-primary-border,#bdeff3); background:#fff; color:var(--av-color-action,#16b3c4); }
-    .customer-payment-details button { flex:0 0 auto; min-height:34px; padding:0 12px; border:1px solid var(--av-color-surface-border,#dfe4e8); border-radius:6px; background:#fff; color:var(--av-color-text-heading,#0d343f); font:inherit; font-size:11px; font-weight:700; cursor:pointer; }
+    .customer-payment-details button { flex:0 0 auto; min-width:68px; min-height:34px; padding:0 12px; border:1px solid var(--av-color-surface-border,#dfe4e8); border-radius:6px; background:#fff; color:var(--av-color-text-heading,#0d343f); font:inherit; font-size:11px; font-weight:700; cursor:pointer; }
+    .customer-payment-details button.is-copied { border-color:var(--av-color-success,#39c173); background:var(--av-color-success-subtle,#ecfdf3); color:var(--av-color-success-text,#027a48); }
     @media (max-width:767px) {
       .customer-period-backdrop { align-items:flex-end; padding:0; }
       .customer-period-modal { width:100%; max-height:92dvh; border-radius:18px 18px 0 0; border-bottom:0; }
@@ -244,6 +245,8 @@ const MPESA_DETAILS = [
 })
 export class CustomerFinancingPeriodModalComponent implements OnChanges {
   private readonly invoiceStore=inject(InvoiceDocumentsStore)
+  private readonly cdr=inject(ChangeDetectorRef)
+  private copyResetTimer: ReturnType<typeof setTimeout> | undefined
   get periodInvoices(){return this.period?this.invoiceStore.periodInvoices(this.period.id,'supplier'):[]}
   @Input() period: CustomerFinancingPeriod | null = null
   @Input() productId = ''
@@ -259,6 +262,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   documentsOpen = false
   repaymentMethod: RepaymentMethod = 'bank'
   toast = ''
+  copiedDetailLabel = ''
 
   readonly bankDetails = BANK_DETAILS
   readonly mpesaDetails = MPESA_DETAILS
@@ -273,6 +277,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
       this.documentsOpen = false
       this.repaymentMethod = 'bank'
       this.toast = ''
+      this.resetCopiedDetail()
     }
   }
 
@@ -322,7 +327,26 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   closeRepayment(): void { this.repaymentOpen = false }
 
   async copy(value: string, label: string): Promise<void> {
-    try { await navigator.clipboard.writeText(value); this.toast = `${label} copied.` }
-    catch { this.toast = `${label}: ${value}` }
+    try {
+      await navigator.clipboard.writeText(value)
+      this.toast = `${label} copied.`
+      this.copiedDetailLabel = label
+      if (this.copyResetTimer) clearTimeout(this.copyResetTimer)
+      this.copyResetTimer = setTimeout(() => {
+        this.copiedDetailLabel = ''
+        this.cdr.markForCheck()
+      }, 1600)
+    } catch {
+      this.copiedDetailLabel = ''
+      this.toast = `${label}: ${value}`
+    } finally {
+      this.cdr.markForCheck()
+    }
+  }
+
+  private resetCopiedDetail(): void {
+    if (this.copyResetTimer) clearTimeout(this.copyResetTimer)
+    this.copyResetTimer = undefined
+    this.copiedDetailLabel = ''
   }
 }
