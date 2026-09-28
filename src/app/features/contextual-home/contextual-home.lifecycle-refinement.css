@@ -210,13 +210,13 @@
 }
 
 
-.customer-financing-results-anchor {
-  height: 0;
+.customer-financing-results,
+.customer-activity-cards {
   scroll-margin-top: 16px;
 }
 
 @media (max-width: 767px) {
-  .customer-financing-results-anchor {
+  .customer-activity-cards {
     scroll-margin-top: 72px;
   }
 }
