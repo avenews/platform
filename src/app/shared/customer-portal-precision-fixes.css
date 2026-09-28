@@ -146,3 +146,53 @@ select.baseline-control {
     margin-top: var(--av-space-1, 4px);
   }
 }
+
+
+/*
+ * Portal-wide table identity contract.
+ * The first column is the primary record identity on every prototype table.
+ * Keep its primary line consistent; secondary metadata remains muted/regular.
+ */
+.baseline-table tbody td:first-child {
+  color: var(--av-color-text-heading, #0d343f);
+  font-family: var(--av-font-heading, "Plus Jakarta Sans", sans-serif);
+  font-size: var(--av-font-size-md, 14px);
+  font-weight: var(--av-font-weight-semibold, 600);
+}
+
+.baseline-table tbody td:first-child > strong,
+.baseline-table tbody td:first-child a > strong,
+.baseline-table tbody td:first-child button strong {
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+}
+
+.baseline-table tbody td:first-child .baseline-financing-cell span,
+.baseline-table tbody td:first-child .invoice-upload-owner,
+.baseline-table tbody td:first-child small {
+  font-family: var(--av-font-base, "Poppins", sans-serif);
+  font-size: var(--av-font-size-sm, 13px);
+  font-weight: var(--av-font-weight-regular, 400);
+}
+
+/*
+ * One detail-value weight across every portal modal.
+ * Labels stay muted; headings, alerts and top-line amounts keep their own
+ * stronger hierarchy. !important intentionally wins over component-scoped
+ * legacy 700 rules so the contract is genuinely portal-wide.
+ */
+.baseline-modal dl dd,
+.baseline-modal .customer-instalment-row strong,
+.baseline-modal .customer-document-row strong,
+.baseline-modal .customer-settlement-card strong,
+.baseline-modal .customer-payment-details strong,
+.baseline-modal .acl-installment-row > div strong,
+.baseline-modal .acl-payment-reference strong,
+.baseline-modal .acl-payment-details strong,
+.baseline-modal .partner-period-row__metrics strong,
+.baseline-modal app-clearing-account-details .customer-payment-details strong {
+  font-weight: var(--av-font-weight-medium, 500) !important;
+}
