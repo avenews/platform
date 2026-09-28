@@ -320,8 +320,8 @@ export class PartnerWorkspaceComponent {
   changeSupplierPeriodPage(page: number): void { this.supplierPeriodPage = Math.min(Math.max(1, page), this.supplierPeriodTotalPages) }
 
   async copyPaymentReference(reference: string): Promise<void> {
-    try {
-      await navigator.clipboard.writeText(reference)
+    const copied = await this.writeToClipboard(reference)
+    if (copied) {
       this.paymentReferenceCopied = true
       this.toast = 'Payment reference copied.'
       if (this.paymentReferenceCopyTimer) clearTimeout(this.paymentReferenceCopyTimer)
@@ -329,12 +329,30 @@ export class PartnerWorkspaceComponent {
         this.paymentReferenceCopied = false
         this.cdr.markForCheck()
       }, 1600)
-    } catch {
+    } else {
       this.paymentReferenceCopied = false
-      this.toast = `Payment reference: ${reference}`
-    } finally {
-      this.cdr.markForCheck()
+      this.toast = `Select and copy payment reference: ${reference}`
     }
+    this.cdr.markForCheck()
+  }
+
+  private async writeToClipboard(value: string): Promise<boolean> {
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value)
+        return true
+      }
+    } catch {}
+    const textarea = document.createElement('textarea')
+    textarea.value = value
+    textarea.setAttribute('readonly', '')
+    textarea.style.position = 'fixed'
+    textarea.style.opacity = '0'
+    document.body.appendChild(textarea)
+    textarea.select()
+    try { return document.execCommand('copy') }
+    catch { return false }
+    finally { textarea.remove() }
   }
 
   private resetPaymentReferenceCopyState(): void {
