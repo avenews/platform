@@ -39,6 +39,17 @@ export function invoiceFinancingAvailability(period:CustomerFinancingPeriod):{ke
   if (!['live','requested'].includes(period.statusKey)) return {key:'cutoff-reached',label:'Cutoff reached',tone:'status-warning'}
   return {key:'available-to-request',label:'Available to request',tone:'status-success'}
 }
+export function invoiceFundingWindowState(dueDate:string,now=new Date()):{key:FinancingAvailabilityKey;label:string;eligibleFrom?:string} {
+  const todayUtc=Date.UTC(now.getFullYear(),now.getMonth(),now.getDate())
+  const dueUtc=Date.parse(dueDate+'T00:00:00Z')
+  const days=Math.floor((dueUtc-todayUtc)/86400000)
+  if(days>60) {
+    const eligible=new Date(dueUtc-60*86400000).toISOString().slice(0,10)
+    return {key:'not-yet-available',label:'Not yet available',eligibleFrom:eligible}
+  }
+  if(days>=7) return {key:'available-to-request',label:'Available to request'}
+  return {key:'cutoff-reached',label:'Cutoff reached'}
+}
 export function supplierInvoiceParties(): InvoiceParty[] {
   return customerWorkspaceById('invoice-financing')!.relationships.map(r => ({
     id:r.id, name:r.name, uploader:r.invoiceUploadOwner === 'client' ? 'supplier' : 'buyer', pod:r.invoiceUploadOwner === 'client', sublimit:r.limit, processingMode:r.relationshipType === 'Partner Buyer' ? 'automatic' : 'manual',
@@ -178,8 +189,9 @@ export class InvoiceDocumentsStore implements OnDestroy {
       const periodId=role==='supplier'?customerWorkspaceById('invoice-financing')!.periods.find(p=>p.relationshipId===party.id&&p.repaymentDueDate===s.dueDate)?.id:PARTNER_PERIODS.find(p=>p.supplierId===party.id&&p.dueDate===s.dueDate)?.id
       for(const invoice of s.invoices) {
         const file=invoice.file!
+        const windowState=invoiceFundingWindowState(s.dueDate)
         invoices.push({id:crypto.randomUUID(),productId:'invoice-financing',periodId:periodId??'',type:'Invoice',
-          fileName:file.name,fileUrl:this.fileUrl(file),reference:invoice.reference.trim(),counterparty:party.name,dueDate:s.dueDate,amount:invoice.amount!,status:'Awaiting review',statusTone:'status-warning'})
+          fileName:file.name,fileUrl:this.fileUrl(file),reference:invoice.reference.trim(),counterparty:party.name,dueDate:s.dueDate,amount:invoice.amount!,status:'Awaiting review',statusTone:'status-warning',financingAvailability:windowState.label,financingAvailableFrom:windowState.eligibleFrom})
       }
       for(const file of s.delivery) delivery.push({id:crypto.randomUUID(),productId:'invoice-financing',periodId:periodId??'',type:'Proof of Delivery',
         fileName:file.name,fileUrl:this.fileUrl(file),reference:'Proof of Delivery',counterparty:party.name,dueDate:s.dueDate,status:'Submitted',statusTone:'status-info'})
