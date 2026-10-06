@@ -6,7 +6,7 @@ const buyerRows = (page:Page) => page.locator('.relationship-table tbody tr:visi
 async function goto(page:Page,path='invoice-financing/home') { await page.goto('/experience/'+path); await expect(page.locator('h1').first()).toBeVisible(); await page.evaluate(()=>document.fonts.ready) }
 async function upload(page:Page) { await page.getByRole('button',{name:'Upload invoices',exact:true}).first().click(); const modal=page.getByRole('dialog'); await expect(modal.locator('.invoice-upload-group')).toHaveCount(1); return modal }
 async function select(modal:Locator,name='FreshProduce') { await modal.getByRole('combobox').first().fill(name); await modal.getByRole('option').filter({hasText:name}).click() }
-async function ready(modal:Locator) { await select(modal); await modal.locator('input[type="date"]').fill('2026-09-30'); await modal.locator('input[type="file"]').first().setInputFiles(file('invoice.xlsx')); await modal.locator('input[type="file"]').last().setInputFiles(file('delivery.pdf')) }
+async function ready(modal:Locator) { await select(modal); await modal.locator('input[type="date"]').fill('2026-11-30'); await modal.getByLabel('Invoice number').fill('INV-TEST-001'); await modal.getByLabel('Invoice amount').fill('125000'); await modal.locator('input[type="file"]').first().setInputFiles(file('invoice.xlsx')); await modal.locator('input[type="file"]').last().setInputFiles(file('delivery.pdf')) }
 async function modalPeriod(page:Page,ref:string) { await rows(page).filter({hasText:ref}).first().click(); return page.getByRole('dialog') }
 async function within(page:Page) {
   expect(await page.evaluate(()=>document.documentElement.scrollWidth <= innerWidth+2)).toBeTruthy()
@@ -15,13 +15,15 @@ async function within(page:Page) {
 test.beforeEach(async({page}) => { await page.addInitScript(s=>localStorage.setItem('av_customer_portal_session',JSON.stringify(s)),session) })
 test.afterEach(async({page}) => { await within(page); for(const text of ['Review preview','Sample data as of','reserved for pending','Review mode.','This preview does not replace','4 unpaid periods'])await expect(page.locator('body')).not.toContainText(text) })
 
-test('direct uploader and stable dropdown retain buyer, evidence and confirmation while searching',async({page},info) => {
+test('manual uploader clears stale buyer selection while retaining entered invoice data',async({page},info) => {
   await goto(page); const modal=await upload(page); await expect(modal.getByRole('button',{name:'Continue',exact:true})).toHaveCount(0); await expect(modal.locator('.invoice-chooser-space')).toHaveCount(0)
   await ready(modal); await modal.getByRole('checkbox').check(); await modal.getByRole('combobox').scrollIntoViewIfNeeded()
-  const before=await modal.boundingBox(); const hint=modal.locator('.party-select__hint'); const hintBox=await hint.boundingBox()
-  await modal.getByRole('combobox').fill('Twiga'); await expect(modal.getByRole('option').filter({hasText:'Twiga'})).toBeDisabled(); await expect(hint).toHaveText('You upload invoices'); expect(await hint.boundingBox()).toEqual(hintBox)
+  const before=await modal.boundingBox()
+  await modal.getByRole('combobox').fill('Twiga'); await expect(modal.getByRole('option').filter({hasText:'Twiga'})).toBeDisabled()
+  await expect(modal.getByRole('checkbox')).not.toBeChecked()
   const opened=await modal.boundingBox(); expect(opened!.height).toBeCloseTo(before!.height,0); expect(opened!.y).toBeCloseTo(before!.y,0)
-  await modal.getByRole('combobox').press('Escape'); await expect(modal.getByRole('combobox')).toHaveValue('FreshProduce Kenya Ltd'); await expect(modal).toContainText('invoice.xlsx'); await expect(modal).toContainText('delivery.pdf'); await expect(modal.getByRole('checkbox')).toBeChecked()
+  await modal.getByRole('combobox').press('Escape'); await expect(modal.getByRole('combobox')).toHaveValue(''); await expect(modal).toContainText('invoice.xlsx'); await expect(modal).toContainText('delivery.pdf'); await expect(modal.getByLabel('Invoice number')).toHaveValue('INV-TEST-001'); await expect(modal.getByLabel('Invoice amount')).toHaveValue('125000')
+  await select(modal); await modal.getByRole('checkbox').check()
   const toggle=modal.locator('.party-select__toggle'), icon=toggle.locator('svg'); const tb=await toggle.boundingBox(), ib=await icon.boundingBox(); expect(Math.abs(tb!.y+tb!.height/2-ib!.y-ib!.height/2)).toBeLessThan(1)
   await page.screenshot({path:info.outputPath('stable-uploader.png'),fullPage:true})
 })
@@ -31,12 +33,12 @@ test('dashed pickers, spreadsheet invoices, instructions and simplified acknowle
   await expect(modal.locator('.invoice-file-chooser')).toHaveCount(2)
   for (const chooser of await modal.locator('.invoice-file-chooser').all()) expect(await chooser.evaluate(e=>getComputedStyle(e).borderStyle)).toBe('dashed')
   const input=modal.locator('input[type="file"]').first(); for(const ext of ['.xls','.xlsx','.csv'])await expect(input).toHaveAttribute('accept',new RegExp(ext.replace('.','\\.')))
-  await expect(modal.locator('.invoice-upload-instructions')).toContainText('same buyer and payment due date'); await expect(modal.locator('.invoice-upload-instructions')).toContainText('Proof of Delivery'); await expect(modal.locator('.invoice-upload-instructions')).toContainText('+ Add another section')
+  await expect(modal.locator('.invoice-upload-instructions')).toContainText('same buyer and payment due date'); await expect(modal.locator('.invoice-upload-instructions')).toContainText('invoice number and full invoice amount'); await expect(modal.locator('.invoice-upload-instructions')).toContainText('Proof of Delivery')
   await expect(modal.locator('.invoice-upload-confirmation')).toContainText('completed deliveries, not pre-delivery or disputed invoices'); await expect(modal.locator('.invoice-upload-confirmation')).toContainText('I acknowledge the Privacy Notice and Terms & Conditions.')
   await expect(modal.locator('.invoice-upload-footer,.invoice-upload-terms')).toHaveCount(0); await expect(modal.getByRole('link')).toHaveCount(2)
-  await modal.locator('input[type="date"]').fill('2026-09-30'); await input.setInputFiles([file('one.xls'),file('two.xlsx'),file('three.csv')]); await modal.locator('input[type="file"]').last().setInputFiles(file('delivery.pdf'));await modal.getByRole('checkbox').check()
+  await modal.locator('input[type="date"]').fill('2026-11-30'); await modal.getByLabel('Invoice number').fill('INV-SHEET-001'); await modal.getByLabel('Invoice amount').fill('225000'); await input.setInputFiles(file('one.xls')); await modal.locator('input[type="file"]').last().setInputFiles(file('delivery.pdf'));await modal.getByRole('checkbox').check()
   await page.screenshot({path:info.outputPath('uploader-confirmation.png'),fullPage:true})
-  await modal.getByRole('button',{name:'Submit invoices',exact:true}).click();await expect(modal.getByRole('status')).toContainText('Invoices added');await expect(modal.getByRole('status')).toContainText('What happens next');await expect(modal.getByRole('status')).toContainText('Eligible, approved invoices create or update');await expect(modal.getByRole('status')).toContainText('Funds Request window is open')
+  await modal.getByRole('button',{name:'Submit invoices',exact:true}).click();await expect(modal.getByRole('status')).toContainText('Invoices submitted');await expect(modal.getByRole('status')).toContainText('What happens next');await expect(modal.getByRole('status')).toContainText('Approved invoices create or update');await expect(modal.getByRole('status')).toContainText('Funds Request window is open')
   await page.screenshot({path:info.outputPath('upload-next-steps.png'),fullPage:true});await modal.getByRole('button',{name:'View invoices',exact:true}).click();await expect(page).toHaveURL(/invoice-financing\/invoices$/);await expect(page.locator('body')).toContainText('one.xls')
 })
 
@@ -89,8 +91,10 @@ test('page navigation resets scroll but opening or closing a modal does not',asy
   await page.getByRole('link',{name:'Home',exact:true}).first().click();await expect.poll(()=>page.evaluate(()=>scrollY)).toBe(0);expect(y).toBeGreaterThanOrEqual(0)
 })
 
-test('shared Partner uploader scrolls its options, accepts spreadsheets and explains supplier next steps',async({page},info) => {
-  await goto(page,'invoice-partner/invoice-uploads');const modal=await upload(page);await modal.getByRole('combobox').focus();const options=modal.getByRole('listbox');await expect(options).toBeVisible();const before=await modal.boundingBox();const bodyScroll=await modal.locator('.invoice-upload-body').evaluate(e=>e.scrollTop)
-  expect(await options.evaluate(e=>e.scrollHeight>e.clientHeight)).toBeTruthy();await options.evaluate(e=>e.scrollTop=e.scrollHeight);expect(await modal.locator('.invoice-upload-body').evaluate(e=>e.scrollTop)).toBe(bodyScroll);expect((await modal.boundingBox())!.height).toBeCloseTo(before!.height,0)
-  await select(modal,'Coastline');await expect(modal.locator('input[type="file"]')).toHaveCount(1);await modal.locator('input[type="date"]').fill('2026-09-30');await modal.locator('input[type="file"]').setInputFiles(file('bulk-invoices.xls'));await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('status')).toContainText('The supplier can request funds');await page.screenshot({path:info.outputPath('partner-upload-next-steps.png'),fullPage:true})
+test('Partner Buyer uploader uses automatic bulk processing without extracted-field confirmation',async({page},info) => {
+  await goto(page,'invoice-partner/invoice-uploads');await page.getByRole('button',{name:'Upload invoices',exact:true}).first().click();const modal=page.getByRole('dialog')
+  await expect(modal.getByRole('heading',{name:'Automatic invoice processing'})).toBeVisible();await expect(modal.getByRole('combobox')).toHaveCount(0);await expect(modal.locator('input[type="date"]')).toHaveCount(0)
+  await expect(modal.locator('input[type="file"]')).toHaveCount(1);await modal.locator('input[type="file"]').setInputFiles(file('bulk-invoices.xls'));await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Submit files'}).click()
+  await expect(modal.getByRole('status')).toContainText('Upload received');await expect(modal.getByRole('status')).toContainText('processing');await expect(modal.getByRole('status')).toContainText('does not submit a Funds Request');await expect(modal.getByRole('button',{name:'View invoices'})).toHaveCount(0)
+  await page.screenshot({path:info.outputPath('partner-upload-next-steps.png'),fullPage:true})
 })
