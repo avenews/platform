@@ -45,7 +45,7 @@ export function queryPartnerRebates(rows: readonly PartnerRebate[], query: Rebat
     }
     return order || a.supplier.localeCompare(b.supplier) || a.supplierId.localeCompare(b.supplierId)
   })
-  const pageSize = Math.max(1, Math.min(50, Math.floor(query.pageSize || 5)))
+  const pageSize = Math.max(1, Math.min(50, Math.floor(query.pageSize || 10)))
   const pages = Math.max(1, Math.ceil(filtered.length / pageSize))
   const page = Math.max(1, Math.min(pages, Math.floor(query.page || 1)))
   const start = (page - 1) * pageSize
