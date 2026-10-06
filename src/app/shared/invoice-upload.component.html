@@ -29,7 +29,10 @@
             <p>Submitted invoices are locked. If something is incorrect after submission, contact Avenews support. Uploading invoices does not guarantee financing approval.</p>
           }
         </section>
-        <div class="invoice-upload-actions"><button type="button" class="baseline-button baseline-button--secondary" (click)="viewInvoices()">View invoices</button><button type="button" class="baseline-button baseline-button--primary" (click)="close.emit()">Done</button></div>
+        <div class="invoice-upload-actions">
+          @if (receipt.mode === 'manual') { <button type="button" class="baseline-button baseline-button--secondary" (click)="viewInvoices()">View invoices</button> }
+          <button type="button" class="baseline-button baseline-button--primary" (click)="close.emit()">Done</button>
+        </div>
       } @else if (!availableParties.length) {
         <p>{{role==='supplier'?'Your buyers manage invoice uploads. No buyers are currently assigned to you for uploading.':'No suppliers are currently assigned to you for uploading.'}}</p>
         <button type="button" class="baseline-button baseline-button--secondary" (click)="close.emit()">Close</button>
