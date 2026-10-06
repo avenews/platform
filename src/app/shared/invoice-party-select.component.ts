@@ -81,7 +81,11 @@ export class InvoicePartySelectComponent implements OnChanges, OnDestroy, OnInit
     this.query = query
     this.open = true
     this.highlight = this.matches.findIndex(p => this.allowed(p))
-    // Searching is not selecting. Keep the committed value, files and declaration intact.
+    const selectedName = this.selected?.name ?? ''
+    if (this.value && query.trim() !== selectedName) {
+      this.value = ''
+      this.valueChange.emit('')
+    }
     this.reposition()
   }
   choose(p: InvoiceParty): void {
