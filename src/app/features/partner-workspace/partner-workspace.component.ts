@@ -120,6 +120,7 @@ export class PartnerWorkspaceComponent {
   get supplierFilterFields(): readonly CustomerFilterField[] {
     return [{ key: 'supplierStatus', label: 'Status', allLabel: 'All statuses', options: [
       { value: 'available', label: 'Available' },
+      { value: 'blocked-overdue', label: 'Blocked by overdue payment' },
       { value: 'unavailable', label: 'Unavailable' },
       { value: 'max-used', label: 'Max financing used' },
     ] }]
@@ -172,26 +173,26 @@ export class PartnerWorkspaceComponent {
   get filteredSuppliers(): readonly PartnerSupplierRow[] {
     const query = this.supplierSearch.trim().toLowerCase()
     const items = this.suppliers
-      .filter(supplier => !this.supplierStatusFilter || supplier.statusKey === this.supplierStatusFilter)
+      .filter(supplier => !this.supplierStatusFilter || this.supplierStatusKey(supplier) === this.supplierStatusFilter)
       .filter(supplier => {
         if (!query) return true
         return [
           supplier.business,
           supplier.identifier,
-          formatKes(supplier.available),
+          formatKes(this.supplierAvailable(supplier)),
           this.activePeriodCount(supplier),
           this.nextPaymentLabel(supplier),
-          supplier.status,
+          this.supplierStatusLabel(supplier),
         ].join(' ').toLowerCase().includes(query)
       })
 
     return [...items].sort((a, b) => {
-      if (this.supplierSort === 'available-desc') return b.available - a.available
-      if (this.supplierSort === 'available-asc') return a.available - b.available
+      if (this.supplierSort === 'available-desc') return this.supplierAvailable(b) - this.supplierAvailable(a)
+      if (this.supplierSort === 'available-asc') return this.supplierAvailable(a) - this.supplierAvailable(b)
       if (this.supplierSort === 'active-desc') return this.activePeriodCount(b) - this.activePeriodCount(a)
       if (this.supplierSort === 'active-asc') return this.activePeriodCount(a) - this.activePeriodCount(b)
       if (this.supplierSort === 'payment-due-asc') return this.nextPaymentDate(a).localeCompare(this.nextPaymentDate(b))
-      if (this.supplierSort === 'status-asc') return a.status.localeCompare(b.status)
+      if (this.supplierSort === 'status-asc') return this.supplierStatusLabel(a).localeCompare(this.supplierStatusLabel(b))
       if (this.supplierSort === 'name-asc') return a.business.localeCompare(b.business)
       const aOverdue = this.periodsForSupplier(a).some(period => period.paymentStatusKey === 'overdue')
       const bOverdue = this.periodsForSupplier(b).some(period => period.paymentStatusKey === 'overdue')
@@ -295,6 +296,11 @@ export class PartnerWorkspaceComponent {
   periodsForSupplier(supplier: PartnerSupplierRow): readonly PartnerPeriod[] {
     return this.periods.filter(period => supplier.periodIds.includes(period.id)).sort((a, b) => this.paymentPriority(a) - this.paymentPriority(b) || a.dueDate.localeCompare(b.dueDate))
   }
+  supplierHasOverdue(supplier:PartnerSupplierRow):boolean { return this.periodsForSupplier(supplier).some(period=>period.periodStatusKey==='overdue'&&period.paymentStatusKey==='overdue') }
+  supplierAvailable(supplier:PartnerSupplierRow):number { return this.supplierHasOverdue(supplier)?0:supplier.available }
+  supplierStatusKey(supplier:PartnerSupplierRow):string { return this.supplierHasOverdue(supplier)?'blocked-overdue':supplier.statusKey }
+  supplierStatusLabel(supplier:PartnerSupplierRow):string { return this.supplierHasOverdue(supplier)?'Blocked by overdue payment':supplier.status }
+  supplierStatusTone(supplier:PartnerSupplierRow):string { return this.supplierHasOverdue(supplier)?'status-danger':supplier.statusTone }
   supplierForPeriod(period: PartnerPeriod): PartnerSupplierRow | undefined { return this.suppliers.find(supplier => supplier.id === period.supplierId) }
   activePeriodCount(supplier: PartnerSupplierRow): number { return this.periodsForSupplier(supplier).filter(period => !['settled', 'expired'].includes(period.periodStatusKey)).length }
   supplierPaymentDue(supplier: PartnerSupplierRow): number { return this.periodsForSupplier(supplier).filter(period => period.paymentStatusKey !== 'paid').reduce((total, period) => total + this.paymentRemaining(period), 0) }
