@@ -1,5 +1,5 @@
 import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
-import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
+import { INVOICE_FACILITY, invoiceCanRequest, invoiceFinancingAvailability, invoiceRelationshipHasOverdue, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import {
@@ -183,7 +183,7 @@ export class ContextualFinancingComponent implements OnDestroy {
   relationshipAvailable(relationship: CustomerRelationship): number {
     if (this.workspace?.id === 'abf' && relationship.id === 'abf-quickmart') return 0
     if (this.workspace?.id === 'stf' && relationship.id === 'stf-greenharvest') return 0
-    if (this.workspace?.id === 'invoice-financing' && relationship.id === 'inf-fresh') return 0
+    if (this.workspace?.id === 'invoice-financing' && invoiceRelationshipHasOverdue(relationship.id)) return 0
     return relationship.available
   }
 
@@ -192,14 +192,17 @@ export class ContextualFinancingComponent implements OnDestroy {
   }
 
   relationshipAvailabilityLabel(relationship: CustomerRelationship): string {
+    if (this.workspace?.id === 'invoice-financing' && invoiceRelationshipHasOverdue(relationship.id)) return 'Blocked by overdue payment'
     return this.relationshipAvailable(relationship) > 0 ? 'Available' : 'Unavailable'
   }
 
   relationshipAvailabilityTone(relationship: CustomerRelationship): string {
+    if (this.workspace?.id === 'invoice-financing' && invoiceRelationshipHasOverdue(relationship.id)) return 'status-danger'
     return this.relationshipAvailable(relationship) > 0 ? 'status-success' : 'status-neutral'
   }
 
   relationshipAvailabilityTooltip(relationship: CustomerRelationship): string {
+    if (this.workspace?.id === 'invoice-financing' && invoiceRelationshipHasOverdue(relationship.id)) return 'New Funds Requests are blocked for this supplier and buyer until the overdue financing period is settled. Invoice uploads remain available.'
     return this.relationshipAvailable(relationship) > 0 ? 'Financing is available.' : 'No financing is currently available.'
   }
 
@@ -355,8 +358,15 @@ export class ContextualFinancingComponent implements OnDestroy {
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
-    if (this.workspace?.id !== 'invoice-financing' || (period.availableToWithdraw ?? 0) <= 0 || (period.statusKey !== 'live' && period.statusKey !== 'requested')) return false
-    return this.isWithinInvoiceFundingWindow(period)
+    return this.workspace?.id === 'invoice-financing' && this.isWithinInvoiceFundingWindow(period)
+  }
+
+  periodAvailabilityLabel(period:CustomerFinancingPeriod):string {
+    return invoiceFinancingAvailability(period).label
+  }
+
+  periodAvailabilityTone(period:CustomerFinancingPeriod):string {
+    return invoiceFinancingAvailability(period).tone
   }
 
   startFundsRequest(relationship: CustomerRelationship, event?: Event): void {
@@ -379,8 +389,13 @@ export class ContextualFinancingComponent implements OnDestroy {
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
     if (!this.canRequestFromPeriod(period)) return
-    this.toast = `You can request up to ${formatKes(period.availableToWithdraw ?? 0)} from this financing period.`
+    this.toast = `Funds Requests continue in the CRM-provided Zoho Form for this financing period. You can request up to ${formatKes(period.availableToWithdraw ?? 0)}.`
     this.cdr.markForCheck()
+  }
+
+  requestCancellationForPeriod(period:CustomerFinancingPeriod):void {
+    if (period.amountFinanced>0) return
+    void this.router.navigate(['/experience', 'invoice-financing', 'support'], {queryParams:{type:'cancellation-request',period:period.reference,relationship:period.relationshipId}})
   }
 
   startInvoiceUpload(relationship: CustomerRelationship, event?: Event): void {
