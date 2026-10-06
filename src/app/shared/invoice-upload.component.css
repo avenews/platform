@@ -16,3 +16,12 @@
 .invoice-upload-confirmation a{color:var(--av-color-action,#15adbd);text-decoration:underline;text-underline-offset:2px}
 .invoice-upload-confirmation a:hover{color:var(--av-color-action-hover,#0f96a6)}
 .invoice-upload-confirmation a:focus-visible{outline:2px solid var(--av-color-action,#15adbd);outline-offset:2px;border-radius:2px}
+
+.invoice-automatic-intro{display:grid;gap:6px;padding:14px 16px;border:1px solid var(--av-color-surface-border,#e1e7eb);border-radius:10px;background:var(--av-color-surface-subtle,#f7fafb)}
+.invoice-automatic-intro h3,.invoice-automatic-intro p{margin:0}
+.invoice-automatic-intro p{color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}
+.manual-invoice-list{display:grid;gap:10px}
+.manual-invoice{display:grid;gap:12px;padding:14px;border:1px solid var(--av-color-surface-border,#e1e7eb);border-radius:8px;background:var(--av-color-surface-subtle,#f9fbfc)}
+.manual-invoice__head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.manual-invoice__head h4{margin:0;color:var(--av-color-text-heading);font-size:13px;font-weight:600}
+@media(max-width:767px){.manual-invoice{padding:12px}}
