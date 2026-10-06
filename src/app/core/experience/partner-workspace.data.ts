@@ -2,7 +2,7 @@
 export type PartnerSection = 'invoice-uploads' | 'obligations' | 'suppliers'
 export type SupplierStatusKey = 'available' | 'unavailable' | 'max-used'
 export type PeriodStatusKey = 'open' | 'cutoff' | 'settled' | 'overdue' | 'expired'
-export type PaymentStatusKey = 'upcoming' | 'processing' | 'overdue' | 'paid'
+export type PaymentStatusKey = 'upcoming' | 'due' | 'overdue' | 'paid'
 
 export interface UploadBatch {
   id: string
@@ -69,7 +69,7 @@ export const PARTNER_SUPPLIERS: readonly PartnerSupplierRow[] = [
 export const PARTNER_PERIODS: readonly PartnerPeriod[] = [
     { id: 'pb-kioko-sep15', reference: 'PER-2026-09-15-KIOKO', supplierId: 'supplier-kioko', dueDate: '2026-09-15', invoiceCount: 8, invoiceValue: 1280000, financedAgainst: 850000, amountToPay: 1280000, periodStatusKey: 'cutoff', periodStatus: 'Cutoff', periodTone: 'status-warning', paymentStatusKey: 'upcoming', paymentStatus: 'Upcoming', paymentTone: 'status-info', paymentReference: 'TWIGA-KIOKO-150926' },
     { id: 'pb-kioko-sep30', reference: 'PER-2026-09-30-KIOKO', supplierId: 'supplier-kioko', dueDate: '2026-09-30', invoiceCount: 5, invoiceValue: 760000, financedAgainst: 0, amountToPay: 760000, periodStatusKey: 'open', periodStatus: 'Open', periodTone: 'status-info', paymentStatusKey: 'upcoming', paymentStatus: 'Upcoming', paymentTone: 'status-info', paymentReference: 'TWIGA-KIOKO-300926' },
-    { id: 'pb-nairobi-aug31', reference: 'PER-2026-08-31-NAIROBI', supplierId: 'supplier-nairobi', dueDate: '2026-08-31', invoiceCount: 6, invoiceValue: 940000, financedAgainst: 400000, amountToPay: 940000, periodStatusKey: 'cutoff', periodStatus: 'Cutoff', periodTone: 'status-warning', paymentStatusKey: 'processing', paymentStatus: 'Payment processing', paymentTone: 'status-warning', paymentReference: 'TWIGA-NAIROBI-310826' },
+    { id: 'pb-nairobi-aug31', reference: 'PER-2026-08-31-NAIROBI', supplierId: 'supplier-nairobi', dueDate: '2026-08-31', invoiceCount: 6, invoiceValue: 940000, financedAgainst: 400000, amountToPay: 940000, periodStatusKey: 'cutoff', periodStatus: 'Cutoff', periodTone: 'status-warning', paymentStatusKey: 'due', paymentStatus: 'Due', paymentTone: 'status-warning', paymentReference: 'TWIGA-NAIROBI-310826' },
     { id: 'pb-nairobi-sep30', reference: 'PER-2026-09-30-NAIROBI', supplierId: 'supplier-nairobi', dueDate: '2026-09-30', invoiceCount: 4, invoiceValue: 620000, financedAgainst: 0, amountToPay: 620000, periodStatusKey: 'open', periodStatus: 'Open', periodTone: 'status-info', paymentStatusKey: 'upcoming', paymentStatus: 'Upcoming', paymentTone: 'status-info', paymentReference: 'TWIGA-NAIROBI-300926' },
     { id: 'pb-makueni-expired', reference: 'PER-2026-07-31-MAKUENI', supplierId: 'supplier-makueni', dueDate: '2026-07-31', invoiceCount: 2, invoiceValue: 180000, financedAgainst: 0, amountToPay: 180000, periodStatusKey: 'expired', periodStatus: 'Expired', periodTone: 'status-neutral', paymentStatusKey: 'paid', paymentStatus: 'Paid', paymentTone: 'status-success', paymentReference: 'TWIGA-MAKUENI-310726' },
     { id: 'pb-highlands-sep15', reference: 'PER-2026-09-15-HIGHLANDS', supplierId: 'supplier-highlands', dueDate: '2026-09-15', invoiceCount: 7, invoiceValue: 1320000, financedAgainst: 900000, amountToPay: 1320000, periodStatusKey: 'cutoff', periodStatus: 'Cutoff', periodTone: 'status-warning', paymentStatusKey: 'upcoming', paymentStatus: 'Upcoming', paymentTone: 'status-info', paymentReference: 'TWIGA-HIGHLANDS-150926' },
