@@ -44,6 +44,44 @@ interface CustomerHomeCopy {
   dueActionLabel: string
 }
 
+const CUSTOMER_HOME_COPY: Record<CustomerProductId, CustomerHomeCopy> = {
+  acl: {
+    intro: 'View available financing, repayments and financing periods.',
+    availableHelper: 'Available for approved purchases',
+    outstandingHelper: 'Across active financing',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  abf: {
+    intro: 'View financing by supplier, track repayments and request funds.',
+    availableHelper: 'Across your approved suppliers',
+    outstandingHelper: 'Across active financing periods',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  stf: {
+    intro: 'View financing by Partner Supplier, track repayments and request funds.',
+    availableHelper: 'Across your Partner Suppliers',
+    outstandingHelper: 'Across active financing periods',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  'invoice-financing': {
+    intro: 'View financing by buyer and invoice due date, upload invoices and request funds.',
+    availableHelper: 'Across eligible financing periods',
+    outstandingHelper: 'To be settled from buyer payments',
+    dueMetricLabel: 'Buyer Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+  infx: {
+    intro: 'Finance one invoice at a time, track repayments and request funds by buyer.',
+    availableHelper: 'Across your approved buyers',
+    outstandingHelper: 'Across active financing periods',
+    dueMetricLabel: 'Payments Due',
+    dueActionLabel: 'View payments due',
+  },
+}
+
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
