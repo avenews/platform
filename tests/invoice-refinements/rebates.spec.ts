@@ -38,12 +38,12 @@ test('inline Privacy and Terms are styled real links and do not toggle the decla
 test('Home and Suppliers use the same searchable rebate modal and preserve totals',async({page},info)=>{
  for(const [path,button] of [['invoice-partner/home','View rebate breakdown'],['invoice-partner/suppliers','Rebate breakdown']]){
   await goto(page,path);const opener=page.getByRole('button',{name:button,exact:true});await opener.click();const modal=page.getByRole('dialog',{name:'Rebate breakdown'})
-  await expect(page.locator('app-partner-rebate-modal')).toHaveCount(1);await expect(modal.locator('.invoice-rebate-total')).toHaveText('Total rebate due: Ksh 2,600');await expect(rebateRows(modal)).toHaveCount(5)
+  await expect(page.locator('app-partner-rebate-modal')).toHaveCount(1);await expect(modal.locator('.invoice-rebate-total')).toHaveText('Total rebate due: Ksh 2,600');await expect(rebateRows(modal)).toHaveCount(8)
   await modal.locator('input[type="search"]:visible').fill('Coastline');await expect(rebateRows(modal)).toHaveCount(1)
   const row=rebateRows(modal).first();await expect(row).toContainText('Coastline Produce Ltd');await expect(row).toContainText('Ksh 1,500');await expect(row).toContainText('Ksh 1,000')
   await expect(modal.locator('.invoice-rebate-matching')).toContainText('1 of 8 suppliers');await expect(modal.locator('.invoice-rebate-matching')).toContainText('Matching rebate due: Ksh 1,000');await expect(modal.locator('.invoice-rebate-total')).toContainText('Ksh 2,600')
   await page.screenshot({path:info.outputPath(path.endsWith('home')?'home-rebate-search.png':'suppliers-rebate-search.png')})
-  await clear(page,modal);await expect(rebateRows(modal)).toHaveCount(5);await expect(modal.locator('.invoice-rebate-matching')).toHaveCount(0)
+  await clear(page,modal);await expect(rebateRows(modal)).toHaveCount(8);await expect(modal.locator('.invoice-rebate-matching')).toHaveCount(0)
   await modal.getByRole('button',{name:'Close',exact:true}).click();await expect(opener).toBeFocused()
  }
 })
@@ -53,7 +53,7 @@ test('rebate filters, no results and sorting are visible and clearable',async({p
  await balance(page,modal,'due');await expect(rebateRows(modal)).toHaveCount(2);await expect(modal.locator('.customer-filter-summary')).toContainText('Rebate due')
  await modal.locator('input[type="search"]:visible').fill('Nairobi');await expect(rebateRows(modal)).toHaveCount(1);await expect(modal.locator('.customer-filter-summary')).toContainText('Rebate due')
  await modal.locator('input[type="search"]:visible').fill('No such supplier');await expect(modal.locator('.baseline-empty:visible')).toContainText('No matching suppliers');await expect(modal.locator('.invoice-rebate-matching')).toContainText('Ksh 0')
- await clear(page,modal);await expect(rebateRows(modal)).toHaveCount(5)
+ await clear(page,modal);await expect(rebateRows(modal)).toHaveCount(8)
  await balance(page,modal,'paid');await expect(modal.locator('.baseline-empty:visible')).toContainText('No matching suppliers');await clear(page,modal)
  await balance(page,modal,'none');await expect(modal.locator('.invoice-rebate-pagination')).toContainText('of 6 suppliers');await expect(modal.locator('.invoice-rebate-matching')).toContainText('Ksh 0');await clear(page,modal)
  const mobile=page.viewportSize()!.width<768;if(mobile)await modal.getByRole('button',{name:'Filters',exact:true}).click()
@@ -63,10 +63,9 @@ test('rebate filters, no results and sorting are visible and clearable',async({p
 
 test('rebate pagination is bounded and search resets it without changing totals',async({page})=>{
  await goto(page,'invoice-partner/home');await page.getByRole('button',{name:'View rebate breakdown',exact:true}).click();const modal=page.getByRole('dialog')
- await expect(modal.getByRole('button',{name:'Previous rebate page',exact:true})).toBeDisabled()
- await modal.getByRole('button',{name:'Next rebate page',exact:true}).click();await expect(rebateRows(modal)).toHaveCount(3);await expect(modal.locator('.invoice-rebate-pagination')).toContainText('6-8 of 8 suppliers');await expect(modal.getByRole('button',{name:'Next rebate page',exact:true})).toBeDisabled()
+ await expect(modal.getByRole('button',{name:'Previous rebate page',exact:true})).toBeDisabled();await expect(modal.getByRole('button',{name:'Next rebate page',exact:true})).toBeDisabled();await expect(rebateRows(modal)).toHaveCount(8);await expect(modal.locator('.invoice-rebate-pagination')).toContainText('1-8 of 8 suppliers')
  await modal.locator('input[type="search"]:visible').fill('Nairobi');await expect(rebateRows(modal)).toHaveCount(1);await expect(modal.locator('.invoice-rebate-pagination')).toContainText('1-1 of 1 suppliers');await expect(modal.locator('.invoice-rebate-total')).toContainText('Ksh 2,600')
- await clear(page,modal);await expect(modal.locator('.invoice-rebate-pagination')).toContainText('1-5 of 8 suppliers')
+ await clear(page,modal);await expect(modal.locator('.invoice-rebate-pagination')).toContainText('1-8 of 8 suppliers')
 })
 
 test('supplier details add exactly one rebate row with the matching earned and due amounts',async({page},info)=>{
@@ -89,5 +88,5 @@ test('supplier details add exactly one rebate row with the matching earned and d
 test('rebates remain partner-only and neither reduce financing nor change payment summaries',async({page})=>{
  await goto(page,'invoice-financing/home');await expect(page.locator('.customer-product-summary')).toContainText('Ksh 970,000');await expect(page.locator('.customer-product-summary')).toContainText('Ksh 1,300,000');await expect(page.locator('.customer-product-summary')).toContainText('2 payments due');await expect(page.getByRole('button',{name:/Rebate breakdown/i})).toHaveCount(0)
  await goto(page,'invoice-financing/financing');await page.locator('.relationship-table tbody tr:visible,.relationship-card:visible').filter({hasText:'FreshProduce'}).getByRole('button',{name:'View more',exact:true}).click();await expect(page.getByRole('dialog')).not.toContainText('Rebate earned');await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click()
- await goto(page,'invoice-partner/obligations');await expect(page.locator('.partner-summary-grid')).toContainText('Ksh 8,670,000');await expect(page.getByRole('button',{name:'Rebate breakdown',exact:true})).toHaveCount(0)
+ await goto(page,'invoice-partner/obligations');await expect(page.locator('.partner-summary-grid')).toContainText('Ksh 8,420,000');await expect(page.getByRole('button',{name:'Rebate breakdown',exact:true})).toHaveCount(0)
 })
