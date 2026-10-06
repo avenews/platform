@@ -66,13 +66,16 @@ export function canUploadFor(party: InvoiceParty, role: InvoicePortalRole): bool
 export function invoiceRelationshipTerms(partyId: string, role: InvoicePortalRole): RelationshipTerm[] {
   const party=invoiceParties(role).find(p=>p.id===partyId)
   if(!party) return []
-  const fields=[
+  const fields=role==='partner'?[
+    {label:'Payment terms',value:'As agreed on each invoice'},
+    {label:'Invoice uploads',value:canUploadFor(party,role)?'You upload invoices':'Supplier uploads invoices'},
+  ]:[
     {label:'Payment terms',value:'As agreed on each invoice'},
     {label:'Advance rate',value:'Up to 85% of eligible invoices'},
     {label:'Daily markup',value:'0.17% per financed day'},
     {label:'Financing period',value:'7 to 60 days'},
     {label:'Funds Request cutoff',value:'7 days before the invoice due date'},
-    {label:'Invoice uploads',value:canUploadFor(party,role)?'You upload invoices':role==='supplier'?'Buyer uploads invoices':'Supplier uploads invoices'},
+    {label:'Invoice uploads',value:canUploadFor(party,role)?'You upload invoices':'Buyer uploads invoices'},
   ]
   if(role==='partner') fields.push({label:'Rebate rate',value:partyId==='supplier-nairobi'?'0.8% of principal collected':'1% of principal collected'})
   fields.push({label:'Settlement',value:'Buyer pays into the designated clearing account. Avenews settles the financing and transfers the remaining proceeds to the supplier.'})
