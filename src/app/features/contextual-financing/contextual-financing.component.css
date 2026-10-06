@@ -362,6 +362,16 @@
     grid-template-columns: 1fr;
   }
 
+  .relationship-card .baseline-record-card__head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .relationship-card .baseline-status {
+    max-width: 100%;
+    white-space: normal;
+  }
+
   .relationship-card__actions .baseline-button {
     flex: 1 1 140px;
   }
