@@ -89,7 +89,40 @@ Known limitations:
 
 ## Pass 3: Financing eligibility and Funds Request behaviour
 
-Status: Not started
+Status: Implemented, deploy validation pending
+
+Issue: #90
+
+Summary:
+- Funds Request actions for Invoice Financing no longer present an in-portal request form.
+- Request actions show a toast explaining that the real Funds Request continues in the CRM-provided Zoho Form and show the amount currently available to request.
+- No Zoho URL integration was added.
+- New Funds Requests are blocked only when the same supplier and buyer relationship has an overdue unsettled financing period.
+- Other buyer relationships remain independent, and invoice upload remains available while a relationship is blocked.
+- Relationship and financing-period UI now explains `Blocked by overdue payment` instead of showing an unexplained unavailable state.
+- Added date-window metadata for newly submitted invoices: invoices more than 60 days ahead are valid but `Not yet available`; the financing window opens 60 days before due date; the cutoff state applies inside the final 6 days.
+- Overdue invoice uploads remain blocked.
+- Added supplier-only `Request cancellation` for active, unfunded Invoice Financing periods. It routes to Support rather than deleting invoices, periods or other Funds Requests.
+- Financed periods do not expose the normal cancellation action.
+
+Files changed:
+- `src/app/core/experience/invoice-portal.data.ts`
+- `src/app/core/experience/financing-documents.data.ts`
+- `src/app/features/contextual-financing/contextual-financing.component.ts`
+- `src/app/features/contextual-financing/contextual-financing.component.html`
+- `src/app/features/funds-request-hub/funds-request-hub.component.ts`
+- `src/app/features/invoice-period/invoice-period.component.ts`
+- `src/app/features/invoice-period/invoice-period.component.html`
+- `src/app/shared/customer-financing-period-modal.component.ts`
+
+Validation:
+- Source logic is confined to Invoice Financing request and eligibility paths.
+- Netlify exact-head validation remains required before final review.
+- Full browser and regression validation is deferred to Pass 5.
+
+Known limitations:
+- The support screen consumes and displays cancellation context in Pass 4.
+- Financing eligibility for existing historical demo fixtures remains fixture-driven; current-date calculations are applied to newly submitted invoice due dates so the prototype does not silently rewrite the baseline history.
 
 ## Pass 4: Partner Buyer payments, visibility, support and rebates
 
