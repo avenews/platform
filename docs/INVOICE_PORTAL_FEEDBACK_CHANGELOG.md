@@ -22,7 +22,7 @@ PR #86 and deploy preview 86 must remain unchanged.
 
 ## Pass 1: Data foundation and status model
 
-Status: Implemented, deploy validation pending
+Status: Completed; validated in Pass 5
 
 Issue: #88
 
@@ -54,7 +54,7 @@ Known limitations:
 
 ## Pass 2: Invoice upload and lifecycle
 
-Status: Implemented, deploy validation pending
+Status: Completed; validated in Pass 5
 
 Issue: #89
 
@@ -89,7 +89,7 @@ Known limitations:
 
 ## Pass 3: Financing eligibility and Funds Request behaviour
 
-Status: Implemented, deploy validation pending
+Status: Completed; validated in Pass 5
 
 Issue: #90
 
@@ -126,7 +126,7 @@ Known limitations:
 
 ## Pass 4: Partner Buyer payments, visibility, support and rebates
 
-Status: Implemented, deploy validation pending
+Status: Completed; validated in Pass 5
 
 Issue: #91
 
@@ -165,4 +165,59 @@ Known limitations:
 
 ## Pass 5: Cross-portal reconciliation and QA
 
-Status: Not started
+Status: Completed and validated
+
+Issue: #92
+
+Summary:
+- Reconciled Partner Buyer headline metrics, invoice counts and payment balances against the shared invoice, period and receipt fixtures.
+- Replaced the old hard-coded Partner Home invoice metric with the reconcilable `Invoices in financing periods` metric and made agreed attention states actionable.
+- Kept invoice review status separate from financing availability so an uploaded invoice can be `Awaiting review` without implying a financing period or Funds Request exists.
+- Applied relationship-level overdue blocks consistently to supplier and Partner Buyer views without blocking unrelated buyer relationships or invoice upload.
+- Standardized the visible payment destination around the named supplier Clearing Account managed by Avenews.
+- Added contextual Support entry points from invoice rows and Invoice Financing periods. These carry the relevant record reference without adding disputes, editing or in-portal correction workflows.
+- Kept rebate reporting on the shared principal-collected ledger and raised the default rebate page to the agreed 10-row minimum.
+- Fixed minimum-mobile overflow for the long `Blocked by overdue payment` status and kept three financing-period actions aligned on desktop while stacking correctly on mobile.
+- Updated repository browser coverage to the manual Counterparty Buyer flow and automatic Partner Buyer processing flow, including buyer-selection safety, POD preservation, payments, rebates, contextual support and 320px layout.
+- Kept PR #86 and Deploy Preview 86 as the untouched regression baseline.
+
+Files changed:
+- `src/app/core/experience/invoice-portal.data.ts`
+- `src/app/core/experience/partner-workspace.data.ts`
+- `src/app/features/contextual-home/contextual-home.component.ts`
+- `src/app/features/contextual-financing/contextual-financing.component.css`
+- `src/app/features/customer-invoices/customer-invoices.component.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.html`
+- `src/app/features/support/support.component.ts`
+- `src/app/shared/customer-financing-period-modal.component.ts`
+- `src/app/core/experience/partner-rebates.data.ts`
+- `scripts/test-invoice-correction.mjs`
+- `tests/invoice-correction/correction.spec.ts`
+- `tests/invoice-refinements/refinements.spec.ts`
+- `tests/invoice-refinements/double-check.spec.ts`
+- `tests/invoice-refinements/rebates.spec.ts`
+- `tests/invoice-refinements/polish.spec.ts`
+- `.github/workflows/invoice-review.yml`
+
+Validation:
+- Final validated application head before this changelog-only commit: `7d59b3edc03e5899ab7bddc9654ab8557712de8b`.
+- Baseline preservation, TypeScript checks and the production build passed.
+- 20 invoice correction domain checks passed.
+- Local browser regression against preserved Preview 86: 40 / 40 passed across desktop, tablet, mobile and 320px minimum mobile.
+- Local refinement suite: 164 / 164 passed across the same four viewport classes.
+- Netlify resolved Deploy Preview 87 to the exact validated application head.
+- Deployed baseline regression on Preview 87: 40 / 40 passed.
+- Deployed refinement suite on Preview 87: 164 / 164 passed.
+- The first deployed refinement attempt had two mobile navigation/font-load timeouts while 162 / 164 tests passed. Re-running the same unchanged head completed all checks successfully, confirming those two failures were transient deployment/network timing rather than application assertions.
+- Source audit found no new em dash characters, no customer-facing `Payment processing` state and no Invoice Financing Funds Request URL integration.
+- PR #86 remains open, Draft, unmerged and unchanged at `1569db76b0b13efffd624db9c64d420380a47212`.
+- PR #87 remains open, Draft and unmerged.
+
+Known limitations:
+- This remains a browser-only prototype. Automatic Partner Buyer processing demonstrates processing and expected outcomes without live OCR or backend extraction.
+- Support submission remains simulated and payment receipt values remain demo fixture data.
+- Invoice Financing Funds Requests still only explain the CRM-provided Zoho Form handoff; no production URL or external integration is invented here.
+- No buyer Pay, Mark as paid, proof-of-payment or dispute workflow has been added.
+- No supplier post-submission invoice editing, replacement or withdrawal workflow has been added. Incorrect submitted data is routed to Support.
+
