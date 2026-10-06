@@ -10,7 +10,7 @@ import { ClearingAccountDetailsComponent } from '../../shared/clearing-account-d
 import { InvoiceDocumentsStore, invoiceRelationshipTerms } from '../../core/experience/invoice-portal.data'
 import { PARTNER_UPLOAD_BATCHES, PARTNER_SUPPLIERS, PARTNER_PERIODS, type PartnerSection, type UploadBatch, type PartnerSupplierRow, type PartnerPeriod } from '../../core/experience/partner-workspace.data'
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, inject } from '@angular/core'
-import { ActivatedRoute } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import {
   CustomerFilterBarComponent,
   type CustomerFilterField,
@@ -28,6 +28,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 })
 export class PartnerWorkspaceComponent {
   private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
   private readonly cdr = inject(ChangeDetectorRef)
 
   @Input() section = (this.route.snapshot.data['section'] ?? 'invoice-uploads') as PartnerSection
@@ -287,7 +288,7 @@ export class PartnerWorkspaceComponent {
   get supplierPeriodRangeStart(): number { return this.filteredSupplierPeriods.length ? (this.supplierPeriodPage - 1) * this.supplierPeriodPageSize + 1 : 0 }
   get supplierPeriodRangeEnd(): number { return Math.min(this.supplierPeriodPage * this.supplierPeriodPageSize, this.filteredSupplierPeriods.length) }
 
-  get paymentDueTotal(): number { return this.periods.filter(period => period.paymentStatusKey !== 'paid').reduce((total, period) => total + period.amountToPay, 0) }
+  get paymentDueTotal(): number { return this.periods.filter(period => period.paymentStatusKey !== 'paid').reduce((total, period) => total + this.paymentRemaining(period), 0) }
   get paymentDueCount(): number { return this.periods.filter(period => period.paymentStatusKey !== 'paid').length }
   get overduePaymentCount(): number { return this.periods.filter(period => period.paymentStatusKey === 'overdue').length }
 
@@ -296,11 +297,13 @@ export class PartnerWorkspaceComponent {
   }
   supplierForPeriod(period: PartnerPeriod): PartnerSupplierRow | undefined { return this.suppliers.find(supplier => supplier.id === period.supplierId) }
   activePeriodCount(supplier: PartnerSupplierRow): number { return this.periodsForSupplier(supplier).filter(period => !['settled', 'expired'].includes(period.periodStatusKey)).length }
-  supplierPaymentDue(supplier: PartnerSupplierRow): number { return this.periodsForSupplier(supplier).filter(period => period.paymentStatusKey !== 'paid').reduce((total, period) => total + period.amountToPay, 0) }
+  supplierPaymentDue(supplier: PartnerSupplierRow): number { return this.periodsForSupplier(supplier).filter(period => period.paymentStatusKey !== 'paid').reduce((total, period) => total + this.paymentRemaining(period), 0) }
   nextPaymentLabel(supplier: PartnerSupplierRow): string {
     const period = this.periodsForSupplier(supplier).find(item => item.paymentStatusKey !== 'paid')
-    return period ? `${formatKes(period.amountToPay)} · ${formatDate(period.dueDate, true)}` : 'No payment due'
+    return period ? `${formatKes(this.paymentRemaining(period))} · ${formatDate(period.dueDate, true)}` : 'No payment due'
   }
+  paymentReceived(period:PartnerPeriod):number { return period.amountReceived ?? (period.paymentStatusKey==='paid'?period.amountToPay:0) }
+  paymentRemaining(period:PartnerPeriod):number { return Math.max(0,period.amountToPay-this.paymentReceived(period)) }
   showPaymentStatus(period: PartnerPeriod): boolean { return period.paymentStatus !== period.periodStatus }
   primaryPeriodStatus(period: PartnerPeriod): string { return period.paymentStatusKey === 'overdue' ? period.paymentStatus : period.periodStatus }
   primaryPeriodTone(period: PartnerPeriod): string { return period.paymentStatusKey === 'overdue' ? period.paymentTone : period.periodTone }
@@ -310,6 +313,9 @@ export class PartnerWorkspaceComponent {
   closeUpload(): void { this.uploadOpen = false }
   completeUpload(): void { this.uploadOpen = false; this.toast = 'Invoice batch received. Eligible invoices will update the matching Supplier periods.' }
   openBatch(batch: UploadBatch): void { this.closeDetailModals(); this.selectedBatch = batch }
+  openBatchSupport(batch:UploadBatch):void {
+    void this.router.navigate(['/experience','invoice-partner','support'],{queryParams:{type:'invoice-processing',upload:batch.id,file:batch.fileName}})
+  }
   closeBatch(): void { this.selectedBatch = null }
   openSupplier(supplier: PartnerSupplierRow): void { this.closeDetailModals(); this.selectedSupplier = supplier; this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
   closeSupplier(): void { this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
@@ -317,6 +323,10 @@ export class PartnerWorkspaceComponent {
   closeSupplierPeriods(): void { this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
   openSupplierPeriod(period: PartnerPeriod): void { this.resetPaymentReferenceCopyState(); this.returnSupplier = this.selectedSupplier; this.returnSupplierPeriodsOpen = this.supplierPeriodsOpen; this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.selectedPeriod = period }
   openPaymentPeriod(period: PartnerPeriod): void { this.closeDetailModals(); this.resetPaymentReferenceCopyState(); this.selectedPeriod = period }
+  openPaymentSupport(period:PartnerPeriod):void {
+    const supplier=this.supplierForPeriod(period)
+    void this.router.navigate(['/experience','invoice-partner','support'],{queryParams:{type:'payment-question',period:period.reference,payment:period.paymentReference,supplier:supplier?.id??''}})
+  }
   backToSupplier(): void { this.resetPaymentReferenceCopyState(); this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null; this.supplierPeriodsOpen = this.returnSupplierPeriodsOpen; this.returnSupplierPeriodsOpen = false }
   closePeriod(): void { this.resetPaymentReferenceCopyState(); this.selectedPeriod = null; this.returnSupplier = null; this.returnSupplierPeriodsOpen = false }
 
