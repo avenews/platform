@@ -10,7 +10,7 @@ concurrency:
   cancel-in-progress: true
 jobs:
   refinements:
-    if: github.head_ref == 'stefan-invoice-financing-refinements'
+    if: github.head_ref == 'stefan-invoice-financing-refinements' || github.head_ref == 'stefan-invoice-portal-product-feedback'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -36,9 +36,9 @@ jobs:
           set -o pipefail
           node scripts/test-invoice-correction.mjs 2>&1 | tee refinement-evidence/domain.log
       - run: npx playwright install --with-deps chromium
-      - name: Original-screen regression checks against fallback 85
+      - name: Original-screen regression checks against preserved baseline
         env:
-          REFERENCE_BASE_URL: https://deploy-preview-85--avenews-platform.netlify.app
+          REFERENCE_BASE_URL: ${{ github.head_ref == 'stefan-invoice-portal-product-feedback' && 'https://deploy-preview-86--avenews-platform.netlify.app' || 'https://deploy-preview-85--avenews-platform.netlify.app' }}
         run: |
           set -o pipefail
           npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee refinement-evidence/regression-local.log
