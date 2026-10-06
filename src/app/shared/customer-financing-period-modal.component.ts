@@ -1,6 +1,7 @@
 import { PortalActionIconComponent } from './portal-action-icon.component'
 import { CustomerInvoicesComponent } from '../features/customer-invoices/customer-invoices.component'
 import { ChangeDetectorRef, inject } from '@angular/core'
+import { Router } from '@angular/router'
 import { InvoiceDocumentsStore, invoiceCanRequest } from '../core/experience/invoice-portal.data'
 import {
   ChangeDetectionStrategy,
@@ -117,6 +118,7 @@ const MPESA_DETAILS = [
               }
             </div>
             @if(productId==='invoice-financing'){
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block invoice-period-support" (click)="contactSupport()">Contact support about this period</button>
               <details class="invoice-period-area"><summary>Invoices ({{periodInvoices.length}})</summary><app-customer-invoices [embedded]="true" [periodId]="period.id" /></details>
             }
           </div>
@@ -249,6 +251,7 @@ const MPESA_DETAILS = [
 export class CustomerFinancingPeriodModalComponent implements OnChanges {
   private readonly invoiceStore=inject(InvoiceDocumentsStore)
   private readonly cdr=inject(ChangeDetectorRef)
+  private readonly router=inject(Router)
   private copyResetTimer: ReturnType<typeof setTimeout> | undefined
   get periodInvoices(){return this.period?this.invoiceStore.periodInvoices(this.period.id,'supplier'):[]}
   @Input() period: CustomerFinancingPeriod | null = null
@@ -328,6 +331,11 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     if (status === 'overdue') return 'status-danger'
     if (status === 'scheduled') return 'status-warning'
     return 'status-info'
+  }
+
+  contactSupport():void {
+    if(this.productId!=='invoice-financing'||!this.period)return
+    void this.router.navigate(['/experience','invoice-financing','support'],{queryParams:{type:'financing-period-question',period:this.period.reference,relationship:this.period.relationshipId}})
   }
 
   openDocuments(): void { this.documentsOpen = true }
