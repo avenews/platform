@@ -556,3 +556,5 @@
     border-bottom: 0;
   }
 }
+
+.partner-payment-destination{padding:12px 14px;border:1px solid var(--av-color-primary-border,#bdeff3);border-radius:8px;background:var(--av-color-primary-subtle,#eefbfc);color:var(--av-color-text-heading,#0d343f);font-size:13px}
