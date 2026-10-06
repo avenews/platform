@@ -5,6 +5,9 @@ import { invoiceFinancingInvoices, type FinancingDocument } from './financing-do
 import { PARTNER_SUPPLIERS, PARTNER_PERIODS } from './partner-workspace.data'
 
 export type InvoicePortalRole = 'supplier' | 'partner'
+export type InvoiceReviewStatusKey = 'awaiting-review' | 'approved' | 'not-approved'
+export type FinancingAvailabilityKey = 'available-to-request' | 'not-yet-available' | 'blocked-overdue' | 'cutoff-reached' | 'fully-financed'
+export type UploadProcessingStatusKey = 'processing' | 'completed' | 'completed-with-issues' | 'failed'
 export interface InvoiceParty { id: string; name: string; uploader: 'supplier' | 'buyer'; pod: boolean; sublimit: number }
 export interface RelationshipTerm { label: string; value: string }
 export interface ClearingAccount { bank: string; name: string; number: string; branch?: string; branchCode?: string; paybill?: string; accountReference?: string }
