@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common'
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, inject } from '@angular/core'
 import { FormsModule } from '@angular/forms'
+import { ActivatedRoute } from '@angular/router'
 
 @Component({
   selector: 'app-support',
@@ -12,16 +13,30 @@ import { FormsModule } from '@angular/forms'
 })
 export class SupportComponent {
   private readonly cdr = inject(ChangeDetectorRef)
+  private readonly route = inject(ActivatedRoute)
   readonly requestTypes = [
     { value: 'business-info-wrong', label: 'My business information is wrong' },
     { value: 'contact-info-wrong', label: 'My contact information is wrong' },
     { value: 'repayment-question', label: 'Repayment question' },
     { value: 'funds-request-issue', label: 'Problem requesting funds' },
+    { value: 'cancellation-request', label: 'Request cancellation' },
     { value: 'invoice-question', label: 'Invoice question' },
+    { value: 'invoice-processing', label: 'Invoice processing issue' },
     { value: 'other', label: 'Something else' },
   ]
 
-  type = ''
+  readonly contextEntries = ['invoice','period','payment','upload','file','supplier','buyer','relationship']
+    .map(key=>({key,value:this.route.snapshot.queryParamMap.get(key)??''}))
+    .filter(item=>Boolean(item.value))
+  get contextLabel():string {
+    const period=this.contextEntries.find(item=>item.key==='period')?.value
+    const invoice=this.contextEntries.find(item=>item.key==='invoice')?.value
+    const payment=this.contextEntries.find(item=>item.key==='payment')?.value
+    const upload=this.contextEntries.find(item=>item.key==='upload')?.value
+    return period?`financing period ${period}`:invoice?`invoice ${invoice}`:payment?`payment ${payment}`:upload?`upload ${upload}`:''
+  }
+
+  type = this.requestTypes.some(item=>item.value===this.route.snapshot.queryParamMap.get('type')) ? this.route.snapshot.queryParamMap.get('type')! : ''
   message = ''
   submitting = false
   toast = ''
