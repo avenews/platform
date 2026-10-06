@@ -39,11 +39,11 @@ test('original period overview and Files remain with invoices in a bottom area',
 test('buyer ownership and compact native uploader work without help icons',async({page},info)=>{
  await goto(page,'invoice-financing/home');await page.getByRole('button',{name:'Upload invoices',exact:true}).click();const modal=page.getByRole('dialog')
  await expect(modal.locator('av-tooltip')).toHaveCount(0);await modal.getByRole('combobox').focus();await expect(modal.getByRole('option').filter({hasText:'Twiga Foods'})).toHaveAttribute('aria-disabled','true');await choose(modal,'FreshProduce')
- await expect(modal.getByRole('button',{name:'Continue',exact:true})).toHaveCount(0);await modal.locator('input[type="date"]').fill('2026-09-30');await modal.locator('input[type="file"]').first().setInputFiles({name:'supplier-invoice.pdf',mimeType:'application/pdf',buffer:Buffer.from('invoice file')})
+ await expect(modal.getByRole('button',{name:'Continue',exact:true})).toHaveCount(0);await modal.locator('input[type="date"]').fill('2026-11-30');await modal.getByLabel('Invoice number').fill('INV-TEST-001');await modal.getByLabel('Invoice amount').fill('125000');await modal.locator('input[type="file"]').first().setInputFiles({name:'supplier-invoice.pdf',mimeType:'application/pdf',buffer:Buffer.from('invoice file')})
  await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('alert')).toContainText('Proof of Delivery');await modal.locator('input[type="file"]').last().setInputFiles({name:'delivery.pdf',mimeType:'application/pdf',buffer:Buffer.from('delivery file')});await modal.getByRole('checkbox').check()
  await page.screenshot({path:info.outputPath('native-uploader.png'),fullPage:true})
- await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('status')).toContainText('Invoices added');await modal.getByRole('button',{name:'Done',exact:true}).click()
- await page.getByRole('link',{name:'Invoices',exact:true}).first().click();await expect(invoices(page).filter({hasText:'Pending review'})).toHaveCount(1);await expect(invoices(page).filter({hasText:'Pending review'})).toContainText('Uploaded')
+ await modal.getByRole('button',{name:'Submit invoices'}).click();await expect(modal.getByRole('status')).toContainText('Invoices submitted');await expect(modal.getByRole('status')).toContainText('awaiting review');await modal.getByRole('button',{name:'Done',exact:true}).click()
+ await page.getByRole('link',{name:'Invoices',exact:true}).first().click();const added=invoices(page).filter({hasText:'INV-TEST-001'});await expect(added).toHaveCount(1);await expect(added).toContainText('Awaiting review');await expect(added).toContainText('Pending approval')
 })
 
 test('Buyers keeps original actions and adds clear ownership and terms',async({page})=>{
@@ -52,18 +52,18 @@ test('Buyers keeps original actions and adds clear ownership and terms',async({p
 })
 
 test('Partner Home and Payments have different summaries but share original payment table',async({page},info)=>{
- await goto(page,'invoice-partner/home');await expect(page.getByRole('heading',{name:'Partner Buyer Portal',exact:true})).toBeVisible();await expect(page.locator('.contextual-metrics')).toContainText('Rebate due');await expect(page.locator('.contextual-metrics')).toContainText('Invoices Uploaded');await expect(page.locator('.partner-summary-grid')).toHaveCount(0);await expect(page.locator('.partner-home-workspace-grid')).toHaveCount(0)
- const homeRows=await page.locator('.partner-payments-table tbody tr:visible,.partner-workspace-cards .partner-payment-card:visible').allTextContents();expect(homeRows.length).toBe(6)
+ await goto(page,'invoice-partner/home');await expect(page.getByRole('heading',{name:'Partner Buyer Portal',exact:true})).toBeVisible();await expect(page.locator('.contextual-metrics')).toContainText('Rebate due');await expect(page.locator('.contextual-metrics')).toContainText('Invoices in financing periods');await expect(page.locator('.partner-summary-grid')).toHaveCount(0);await expect(page.locator('.partner-home-workspace-grid')).toHaveCount(0)
+ const homeRows=await page.locator('.partner-payments-table tbody tr:visible,.partner-workspace-cards .partner-payment-card:visible').allTextContents();expect(homeRows.length).toBe(10)
  await page.screenshot({path:info.outputPath('partner-home.png'),fullPage:true})
  await page.getByRole('button',{name:'View rebate breakdown',exact:true}).click();await expect(page.getByRole('dialog')).toContainText('Ksh 2,600');await expect(page.getByRole('dialog')).toContainText('Principal collected');await page.getByRole('dialog').getByRole('button',{name:'Close',exact:true}).click()
- await goto(page,'invoice-partner/obligations');await expect(page.locator('.partner-summary-grid')).toContainText('Amount due');await expect(page.locator('.partner-summary-grid')).toContainText('Ksh 8,670,000');await expect(page.locator('.partner-summary-grid')).toContainText('Overdue payments');await expect(page.getByRole('button',{name:'View rebate breakdown'})).toHaveCount(0);await expect(page.locator('.partner-workspace-hero .page-eyebrow')).toHaveCount(0)
+ await goto(page,'invoice-partner/obligations');await expect(page.locator('.partner-summary-grid')).toContainText('Amount due');await expect(page.locator('.partner-summary-grid')).toContainText('Ksh 8,420,000');await expect(page.locator('.partner-summary-grid')).toContainText('Overdue payments');await expect(page.getByRole('button',{name:'View rebate breakdown'})).toHaveCount(0);await expect(page.locator('.partner-workspace-hero .page-eyebrow')).toHaveCount(0)
  const paymentRows=await page.locator('.partner-payments-table tbody tr:visible,.partner-workspace-cards .partner-payment-card:visible').allTextContents();expect(paymentRows).toEqual(homeRows)
  await page.screenshot({path:info.outputPath('partner-payments.png'),fullPage:true})
 })
 
 test('partner payment modal retains original full amount and contains clearing details plus no-file invoices',async({page},info)=>{
  await goto(page,'invoice-partner/obligations');const row=page.locator('.partner-payments-table tbody tr:visible,.partner-workspace-cards .partner-payment-card:visible').filter({hasText:'PER-2026-08-15-COAST'});await row.getByRole('button',{name:'View payment'}).click();const modal=page.getByRole('dialog')
- await expect(modal.locator('.partner-payment-total')).toContainText('Ksh 1,040,000');await expect(modal).toContainText('Clearing account details');await expect(modal).toContainText('DEMO-SUP-0133');await expect(modal).not.toContainText('2046346095')
+ await expect(modal.locator('.partner-payment-total')).toContainText('Ksh 1,040,000');await expect(modal).toContainText('Coastline Produce Ltd Clearing Account (managed by Avenews)');await expect(modal).toContainText('DEMO-SUP-0133');await expect(modal).not.toContainText('2046346095')
  await modal.getByRole('button',{name:'Copy account number',exact:true}).click();await expect(modal.locator('[role="status"]')).toContainText(/copied|Select and copy/)
  await modal.locator('summary').filter({hasText:'Invoices (9)'}).click();await expect(invoices(modal)).toHaveCount(9);await expect(modal.getByRole('link',{name:'View invoice',exact:true})).toHaveCount(0)
  await page.screenshot({path:info.outputPath('partner-period.png'),fullPage:true})
