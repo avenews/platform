@@ -56,7 +56,7 @@ jobs:
       - name: Deployed original-screen regression checks
         env:
           REVIEW_BASE_URL: ${{ steps.preview.outputs.url }}
-          REFERENCE_BASE_URL: https://deploy-preview-85--avenews-platform.netlify.app
+          REFERENCE_BASE_URL: ${{ github.head_ref == 'stefan-invoice-portal-product-feedback' && 'https://deploy-preview-86--avenews-platform.netlify.app' || 'https://deploy-preview-85--avenews-platform.netlify.app' }}
         run: |
           set -o pipefail
           npx playwright test --config invoice-correction.playwright.config.mjs 2>&1 | tee refinement-evidence/regression-deployed.log
