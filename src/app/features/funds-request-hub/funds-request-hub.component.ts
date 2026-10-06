@@ -105,7 +105,7 @@ export class FundsRequestHubComponent {
   canRequest(r:CustomerRelationship){return r.available>0&&r.fundsRequestEnabled!==false}
   relationshipAvailabilityLabel(r:CustomerRelationship){return r.available>0?'Available':'Unavailable'}
   requestFromRelationship(r:CustomerRelationship){if(!this.canRequest(r))return;if(r.fundsRequestUrl){const opened=window.open(r.fundsRequestUrl,'_blank','noopener,noreferrer');if(opened)opened.opener=null;else this.toast='Your browser blocked the Funds Request tab. Allow pop-ups and try again.';return}this.toast=`Funds Request started for ${r.name}.`}
-  requestFromPeriod(p:CustomerFinancingPeriod){if(!this.canRequestFromPeriod(p))return;this.toast=`You can request up to ${formatKes(p.availableToWithdraw??0)} from this financing period.`}
+  requestFromPeriod(p:CustomerFinancingPeriod){if(!this.canRequestFromPeriod(p))return;this.toast=`Funds Requests continue in the CRM-provided Zoho Form for this financing period. You can request up to ${formatKes(p.availableToWithdraw??0)}.`}
   openAclRequest(){const opened=window.open(ACL_FUNDS_REQUEST_DEMO_URL,'_blank','noopener,noreferrer');if(opened)opened.opener=null;else this.toast='Your browser blocked the Funds Request tab. Allow pop-ups and try again.'}
   private canRequestFromPeriod(p:CustomerFinancingPeriod){return invoiceCanRequest(p)}
 }
