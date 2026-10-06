@@ -104,7 +104,7 @@ const MPESA_DETAILS = [
               </section>
             }
 
-            <div class="customer-period-footer-actions" [class.is-single]="!canRequestFunds && period.outstandingBalance <= 0" [class.has-three]="canRequestFunds && period.outstandingBalance > 0">
+            <div class="customer-period-footer-actions" [class.is-single]="!canRequestFunds && !canRequestCancellation && period.outstandingBalance <= 0" [class.has-three]="(canRequestFunds && canRequestCancellation) || (canRequestFunds && period.outstandingBalance > 0) || (canRequestCancellation && period.outstandingBalance > 0)">
             @if (canRequestFunds) {
               <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
             }
