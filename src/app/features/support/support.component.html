@@ -11,7 +11,11 @@
         <p>Tell us what you need help with and include the relevant record if you have one.</p>
       </div>
       <div class="baseline-card__body">
+        @if (contextLabel) {
+          <div class="support-context"><small>About</small><strong>{{ contextLabel }}</strong></div>
+        }
         <form class="baseline-form" (ngSubmit)="submitRequest()">
+          @for (item of contextEntries; track item.key) { <input type="hidden" [name]="item.key" [value]="item.value" /> }
           <div class="baseline-field">
             <label for="support-type">What do you need help with?</label>
             <select id="support-type" class="baseline-control" [(ngModel)]="type" name="type" required>
