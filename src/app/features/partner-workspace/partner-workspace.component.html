@@ -106,7 +106,7 @@
 @if (uploadOpen) { <app-invoice-upload role="partner" (close)="closeUpload()" (invoicesRequested)="selectInvoiceTab('partner-invoices')" /> }
 
 @if (selectedBatch; as batch) {
-  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeBatch()"><section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-batch-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><div><p class="page-eyebrow">Upload result</p><h2 id="partner-batch-title">{{ batch.fileName }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeBatch()">&times;</button></header><div class="baseline-modal__body partner-modal__body"><div class="partner-modal-status"><span>Uploaded {{ batch.uploadedAt }}</span><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></div><dl class="partner-detail-grid"><div><dt>Suppliers</dt><dd>{{ batch.supplierCount }}</dd></div><div><dt>Financing Periods Updated</dt><dd>{{ batch.periodCount }}</dd></div><div><dt>Imported</dt><dd>{{ batch.imported }}</dd></div><div><dt>Skipped</dt><dd>{{ batch.skipped }}</dd></div><div><dt>Failed</dt><dd>{{ batch.failed }}</dd></div><div><dt>Total Rows</dt><dd>{{ batch.imported + batch.skipped + batch.failed }}</dd></div></dl>@if (batch.failed > 0) { <div class="partner-attention-note">{{ batch.failed }} invoice rows need correction before they can update financing periods.</div> }</div></section></div>
+  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closeBatch()"><section class="baseline-modal partner-modal" role="dialog" aria-modal="true" aria-labelledby="partner-batch-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><div><p class="page-eyebrow">Upload result</p><h2 id="partner-batch-title">{{ batch.fileName }}</h2></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeBatch()">&times;</button></header><div class="baseline-modal__body partner-modal__body"><div class="partner-modal-status"><span>Uploaded {{ batch.uploadedAt }}</span><span class="baseline-status" [class]="'baseline-status ' + batch.statusTone">{{ batch.status }}</span></div><dl class="partner-detail-grid"><div><dt>Suppliers</dt><dd>{{ batch.supplierCount }}</dd></div><div><dt>Financing Periods Updated</dt><dd>{{ batch.periodCount }}</dd></div><div><dt>Imported</dt><dd>{{ batch.imported }}</dd></div><div><dt>Skipped</dt><dd>{{ batch.skipped }}</dd></div><div><dt>Failed</dt><dd>{{ batch.failed }}</dd></div><div><dt>Total Rows</dt><dd>{{ batch.imported + batch.skipped + batch.failed }}</dd></div></dl>@if (batch.failed > 0) { <div class="partner-attention-note">{{ batch.failed }} invoice rows could not be processed. Contact Avenews support to resolve them.</div><button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openBatchSupport(batch)">Contact support</button> }</div></section></div>
 }
 
 @if (selectedSupplier; as supplier) {
@@ -160,7 +160,7 @@
           </section>
         } @else {
           <div class="partner-modal-status"><span>{{ supplier.identifier }} · Last invoice upload {{ supplier.lastUpload }}</span><span class="baseline-status" [class]="'baseline-status ' + supplier.statusTone">{{ supplier.status }}</span></div>
-          <dl class="partner-detail-grid"><div><dt>Max Financing</dt><dd>{{ formatKes(supplier.maxFinancing) }}</dd></div><div><dt>Financing Used</dt><dd>{{ formatKes(supplier.used) }}</dd></div><div><dt>Financing Available</dt><dd>{{ formatKes(supplier.available) }}</dd></div><div><dt>Payments Due</dt><dd>{{ formatKes(supplierPaymentDue(supplier)) }}</dd></div>
+          <dl class="partner-detail-grid"><div><dt>Financing Available</dt><dd>{{ formatKes(supplier.available) }}</dd></div><div><dt>Payments Due</dt><dd>{{ formatKes(supplierPaymentDue(supplier)) }}</dd></div>
             @if (rebateForSupplier(supplier.id); as rebate) {
               <div class="partner-supplier-rebate"><dt>Rebate earned<app-invoice-help text="Your total rebate earned on principal collected for this supplier, including amounts already paid to you." /></dt><dd>{{formatKes(rebate.earned)}}</dd></div>
               <div class="partner-supplier-rebate"><dt>Rebate due<app-invoice-help text="Your earned rebate for this supplier less rebate payments already made to you. Separate from the supplier's financing and payments." /></dt><dd>{{formatKes(rebate.due)}}</dd></div>
@@ -175,8 +175,47 @@
 }
 
 @if (selectedPeriod; as period) {
-  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closePeriod()"><section class="baseline-modal partner-modal partner-period-modal" role="dialog" aria-modal="true" aria-labelledby="partner-period-title" (click)="$event.stopPropagation()"><header class="baseline-modal__head"><div class="partner-modal-heading">@if (returnSupplier) { <button type="button" class="baseline-button baseline-button--secondary partner-modal-back" (click)="backToSupplier()"><app-portal-action-icon name="arrow-left" /><span>{{ returnSupplierPeriodsOpen ? 'Back to financing periods' : 'Back to Supplier' }}</span></button> }<div><p class="page-eyebrow">Payment details</p><h2 id="partner-period-title">{{ period.reference }}</h2></div></div><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closePeriod()">&times;</button></header><div class="baseline-modal__body partner-modal__body">@if (supplierForPeriod(period); as supplier) { <div class="partner-payment-total"><span>Amount to pay</span><strong>{{ formatKes(period.amountToPay) }}</strong><small>{{ supplier.business }} · Due {{ formatDate(period.dueDate, true) }}</small></div><dl class="partner-detail-grid"><div><dt>Supplier</dt><dd>{{ supplier.business }}</dd></div><div><dt>Due Date</dt><dd>{{ formatDate(period.dueDate) }}</dd></div><div><dt>Financing Period Status</dt><dd>{{ period.periodStatus }}</dd></div><div><dt>Payment Status</dt><dd>{{ period.paymentStatus }}</dd></div><div><dt>Invoices</dt><dd>{{ period.invoiceCount }}</dd></div><div><dt>Invoice Value</dt><dd>{{ formatKes(period.invoiceValue) }}</dd></div><div><dt>Financing</dt><dd>{{ formatKes(period.financedAgainst) }}</dd></div><div><dt>Payment Destination</dt><dd>Your Avenews Clearing Account</dd></div><div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div></dl>@if (period.paymentStatusKey !== 'paid') { <button type="button" class="baseline-button baseline-button--secondary baseline-button--block partner-copy-reference" [class.is-copied]="paymentReferenceCopied" (click)="copyPaymentReference(period.paymentReference)">{{ paymentReferenceCopied ? 'Copied' : 'Copy payment reference' }}</button> }<app-clearing-account-details [supplierId]="supplier.id" [reference]="period.paymentReference" /><div class="partner-attention-note">Your payment is applied to this financing period. Avenews settles the financing and sends any remaining amount according to the supplier's financing agreement.</div><details class="partner-period-invoices"><summary>Invoices ({{documents.periodInvoices(period.id,'partner').length}})</summary><app-customer-invoices role="partner" [embedded]="true" [periodId]="period.id" /></details> }</div></section></div>
-}
+  <div class="baseline-modal-backdrop partner-modal-backdrop" role="presentation" (click)="closePeriod()">
+    <section class="baseline-modal partner-modal partner-period-modal" role="dialog" aria-modal="true" aria-labelledby="partner-period-title" (click)="$event.stopPropagation()">
+      <header class="baseline-modal__head">
+        <div class="partner-modal-heading">
+          @if (returnSupplier) { <button type="button" class="baseline-button baseline-button--secondary partner-modal-back" (click)="backToSupplier()"><app-portal-action-icon name="arrow-left" /><span>{{ returnSupplierPeriodsOpen ? 'Back to financing periods' : 'Back to Supplier' }}</span></button> }
+          <div><p class="page-eyebrow">Payment details</p><h2 id="partner-period-title">{{ period.reference }}</h2></div>
+        </div>
+        <button type="button" class="baseline-modal__close" aria-label="Close" (click)="closePeriod()">&times;</button>
+      </header>
+      <div class="baseline-modal__body partner-modal__body">
+        @if (supplierForPeriod(period); as supplier) {
+          <div class="partner-payment-total">
+            <span>{{ period.paymentStatusKey === 'paid' ? 'Paid' : 'Remaining to pay' }}</span>
+            <strong>{{ formatKes(period.paymentStatusKey === 'paid' ? paymentReceived(period) : paymentRemaining(period)) }}</strong>
+            <small>{{ supplier.business }} · {{ period.paymentStatusKey === 'paid' && period.paidAt ? 'Paid '+formatDate(period.paidAt, true) : 'Due '+formatDate(period.dueDate, true) }}</small>
+          </div>
+          <dl class="partner-detail-grid">
+            <div><dt>Supplier</dt><dd>{{ supplier.business }}</dd></div>
+            <div><dt>Due Date</dt><dd>{{ formatDate(period.dueDate) }}</dd></div>
+            <div><dt>Amount due</dt><dd>{{ formatKes(period.amountToPay) }}</dd></div>
+            <div><dt>Amount received</dt><dd>{{ formatKes(paymentReceived(period)) }}</dd></div>
+            <div><dt>Remaining amount</dt><dd>{{ formatKes(paymentRemaining(period)) }}</dd></div>
+            <div><dt>Payment Status</dt><dd>{{ period.paymentStatus }}</dd></div>
+            <div><dt>Invoices</dt><dd>{{ period.invoiceCount }}</dd></div>
+            <div><dt>Invoice Value</dt><dd>{{ formatKes(period.invoiceValue) }}</dd></div>
+            <div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div>
+          </dl>
+          @if (period.paymentStatusKey !== 'paid') {
+            <div class="partner-payment-destination"><strong>Pay into: {{ supplier.business }} Clearing Account (managed by Avenews)</strong></div>
+            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block partner-copy-reference" [class.is-copied]="paymentReferenceCopied" (click)="copyPaymentReference(period.paymentReference)">{{ paymentReferenceCopied ? 'Copied' : 'Copy payment reference' }}</button>
+            <app-clearing-account-details [supplierId]="supplier.id" [supplierName]="supplier.business" [reference]="period.paymentReference" />
+            <div class="partner-attention-note">Your payment is applied to this financing period. Avenews settles the supplier's financing and sends any remaining proceeds according to the supplier agreement.</div>
+          } @else {
+            <div class="partner-attention-note">This payment has been received. No further payment is due for this financing period.</div>
+          }
+          <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openPaymentSupport(period)">Contact support</button>
+          <details class="partner-period-invoices"><summary>Invoices ({{documents.periodInvoices(period.id,'partner').length}})</summary><app-customer-invoices role="partner" [embedded]="true" [periodId]="period.id" /></details>
+        }
+      </div>
+    </section>
+  </div>
 
 @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
 
