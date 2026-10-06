@@ -21,6 +21,7 @@ export class SupportComponent {
     { value: 'funds-request-issue', label: 'Problem requesting funds' },
     { value: 'cancellation-request', label: 'Request cancellation' },
     { value: 'invoice-question', label: 'Invoice question' },
+    { value: 'financing-period-question', label: 'Financing period question' },
     { value: 'invoice-processing', label: 'Invoice processing issue' },
     { value: 'other', label: 'Something else' },
   ]
@@ -33,7 +34,7 @@ export class SupportComponent {
     const invoice=this.contextEntries.find(item=>item.key==='invoice')?.value
     const payment=this.contextEntries.find(item=>item.key==='payment')?.value
     const upload=this.contextEntries.find(item=>item.key==='upload')?.value
-    return period?`financing period ${period}`:invoice?`invoice ${invoice}`:payment?`payment ${payment}`:upload?`upload ${upload}`:''
+    return invoice?`invoice ${invoice}`:period?`financing period ${period}`:payment?`payment ${payment}`:upload?`upload ${upload}`:''
   }
 
   type = this.requestTypes.some(item=>item.value===this.route.snapshot.queryParamMap.get('type')) ? this.route.snapshot.queryParamMap.get('type')! : ''
