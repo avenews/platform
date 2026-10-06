@@ -98,3 +98,20 @@ test('Partner Buyer uploader uses automatic bulk processing without extracted-fi
   await expect(modal.getByRole('status')).toContainText('Upload received');await expect(modal.getByRole('status')).toContainText('processing');await expect(modal.getByRole('status')).toContainText('does not submit a Funds Request');await expect(modal.getByRole('button',{name:'View invoices'})).toHaveCount(0)
   await page.screenshot({path:info.outputPath('partner-upload-next-steps.png'),fullPage:true})
 })
+
+
+test('invoice and financing period support carry contextual references',async({page}) => {
+  await goto(page,'invoice-financing/invoices')
+  const invoiceRow=page.locator('.invoice-files-table tbody tr:visible,.invoice-files-cards .invoice-file-card:visible').filter({hasText:'INV-7811'}).first()
+  await invoiceRow.getByRole('button',{name:'Contact support',exact:true}).click()
+  await expect(page).toHaveURL(/\/experience\/invoice-financing\/support\?.*invoice=INV-7811/)
+  await expect(page.locator('.support-context')).toContainText('invoice INV-7811')
+  await expect(page.locator('#support-type')).toHaveValue('invoice-question')
+
+  await goto(page,'invoice-financing/home')
+  const modal=await modalPeriod(page,'DP-2026-09-15-TWIGA')
+  await modal.getByRole('button',{name:'Contact support about this period',exact:true}).click()
+  await expect(page).toHaveURL(/\/experience\/invoice-financing\/support\?.*period=DP-2026-09-15-TWIGA/)
+  await expect(page.locator('.support-context')).toContainText('financing period DP-2026-09-15-TWIGA')
+  await expect(page.locator('#support-type')).toHaveValue('financing-period-question')
+})
