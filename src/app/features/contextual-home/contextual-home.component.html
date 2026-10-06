@@ -220,7 +220,7 @@
     </section>
 
     <section class="contextual-metrics" aria-label="Partner summary">
-      <article class="contextual-metric baseline-card"><span>Invoices Uploaded<app-invoice-help label="Invoices Uploaded" text="Invoices received from your supplier uploads, including those awaiting correction." /></span><strong>128</strong><small>126 processed, 2 need attention</small></article>
+      <article class="contextual-metric baseline-card"><span>Invoices in financing periods<app-invoice-help label="Invoices in financing periods" text="Invoices represented in the current supplier financing periods." /></span><strong>{{partnerInvoiceCount}}</strong><small>Across {{partnerPeriodCount}} financing periods</small>@if(partnerAttentionCount>0){<button type="button" class="baseline-button baseline-button--secondary" (click)="takePartnerAction('view-invoice-uploads')">{{partnerAttentionCount}} upload issues need attention</button>}</article>
       <article class="contextual-metric baseline-card"><span>Payments Due<app-invoice-help label="Payments Due" text="The invoice balance payable across unpaid supplier financing periods." /></span><strong>{{formatKes(partnerAmountDue)}}</strong><small>Across unpaid supplier periods</small></article>
       <article class="contextual-metric baseline-card"><span>Rebate due<app-invoice-help label="Rebate due" text="Your earned rebate on principal collected by Avenews, less rebate payments already made to you." /></span><strong>{{formatKes(rebateDue)}}</strong><small>Across your supplier relationships</small><button type="button" class="baseline-button baseline-button--secondary" (click)="rebateOpen=true">View rebate breakdown</button></article>
     </section>
@@ -237,6 +237,7 @@
     [totalRepaidLabel]="product.totalRepaidColumnLabel"
     [outstandingLabel]="product.outstandingColumnLabel"
     (requestFunds)="requestFundsForPeriod($event)"
+    (requestCancellation)="requestCancellationForPeriod($event)"
     (close)="closePeriod()"
   />
 }
