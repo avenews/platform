@@ -54,7 +54,38 @@ Known limitations:
 
 ## Pass 2: Invoice upload and lifecycle
 
-Status: Not started
+Status: Implemented, deploy validation pending
+
+Issue: #89
+
+Summary:
+- Added separate manual and automatic invoice processing modes.
+- Counterparty Buyer uploads use the manual path. The current Partner Buyer portal uses automatic processing.
+- Manual sections keep one buyer and shared due date, with invoice number, full invoice amount and one attachment per invoice.
+- Removed any need for invoice issue date or partially paid invoice fields.
+- Blocked overdue invoice due dates while allowing future dates beyond 60 days.
+- Added duplicate invoice number and duplicate invoice file checks.
+- Manual submissions create locked invoice records with `Awaiting review` status.
+- Automatic Partner Buyer uploads accept up to 20 invoice or bulk files, can represent multiple suppliers and due dates, and do not ask the user to confirm extracted values.
+- Automatic submissions enter `Processing`; successful extraction and validation is described as direct invoice approval and period creation/update, without implying Funds Request submission or disbursement.
+- Fixed buyer selection safety so typed search text clears a stale committed selection until a valid buyer is explicitly selected again, while preserving entered invoice data and files.
+- Post-submission correction, replacement and withdrawal actions are intentionally omitted. The receipt tells users to contact support when submitted data is wrong.
+
+Files changed:
+- `src/app/core/experience/invoice-portal.data.ts`
+- `src/app/shared/invoice-upload.component.ts`
+- `src/app/shared/invoice-upload.component.html`
+- `src/app/shared/invoice-upload.component.css`
+- `src/app/shared/invoice-party-select.component.ts`
+
+Validation:
+- Netlify Deploy Preview 87 is building against the exact Pass 2 head.
+- Existing repository CI remains branch-gated to the previous PR86 branch and is not being reported as passed.
+- Full browser-test updates are deferred until the final QA pass so intermediate pass changes stay confined.
+
+Known limitations:
+- The browser-only prototype does not run real OCR. Automatic uploads therefore demonstrate the processing state and expected outcomes without inventing extracted invoice values.
+- Contextual support routing for failed processing is implemented in Pass 4.
 
 ## Pass 3: Financing eligibility and Funds Request behaviour
 
