@@ -31,7 +31,6 @@ export class InvoicePeriodComponent {
   readonly period: InvoiceFinancingPeriod | undefined = INVOICE_FINANCING_PERIODS.find(
     item => item.id === this.route.snapshot.paramMap.get('periodId'),
   )
-  requestOpen = false
   toast = ''
 
   get invoices() {
@@ -52,16 +51,7 @@ export class InvoicePeriodComponent {
 
   openRequest(): void {
     if (!this.canRequestFunds) return
-    this.requestOpen = true
-  }
-
-  closeRequest(): void {
-    this.requestOpen = false
-  }
-
-  completeRequest(): void {
-    this.requestOpen = false
-    this.toast = `Request started for up to ${formatKes(this.period?.availableToWithdraw ?? 0)}.`
+    this.toast = `Funds Requests continue in the CRM-provided Zoho Form for this financing period. You can request up to ${formatKes(this.period?.availableToWithdraw ?? 0)}.`
   }
 
   scrollToInvoices(): void {
