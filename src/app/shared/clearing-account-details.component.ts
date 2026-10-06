@@ -2,7 +2,7 @@ import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, inject } fro
 import { clearingAccountFor } from '../core/experience/invoice-portal.data'
 @Component({selector:'app-clearing-account-details',standalone:true,
  template:`<section class="clearing-instructions" aria-label="Clearing account details">
-  <h3>Clearing account details</h3>
+  <h3>{{supplierName ? 'Pay into: '+supplierName+' Clearing Account (managed by Avenews)' : 'Clearing account details'}}</h3>
   @if(account;as a){
    @if(a.paybill){<div class="customer-payment-methods" role="tablist" aria-label="Payment method"><button type="button" role="tab" [attr.aria-selected]="method==='bank'" [class.is-active]="method==='bank'" (click)="method='bank'">Bank Transfer</button><button type="button" role="tab" [attr.aria-selected]="method==='mpesa'" [class.is-active]="method==='mpesa'" (click)="method='mpesa'">M-Pesa Paybill</button></div>}
    <div class="customer-payment-details">
@@ -16,6 +16,7 @@ import { clearingAccountFor } from '../core/experience/invoice-portal.data'
 })
 export class ClearingAccountDetailsComponent implements OnChanges, OnDestroy {
  @Input() supplierId=''
+ @Input() supplierName=''
  @Input() reference=''
  private readonly cdr=inject(ChangeDetectorRef)
  private resetTimer: ReturnType<typeof setTimeout>|undefined
