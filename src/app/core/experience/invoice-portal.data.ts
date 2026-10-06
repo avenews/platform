@@ -25,11 +25,19 @@ export const INVOICE_EXTENSIONS = ['pdf','jpg','jpeg','png','xls','xlsx','csv'] 
 export const DELIVERY_EXTENSIONS = ['pdf','jpg','jpeg','png'] as const
 export const INVOICE_FILE_POLICY = {maxGroups: 20, maxFiles: 10, maxBytes: 10 * 1024 * 1024}
 
+export function invoiceRelationshipHasOverdue(relationshipId:string):boolean {
+  const workspace=customerWorkspaceById('invoice-financing')
+  return workspace?.periods.some(period=>period.relationshipId===relationshipId&&period.statusKey==='overdue'&&period.outstandingBalance>0)??false
+}
 export function invoiceCanRequest(period: CustomerFinancingPeriod): boolean {
-  // Preview-77 records carry assessed availability. Do not re-age the snapshot
-  // or replace its configured lifecycle statuses using the browser's clock.
-  // Production must return eligibility calculated by the authoritative service.
+  if (invoiceRelationshipHasOverdue(period.relationshipId)) return false
   return ['live', 'requested'].includes(period.statusKey) && (period.availableToWithdraw ?? 0) > 0
+}
+export function invoiceFinancingAvailability(period:CustomerFinancingPeriod):{key:FinancingAvailabilityKey;label:string;tone:string} {
+  if (invoiceRelationshipHasOverdue(period.relationshipId)) return {key:'blocked-overdue',label:'Blocked by overdue payment',tone:'status-danger'}
+  if ((period.availableToWithdraw??0)<=0) return {key:'fully-financed',label:'Fully financed',tone:'status-neutral'}
+  if (!['live','requested'].includes(period.statusKey)) return {key:'cutoff-reached',label:'Cutoff reached',tone:'status-warning'}
+  return {key:'available-to-request',label:'Available to request',tone:'status-success'}
 }
 export function supplierInvoiceParties(): InvoiceParty[] {
   return customerWorkspaceById('invoice-financing')!.relationships.map(r => ({
