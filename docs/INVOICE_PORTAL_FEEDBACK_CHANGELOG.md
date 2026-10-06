@@ -126,7 +126,42 @@ Known limitations:
 
 ## Pass 4: Partner Buyer payments, visibility, support and rebates
 
-Status: Not started
+Status: Implemented, deploy validation pending
+
+Issue: #91
+
+Summary:
+- Removed supplier Max Financing, Financing Used, advance rate, daily markup, financing tenor and Funds Request cutoff from Partner Buyer supplier details.
+- Retained Financing Available because it helps the buyer understand whether the supplier can still access financing for that relationship.
+- Partner Buyer payment details now separate Amount due, Amount received and Remaining amount.
+- Added a partial-payment demo state so remaining balances are visible without introducing a payment workflow.
+- Paid periods now show the amount received and paid date, show zero remaining, and no longer display active clearing-account instructions.
+- Unpaid payment details identify the destination as the named supplier Clearing Account managed by Avenews.
+- No Pay, Mark as paid, proof-of-payment or dispute workflow was added.
+- Upload processing problems and payment questions now route to the existing Support experience.
+- Support accepts contextual record data through query parameters, displays a visible `About` reference, and carries invoice, financing-period, payment, upload, supplier, buyer and relationship context as hidden form fields.
+- Added `Request cancellation` and `Invoice processing issue` support topics alongside the existing payment and invoice topics.
+- Preserved the existing shared rebate ledger and its principal-collected basis. Rebate figures remain separate from supplier financing calculations.
+
+Files changed:
+- `src/app/core/experience/partner-workspace.data.ts`
+- `src/app/core/experience/invoice-portal.data.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.html`
+- `src/app/features/partner-workspace/partner-workspace.component.css`
+- `src/app/shared/clearing-account-details.component.ts`
+- `src/app/features/support/support.component.ts`
+- `src/app/features/support/support.component.html`
+- `src/app/features/support/support.component.css`
+
+Validation:
+- Payment totals now use remaining unpaid balances rather than full original amounts after partial receipt.
+- Paid payment records are prevented from showing active clearing-account details in the Partner Buyer modal.
+- Netlify exact-head validation and browser regression remain required in Pass 5.
+
+Known limitations:
+- Support submission remains the existing browser-only simulated support action. The contextual fields are ready for a real support integration but are not transmitted to a backend in this prototype.
+- Payment receipt values are demo fixture data, not live bank matching.
 
 ## Pass 5: Cross-portal reconciliation and QA
 
