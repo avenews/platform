@@ -8,11 +8,13 @@ export type InvoicePortalRole = 'supplier' | 'partner'
 export type InvoiceReviewStatusKey = 'awaiting-review' | 'approved' | 'not-approved'
 export type FinancingAvailabilityKey = 'available-to-request' | 'not-yet-available' | 'blocked-overdue' | 'cutoff-reached' | 'fully-financed'
 export type UploadProcessingStatusKey = 'processing' | 'completed' | 'completed-with-issues' | 'failed'
-export interface InvoiceParty { id: string; name: string; uploader: 'supplier' | 'buyer'; pod: boolean; sublimit: number }
+export type InvoiceProcessingMode = 'manual' | 'automatic'
+export interface InvoiceParty { id: string; name: string; uploader: 'supplier' | 'buyer'; pod: boolean; sublimit: number; processingMode: InvoiceProcessingMode }
 export interface RelationshipTerm { label: string; value: string }
 export interface ClearingAccount { bank: string; name: string; number: string; branch?: string; branchCode?: string; paybill?: string; accountReference?: string }
-export interface UploadSection { id: number; partyId: string; dueDate: string; invoices: File[]; delivery: File[] }
-export interface InvoiceSubmission { id: string; createdAt: string; actorId: string; actor: string; declaration: string; confirmedAt: string; privacyNoticeAcknowledged: boolean; termsAcknowledged: boolean; privacyNoticeUrl: string; fundsRequestTermsUrl: string; sections: {partyId: string; dueDate: string; invoices: string[]; delivery: string[]}[] }
+export interface ManualInvoiceInput { id: number; reference: string; amount: number | null; file: File | null }
+export interface UploadSection { id: number; partyId: string; dueDate: string; invoices: ManualInvoiceInput[]; delivery: File[] }
+export interface InvoiceSubmission { id: string; createdAt: string; actorId: string; actor: string; declaration: string; confirmedAt: string; privacyNoticeAcknowledged: boolean; termsAcknowledged: boolean; privacyNoticeUrl: string; fundsRequestTermsUrl: string; mode: InvoiceProcessingMode; processingStatus: UploadProcessingStatusKey; automaticFiles: string[]; sections: {partyId: string; dueDate: string; invoices: {reference:string;amount:number;fileName:string}[]; delivery: string[]}[] }
 
 // Explicit prototype facility configuration, not the sum of buyer sub-limits.
 // Production supplies the approved customer limit separately from period balances.
@@ -31,11 +33,11 @@ export function invoiceCanRequest(period: CustomerFinancingPeriod): boolean {
 }
 export function supplierInvoiceParties(): InvoiceParty[] {
   return customerWorkspaceById('invoice-financing')!.relationships.map(r => ({
-    id:r.id, name:r.name, uploader:r.invoiceUploadOwner === 'client' ? 'supplier' : 'buyer', pod:r.invoiceUploadOwner === 'client', sublimit:r.limit,
+    id:r.id, name:r.name, uploader:r.invoiceUploadOwner === 'client' ? 'supplier' : 'buyer', pod:r.invoiceUploadOwner === 'client', sublimit:r.limit, processingMode:r.relationshipType === 'Partner Buyer' ? 'automatic' : 'manual',
   }))
 }
 export function partnerInvoiceParties(): InvoiceParty[] {
-  return PARTNER_SUPPLIERS.map(s => ({id:s.id, name:s.business, uploader:'buyer', pod:false, sublimit:s.maxFinancing}))
+  return PARTNER_SUPPLIERS.map(s => ({id:s.id, name:s.business, uploader:'buyer', pod:false, sublimit:s.maxFinancing, processingMode:'automatic'}))
 }
 export function invoiceParties(role: InvoicePortalRole): InvoiceParty[] { return role === 'supplier' ? supplierInvoiceParties() : partnerInvoiceParties() }
 export function canUploadFor(party: InvoiceParty, role: InvoicePortalRole): boolean { return party.uploader === (role === 'supplier' ? 'supplier' : 'buyer') }
@@ -105,45 +107,80 @@ export class InvoiceDocumentsStore implements OnDestroy {
   validate(sections: UploadSection[],role:InvoicePortalRole): void {
     if(!sections.length || sections.length>20) throw new Error('Add between 1 and 20 upload sections.')
     const keys=new Set<string>()
+    const invoiceKeys=new Set<string>()
+    const today=new Date()
+    const todayKey=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-')
     for(const [i,s] of sections.entries()) {
       const prefix=`Section ${i+1}: `
       const party=invoiceParties(role).find(p=>p.id===s.partyId)
       if(!party || !canUploadFor(party,role)) throw new Error(prefix+`choose a ${role==='supplier'?'buyer':'supplier'} you upload for.`)
+      if(party.processingMode!=='manual') throw new Error(prefix+'this relationship uses automatic invoice processing.')
       if(!/^\d{4}-\d{2}-\d{2}$/.test(s.dueDate) || !Number.isFinite(Date.parse(s.dueDate+'T00:00:00Z')) || new Date(s.dueDate+'T00:00:00Z').toISOString().slice(0,10)!==s.dueDate) throw new Error(prefix+'select a valid invoice due date.')
+      if(s.dueDate<todayKey) throw new Error(prefix+'overdue invoices cannot be submitted for financing.')
       const key=`${s.partyId}:${s.dueDate}`
-      if(keys.has(key)) throw new Error(prefix+'use one section for the same buyer, supplier and due date. Combine the files in that section.')
+      if(keys.has(key)) throw new Error(prefix+'use one section for the same buyer, supplier and due date. Combine the invoices in that section.')
       keys.add(key)
-      if(!s.invoices.length || s.invoices.length>10) throw new Error(prefix+'add 1 to 10 invoice files.')
+      if(!s.invoices.length || s.invoices.length>10) throw new Error(prefix+'add 1 to 10 invoices.')
+      for(const invoice of s.invoices) {
+        const reference=invoice.reference.trim()
+        if(!reference) throw new Error(prefix+'enter an invoice number for each invoice.')
+        if(invoice.amount===null || !Number.isFinite(invoice.amount) || invoice.amount<=0) throw new Error(prefix+'enter an invoice amount greater than zero for each invoice.')
+        if(!invoice.file) throw new Error(prefix+'attach one file to each invoice.')
+        const duplicateKey=`${s.partyId}:${reference.toLowerCase()}`
+        if(invoiceKeys.has(duplicateKey)) throw new Error(prefix+'remove the duplicate invoice number.')
+        invoiceKeys.add(duplicateKey)
+        this.validateFile(invoice.file,INVOICE_EXTENSIONS,prefix)
+      }
       if(party.pod && !s.delivery.length) throw new Error(prefix+'add Proof of Delivery.')
       if(s.delivery.length>10) throw new Error(prefix+'add no more than 10 delivery files.')
-      for(const files of [s.invoices,s.delivery]) {
-        const names=new Set<string>()
-        for(const file of files) {
-          const formats:readonly string[]=files===s.invoices?INVOICE_EXTENSIONS:DELIVERY_EXTENSIONS
-          if(!formats.includes(file.name.split('.').pop()?.toLowerCase()??'') || !file.size || file.size>INVOICE_FILE_POLICY.maxBytes) throw new Error(prefix+'check the file format and the 10 MB maximum size.')
-          const fingerprint=`${file.name}:${file.size}:${file.lastModified}`
-          if(names.has(fingerprint)) throw new Error(prefix+'remove the duplicate file.')
-          names.add(fingerprint)
-        }
+      const deliveryFingerprints=new Set<string>()
+      for(const file of s.delivery) {
+        this.validateFile(file,DELIVERY_EXTENSIONS,prefix)
+        const fingerprint=`${file.name}:${file.size}:${file.lastModified}`
+        if(deliveryFingerprints.has(fingerprint)) throw new Error(prefix+'remove the duplicate file.')
+        deliveryFingerprints.add(fingerprint)
       }
     }
+  }
+  validateAutomatic(files:File[]):void {
+    if(!files.length || files.length>20) throw new Error('Add between 1 and 20 invoice or bulk files.')
+    const fingerprints=new Set<string>()
+    for(const file of files) {
+      this.validateFile(file,INVOICE_EXTENSIONS,'')
+      const fingerprint=`${file.name}:${file.size}:${file.lastModified}`
+      if(fingerprints.has(fingerprint)) throw new Error('Remove the duplicate file.')
+      fingerprints.add(fingerprint)
+    }
+  }
+  private validateFile(file:File,formats:readonly string[],prefix:string):void {
+    if(!formats.includes(file.name.split('.').pop()?.toLowerCase()??'') || !file.size || file.size>INVOICE_FILE_POLICY.maxBytes) throw new Error(prefix+'check the file format and the 10 MB maximum size.')
   }
   save(sections:UploadSection[],role:InvoicePortalRole,actorId:string,actor:string,confirmed:boolean,confirmedAt=new Date().toISOString()): InvoiceSubmission {
     this.validate(sections,role)
     if(!confirmed || !actorId || !actor || !Number.isFinite(Date.parse(confirmedAt))) throw new Error('Confirm that the invoices are for completed, undisputed deliveries.')
-    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,confirmedAt,privacyNoticeAcknowledged:true,termsAcknowledged:true,...INVOICE_UPLOAD_LEGAL,
-      sections:sections.map(s=>({partyId:s.partyId,dueDate:s.dueDate,invoices:s.invoices.map(f=>f.name),delivery:s.delivery.map(f=>f.name)}))}
+    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,confirmedAt,privacyNoticeAcknowledged:true,termsAcknowledged:true,...INVOICE_UPLOAD_LEGAL,mode:'manual',processingStatus:'completed',automaticFiles:[],
+      sections:sections.map(s=>({partyId:s.partyId,dueDate:s.dueDate,invoices:s.invoices.map(invoice=>({reference:invoice.reference.trim(),amount:invoice.amount!,fileName:invoice.file!.name})),delivery:s.delivery.map(f=>f.name)}))}
     const invoices:FinancingDocument[]=[],delivery:FinancingDocument[]=[]
     for(const s of sections) {
       const party=invoiceParties(role).find(p=>p.id===s.partyId)!
       const periodId=role==='supplier'?customerWorkspaceById('invoice-financing')!.periods.find(p=>p.relationshipId===party.id&&p.repaymentDueDate===s.dueDate)?.id:PARTNER_PERIODS.find(p=>p.supplierId===party.id&&p.dueDate===s.dueDate)?.id
-      for(const [files,type,target] of [[s.invoices,'Invoice',invoices],[s.delivery,'Proof of Delivery',delivery]] as const) {
-        for(const file of files) target.push({id:crypto.randomUUID(),productId:'invoice-financing',periodId:periodId??'',type,
-          fileName:file.name,fileUrl:this.fileUrl(file),reference:'Pending review',counterparty:party.name,dueDate:s.dueDate,status:'Uploaded',statusTone:'status-info'})
+      for(const invoice of s.invoices) {
+        const file=invoice.file!
+        invoices.push({id:crypto.randomUUID(),productId:'invoice-financing',periodId:periodId??'',type:'Invoice',
+          fileName:file.name,fileUrl:this.fileUrl(file),reference:invoice.reference.trim(),counterparty:party.name,dueDate:s.dueDate,amount:invoice.amount!,status:'Awaiting review',statusTone:'status-warning'})
       }
+      for(const file of s.delivery) delivery.push({id:crypto.randomUUID(),productId:'invoice-financing',periodId:periodId??'',type:'Proof of Delivery',
+        fileName:file.name,fileUrl:this.fileUrl(file),reference:'Proof of Delivery',counterparty:party.name,dueDate:s.dueDate,status:'Submitted',statusTone:'status-info'})
     }
     ;(role==='supplier'?this.addedSupplier:this.addedPartner).update(items=>[...items,...invoices])
     this.deliveryFiles.update(items=>[...items,...delivery])
+    this.submissions.update(items=>[submission,...items])
+    return submission
+  }
+  saveAutomatic(files:File[],actorId:string,actor:string,confirmed:boolean,confirmedAt=new Date().toISOString()):InvoiceSubmission {
+    this.validateAutomatic(files)
+    if(!confirmed || !actorId || !actor || !Number.isFinite(Date.parse(confirmedAt))) throw new Error('Confirm that the invoices are for completed, undisputed deliveries.')
+    const submission:InvoiceSubmission={id:crypto.randomUUID(),createdAt:new Date().toISOString(),actorId,actor,declaration:INVOICE_DECLARATION,confirmedAt,privacyNoticeAcknowledged:true,termsAcknowledged:true,...INVOICE_UPLOAD_LEGAL,mode:'automatic',processingStatus:'processing',automaticFiles:files.map(file=>file.name),sections:[]}
     this.submissions.update(items=>[submission,...items])
     return submission
   }
