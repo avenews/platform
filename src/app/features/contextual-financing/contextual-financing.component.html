@@ -108,7 +108,13 @@
                       <div>
                         <strong>{{ period.reference }}</strong>
                         <span>Due {{ formatDate(period.repaymentDueDate) }} · {{ formatKes(period.outstandingBalance) }} outstanding</span>
-                        @if (product.id === 'invoice-financing' && canRequestFromPeriod(period)) { <span class="relationship-period-row__available">{{ formatKes(period.availableToWithdraw ?? 0) }} available to request</span> }
+                        @if (product.id === 'invoice-financing') {
+                          @if (canRequestFromPeriod(period)) {
+                            <span class="relationship-period-row__available">{{ formatKes(period.availableToWithdraw ?? 0) }} available to request</span>
+                          } @else {
+                            <span class="baseline-status" [class]="'baseline-status ' + periodAvailabilityTone(period)">{{ periodAvailabilityLabel(period) }}</span>
+                          }
+                        }
                       </div>
                       <span class="baseline-status" [class]="'baseline-status ' + period.statusTone">{{ period.statusLabel }}</span>
                     </button>
@@ -162,6 +168,7 @@
     [outstandingLabel]="product.outstandingColumnLabel"
     [backLabel]="periodBackLabel"
     (requestFunds)="requestFundsForPeriod($event)"
+    (requestCancellation)="requestCancellationForPeriod($event)"
     (back)="backToRelationship()"
     (close)="closePeriod()"
   />
