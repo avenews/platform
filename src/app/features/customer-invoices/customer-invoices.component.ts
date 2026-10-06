@@ -120,7 +120,7 @@ export class CustomerInvoicesComponent implements OnChanges {
     { value: 'due-desc', label: 'Due date: latest' },
     { value: 'amount-desc', label: 'Amount: high to low' },
     { value: 'amount-asc', label: 'Amount: low to high' },
-    { value: 'status-asc', label: 'Status: A-Z' },
+    { value: 'status-asc', label: 'Financing availability: A-Z' },
   ] }
 
   get filterValues(): Readonly<Record<string,string>> { return { review: this.review, financing: this.financing } }
