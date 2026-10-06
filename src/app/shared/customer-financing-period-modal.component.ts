@@ -107,6 +107,9 @@ const MPESA_DETAILS = [
             @if (canRequestFunds) {
               <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
             }
+            @if (canRequestCancellation) {
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="requestCancellation.emit(period)">Request cancellation</button>
+            }
 
               <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openDocuments()">Files</button>
               @if (period.outstandingBalance > 0) {
@@ -255,6 +258,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   @Input() outstandingLabel = 'Outstanding Balance'
   @Input() backLabel: string | null = null
   @Output() readonly requestFunds = new EventEmitter<CustomerFinancingPeriod>()
+  @Output() readonly requestCancellation = new EventEmitter<CustomerFinancingPeriod>()
   @Output() readonly back = new EventEmitter<void>()
   @Output() readonly close = new EventEmitter<void>()
 
@@ -301,6 +305,11 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     if ((this.period.availableToWithdraw ?? 0) <= 0) return false
     if (this.period.statusKey !== 'live' && this.period.statusKey !== 'requested') return false
     return invoiceCanRequest(this.period)
+  }
+
+  get canRequestCancellation():boolean {
+    if (this.productId!=='invoice-financing' || !this.period || this.period.amountFinanced>0) return false
+    return !['cancelled','declined','repaid'].includes(this.period.statusKey)
   }
 
   get repaymentActionLabel(): string { return this.period?.settlementMode === 'buyer-payment' ? 'Payment details' : 'Repayment details' }
