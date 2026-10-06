@@ -19,6 +19,8 @@ export interface FinancingDocument {
   dueDate?: string
   status?: string
   statusTone?: string
+  financingAvailability?: string
+  financingAvailableFrom?: string
 }
 
 export const FINANCING_DOCUMENTS: readonly FinancingDocument[] = [
