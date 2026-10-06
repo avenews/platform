@@ -1,6 +1,6 @@
 import { PartnerWorkspaceComponent } from '../partner-workspace/partner-workspace.component'
-import { PARTNER_PERIODS } from '../../core/experience/partner-workspace.data'
-import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES } from '../../core/experience/invoice-portal.data'
+import { PARTNER_PERIODS, PARTNER_UPLOAD_BATCHES } from '../../core/experience/partner-workspace.data'
+import { INVOICE_FACILITY, invoiceCanRequest, supplierInvoiceParties, invoiceRelationshipTerms, PARTNER_REBATES, PARTNER_INVOICES } from '../../core/experience/invoice-portal.data'
 import { PartnerRebateModalComponent } from '../../shared/partner-rebate-modal.component'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
@@ -44,61 +44,6 @@ interface CustomerHomeCopy {
   dueActionLabel: string
 }
 
-interface PartnerHomePayment {
-  id: string
-  supplier: string
-  reference: string
-  dueDate: string
-  amount: number
-  status: 'Overdue' | 'Upcoming'
-  tone: 'status-danger' | 'status-info'
-}
-
-const CUSTOMER_HOME_COPY: Record<CustomerProductId, CustomerHomeCopy> = {
-  acl: {
-    intro: 'View available financing, repayments and financing periods.',
-    availableHelper: 'Available for approved purchases',
-    outstandingHelper: 'Across active financing',
-    dueMetricLabel: 'Payments Due',
-    dueActionLabel: 'View payments due',
-  },
-  abf: {
-    intro: 'View financing by supplier, track repayments and request funds.',
-    availableHelper: 'Across your approved suppliers',
-    outstandingHelper: 'Across active financing periods',
-    dueMetricLabel: 'Payments Due',
-    dueActionLabel: 'View payments due',
-  },
-  stf: {
-    intro: 'View financing by Partner Supplier, track repayments and request funds.',
-    availableHelper: 'Across your Partner Suppliers',
-    outstandingHelper: 'Across active financing periods',
-    dueMetricLabel: 'Payments Due',
-    dueActionLabel: 'View payments due',
-  },
-  'invoice-financing': {
-    intro: 'View financing by buyer and invoice due date, upload invoices and request funds.',
-    availableHelper: 'Across eligible financing periods',
-    outstandingHelper: 'To be settled from buyer payments',
-    dueMetricLabel: 'Buyer Payments Due',
-    dueActionLabel: 'View payments due',
-  },
-  infx: {
-    intro: 'Finance one invoice at a time, track repayments and request funds by buyer.',
-    availableHelper: 'Across your approved buyers',
-    outstandingHelper: 'Across active financing periods',
-    dueMetricLabel: 'Payments Due',
-    dueActionLabel: 'View payments due',
-  },
-}
-
-const PARTNER_HOME_PAYMENTS: readonly PartnerHomePayment[] = [
-  { id: 'coast-aug15', supplier: 'Coastline Produce Ltd', reference: 'PER-2026-08-15-COAST', dueDate: '2026-08-15', amount: 1040000, status: 'Overdue', tone: 'status-danger' },
-  { id: 'kericho-sep10', supplier: 'Kericho Fresh Foods', reference: 'PER-2026-09-10-KERICHO', dueDate: '2026-09-10', amount: 720000, status: 'Upcoming', tone: 'status-info' },
-  { id: 'kioko-sep15', supplier: 'Kioko Agri Supplies Ltd', reference: 'PER-2026-09-15-KIOKO', dueDate: '2026-09-15', amount: 1280000, status: 'Upcoming', tone: 'status-info' },
-  { id: 'highlands-sep15', supplier: 'Highlands Food Processors', reference: 'PER-2026-09-15-HIGHLANDS', dueDate: '2026-09-15', amount: 1320000, status: 'Upcoming', tone: 'status-info' },
-]
-
 @Component({
   selector: 'app-contextual-home',
   standalone: true,
@@ -141,10 +86,12 @@ export class ContextualHomeComponent implements OnDestroy {
   get invoiceOutstanding():number{return (this.workspace?.periods??[]).filter(p=>!!p.disbursementDate).reduce((n,p)=>n+p.outstandingBalance,0)}
   get invoiceAvailable():number{return Math.min(Math.max(0,this.invoiceFacility.approvedLimit-this.invoiceOutstanding),this.invoiceEligiblePeriods.reduce((n,p)=>n+(p.availableToWithdraw??0),0))}
   get rebateDue():number{return this.rebates.reduce((n,r)=>n+r.due,0)}
-  get partnerAmountDue():number{return PARTNER_PERIODS.filter(p=>p.paymentStatusKey!=='paid').reduce((n,p)=>n+p.amountToPay,0)}
+  get partnerAmountDue():number{return PARTNER_PERIODS.filter(p=>p.paymentStatusKey!=='paid').reduce((n,p)=>n+Math.max(0,p.amountToPay-(p.amountReceived??0)),0)}
+  get partnerInvoiceCount():number{return PARTNER_INVOICES.length}
+  get partnerPeriodCount():number{return PARTNER_PERIODS.length}
+  get partnerAttentionCount():number{return PARTNER_UPLOAD_BATCHES.reduce((n,batch)=>n+batch.failed,0)}
 
   readonly aclFundsRequestDemoUrl = ACL_FUNDS_REQUEST_DEMO_URL
-  readonly partnerHomePayments = PARTNER_HOME_PAYMENTS
   readonly formatDate = formatDate
   readonly formatKes = formatKes
 
@@ -320,10 +267,7 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   canRequestFromPeriod(period: CustomerFinancingPeriod): boolean {
-    if (this.workspace?.id !== 'invoice-financing') return false
-    if ((period.availableToWithdraw ?? 0) <= 0) return false
-    if (period.statusKey !== 'live' && period.statusKey !== 'requested') return false
-    return this.isWithinInvoiceFundingWindow(period)
+    return this.workspace?.id === 'invoice-financing' && this.isWithinInvoiceFundingWindow(period)
   }
 
   periodRequestLabel(_period: CustomerFinancingPeriod): string { return 'Request funds' }
@@ -331,7 +275,7 @@ export class ContextualHomeComponent implements OnDestroy {
   requestFundsForPeriod(period: CustomerFinancingPeriod, event?: Event): void {
     event?.stopPropagation()
     if (!this.canRequestFromPeriod(period)) return
-    this.toast = `You can request up to ${formatKes(period.availableToWithdraw ?? 0)} from this financing period.`
+    this.toast = `Funds Requests continue in the CRM-provided Zoho Form for this financing period. You can request up to ${formatKes(period.availableToWithdraw ?? 0)}.`
     this.cdr.markForCheck()
   }
 
@@ -342,6 +286,11 @@ export class ContextualHomeComponent implements OnDestroy {
   }
 
   closePeriod(): void { this.selectedPeriod = null }
+
+  requestCancellationForPeriod(period:CustomerFinancingPeriod):void {
+    if(period.amountFinanced>0)return
+    void this.router.navigate(['/experience','invoice-financing','support'],{queryParams:{type:'cancellation-request',period:period.reference,relationship:period.relationshipId}})
+  }
 
   onFilterValuesChange(values: Record<string, string>): void {
     this.statusFilter = values['status'] ?? ''
