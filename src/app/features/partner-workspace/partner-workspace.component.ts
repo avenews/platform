@@ -64,16 +64,17 @@ export class PartnerWorkspaceComponent {
   supplierStatusFilter = ''
   supplierSort = ''
   supplierPage = 1
-  readonly supplierPageSize = 5
+  readonly supplierPageSize = 10
 
   paymentSearch = ''
   paymentStatusFilter = ''
   paymentSort = ''
   paymentPage = 1
-  readonly paymentPageSize = 6
+  readonly paymentPageSize = 10
 
   supplierPeriodSearch = ''
-  supplierPeriodStatusFilter = ''
+  supplierPeriodPeriodStatusFilter = ''
+  supplierPeriodPaymentStatusFilter = ''
   supplierPeriodSort = ''
   supplierPeriodPage = 1
   readonly supplierPeriodPageSize = 10
@@ -128,9 +129,9 @@ export class PartnerWorkspaceComponent {
   }
 
   get paymentFilterFields(): readonly CustomerFilterField[] {
-    return [{ key: 'paymentStatus', label: 'Status', allLabel: 'All statuses', options: [
+    return [{ key: 'paymentStatus', label: 'Payment status', allLabel: 'All payment statuses', options: [
       { value: 'upcoming', label: 'Upcoming' },
-      { value: 'processing', label: 'Payment processing' },
+      { value: 'due', label: 'Due' },
       { value: 'overdue', label: 'Overdue' },
       { value: 'paid', label: 'Paid' },
     ] }]
@@ -141,16 +142,30 @@ export class PartnerWorkspaceComponent {
   }
 
   get supplierPeriodFilterFields(): readonly CustomerFilterField[] {
-    const statuses = new Map<string, string>()
-    for (const period of this.selectedSupplier ? this.periodsForSupplier(this.selectedSupplier) : []) {
-      statuses.set(period.periodStatus, period.periodStatus)
-      statuses.set(period.paymentStatus, period.paymentStatus)
-    }
-    return [{ key: 'status', label: 'Status', allLabel: 'All statuses', options: Array.from(statuses.keys()).map(value => ({ value, label: value })) }]
+    const periods = this.selectedSupplier ? this.periodsForSupplier(this.selectedSupplier) : []
+    const periodStatuses = [...new Set(periods.map(period => period.periodStatus))]
+    const paymentStatuses = [...new Set(periods.map(period => period.paymentStatus))]
+    return [
+      {
+        key: 'periodStatus',
+        label: 'Financing period status',
+        allLabel: 'All period statuses',
+        options: periodStatuses.map(value => ({ value, label: value })),
+      },
+      {
+        key: 'paymentStatus',
+        label: 'Payment status',
+        allLabel: 'All payment statuses',
+        options: paymentStatuses.map(value => ({ value, label: value })),
+      },
+    ]
   }
 
   get supplierPeriodFilterValues(): Readonly<Record<string, string>> {
-    return { status: this.supplierPeriodStatusFilter }
+    return {
+      periodStatus: this.supplierPeriodPeriodStatusFilter,
+      paymentStatus: this.supplierPeriodPaymentStatusFilter,
+    }
   }
 
   get filteredSuppliers(): readonly PartnerSupplierRow[] {
@@ -236,7 +251,8 @@ export class PartnerWorkspaceComponent {
     if (!supplier) return []
     const query = this.supplierPeriodSearch.trim().toLowerCase()
     const items = this.periodsForSupplier(supplier)
-      .filter(period => !this.supplierPeriodStatusFilter || period.periodStatus === this.supplierPeriodStatusFilter || period.paymentStatus === this.supplierPeriodStatusFilter)
+      .filter(period => !this.supplierPeriodPeriodStatusFilter || period.periodStatus === this.supplierPeriodPeriodStatusFilter)
+      .filter(period => !this.supplierPeriodPaymentStatusFilter || period.paymentStatus === this.supplierPeriodPaymentStatusFilter)
       .filter(period => !query || [
         period.reference,
         formatDate(period.dueDate, true),
@@ -315,7 +331,7 @@ export class PartnerWorkspaceComponent {
   changePaymentPage(page: number): void { this.paymentPage = Math.min(Math.max(1, page), this.paymentTotalPages) }
 
   onSupplierPeriodSearchValueChange(value: string): void { this.supplierPeriodSearch = value; this.supplierPeriodPage = 1 }
-  onSupplierPeriodFilterValuesChange(values: Record<string, string>): void { this.supplierPeriodStatusFilter = values['status'] ?? ''; this.supplierPeriodPage = 1 }
+  onSupplierPeriodFilterValuesChange(values: Record<string, string>): void { this.supplierPeriodPeriodStatusFilter = values['periodStatus'] ?? ''; this.supplierPeriodPaymentStatusFilter = values['paymentStatus'] ?? ''; this.supplierPeriodPage = 1 }
   onSupplierPeriodSortValueChange(value: string): void { this.supplierPeriodSort = value; this.supplierPeriodPage = 1 }
   changeSupplierPeriodPage(page: number): void { this.supplierPeriodPage = Math.min(Math.max(1, page), this.supplierPeriodTotalPages) }
 
@@ -363,7 +379,8 @@ export class PartnerWorkspaceComponent {
 
   private resetSupplierPeriodList(): void {
     this.supplierPeriodSearch = ''
-    this.supplierPeriodStatusFilter = ''
+    this.supplierPeriodPeriodStatusFilter = ''
+    this.supplierPeriodPaymentStatusFilter = ''
     this.supplierPeriodSort = ''
     this.supplierPeriodPage = 1
   }
@@ -373,8 +390,8 @@ export class PartnerWorkspaceComponent {
   }
   private paymentPriority(period: PartnerPeriod): number {
     if (period.paymentStatusKey === 'overdue' || period.periodStatusKey === 'overdue') return 0
-    if (period.paymentStatusKey === 'upcoming') return 1
-    if (period.paymentStatusKey === 'processing') return 2
+    if (period.paymentStatusKey === 'due') return 1
+    if (period.paymentStatusKey === 'upcoming') return 2
     return 3
   }
   private closeDetailModals(): void {
