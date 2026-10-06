@@ -184,23 +184,6 @@
     </app-prototype-explainer>
   </div>
 
-  @if (requestOpen) {
-    <div class="baseline-modal-backdrop baseline-modal-backdrop--sheet" role="presentation" (click)="closeRequest()">
-      <section class="baseline-modal baseline-modal--sheet invoice-period-request" role="dialog" aria-modal="true" (click)="$event.stopPropagation()">
-        <header class="baseline-modal__head"><h2>Request funds</h2><button type="button" class="baseline-modal__close" aria-label="Close" (click)="closeRequest()">&times;</button></header>
-        <div class="baseline-modal__body">
-          <app-prototype-explainer tone="action" title="You can request up to the amount available">
-            <p>Final eligibility is checked before funds are approved.</p>
-          </app-prototype-explainer>
-          <div class="invoice-period-request__summary"><span>Available to Withdraw</span><strong>{{ formatKes(currentPeriod.availableToWithdraw) }}</strong></div>
-          <div class="baseline-field"><label for="period-request-amount">Requested amount</label><input id="period-request-amount" class="baseline-control" type="text" [value]="formatKes(currentPeriod.availableToWithdraw)"></div>
-          <p class="baseline-muted">This request applies to {{ currentPeriod.buyerName }} invoices due {{ formatDate(currentPeriod.dueDate) }}.</p>
-          <button type="button" class="baseline-button baseline-button--primary baseline-button--block" data-action="request-financing" (click)="completeRequest()">Continue request</button>
-        </div>
-      </section>
-    </div>
-  }
-
   @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
 } @else {
   <div class="portal-page baseline-empty"><strong>Financing period not found</strong><p>This demo does not contain the requested financing period.</p><button type="button" class="baseline-button baseline-button--secondary" (click)="back()"><app-portal-action-icon name="arrow-left" /><span>Back to Invoice Financing</span></button></div>
