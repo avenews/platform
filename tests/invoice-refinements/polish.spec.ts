@@ -25,8 +25,8 @@ test('shared uploader has one linked confirmation and no branding footer or lega
     await expect(modal.locator('.invoice-upload-confirmation')).toHaveText(declaration)
     await expect(modal.locator('footer,.invoice-upload-terms')).toHaveCount(0);await expect(modal.getByRole('link')).toHaveCount(2)
     await expect(modal).not.toContainText('This service is powered by');await expect(modal).not.toContainText('Read the Funds Request')
-    await expect(modal.getByRole('heading',{name:'Uploader Instructions'})).toBeVisible()
-    await modal.getByRole('button',{name:'Submit invoices',exact:true}).scrollIntoViewIfNeeded()
+    if(role.startsWith('invoice-partner')){await expect(modal.getByRole('heading',{name:'Automatic invoice processing'})).toBeVisible();await modal.getByRole('button',{name:'Submit files',exact:true}).scrollIntoViewIfNeeded()}
+    else{await expect(modal.getByRole('heading',{name:'Uploader Instructions'})).toBeVisible();await modal.getByRole('button',{name:'Submit invoices',exact:true}).scrollIntoViewIfNeeded()}
     await page.screenshot({path:info.outputPath(role.startsWith('invoice-partner')?'partner-short-confirmation.png':'supplier-short-confirmation.png')})
     await modal.getByRole('button',{name:'Close',exact:true}).click()
   }
@@ -71,16 +71,14 @@ test('tab switches retain invoice search, sorting and pagination and history det
   await expect(page.getByRole('tabpanel').locator('.baseline-pagination__controls .is-active')).toHaveText('2')
 })
 
-test('View invoices after upload selects invoices even when opened from Upload history',async({page})=>{
+test('automatic Partner Buyer upload stays processing and keeps Upload history context',async({page})=>{
   await goto(page,'invoice-partner/invoice-uploads');await page.getByRole('tab',{name:'Upload history',exact:true}).click()
   await page.getByRole('button',{name:'Upload invoices',exact:true}).click();const modal=page.getByRole('dialog')
-  await modal.getByRole('combobox').fill('Coastline');await modal.getByRole('option').filter({hasText:'Coastline'}).click()
-  await modal.locator('input[type="date"]').fill('2026-09-30')
+  await expect(modal.getByRole('combobox')).toHaveCount(0);await expect(modal.locator('input[type="date"]')).toHaveCount(0)
   await modal.locator('input[type="file"]').setInputFiles({name:'latest-polish.xlsx',mimeType:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',buffer:Buffer.from('review fixture')})
-  await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Submit invoices',exact:true}).click();await expect(modal.getByRole('status')).toContainText('What happens next')
-  await modal.getByRole('button',{name:'View invoices',exact:true}).click();await expect(page.getByRole('tab',{name:'Invoices',exact:true})).toHaveAttribute('aria-selected','true')
-  await page.getByRole('tabpanel').locator('.customer-filter-search input:visible').fill('latest-polish.xlsx')
-  await expect(page.getByRole('tabpanel').locator('.invoice-files-table tbody tr:visible,.invoice-files-cards .invoice-file-card:visible')).toHaveCount(1)
+  await modal.getByRole('checkbox').check();await modal.getByRole('button',{name:'Submit files',exact:true}).click();await expect(modal.getByRole('status')).toContainText('Upload received');await expect(modal.getByRole('status')).toContainText('processing')
+  await expect(modal.getByRole('button',{name:'View invoices',exact:true})).toHaveCount(0);await modal.getByRole('button',{name:'Done',exact:true}).click()
+  await expect(page.getByRole('tab',{name:'Upload history',exact:true})).toHaveAttribute('aria-selected','true')
 })
 
 test('column help icons are raised without changing card help or table typography',async({page},info)=>{
