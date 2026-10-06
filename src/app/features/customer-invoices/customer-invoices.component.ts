@@ -2,7 +2,7 @@ import { InvoiceDocumentsStore, supplierInvoiceParties, type InvoicePortalRole }
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import { ChangeDetectionStrategy, Component, Input, OnChanges, inject } from '@angular/core'
-import { ActivatedRoute } from '@angular/router'
+import { ActivatedRoute, Router } from '@angular/router'
 import {
   invoiceFinancingInvoices,
   type FinancingDocument,
@@ -53,7 +53,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
                   <td>{{ invoice.amount !== undefined ? formatKes(invoice.amount) : 'Not available' }}</td>
                   <td><span class="baseline-status" [class]="'baseline-status ' + reviewTone(invoice)">{{ reviewStatus(invoice) }}</span></td>
                   <td><span class="baseline-status" [class]="'baseline-status ' + financingTone(invoice)">{{ financingStatus(invoice) }}</span>@if(invoice.financingAvailableFrom){<small class="invoice-availability-date">From {{formatDate(invoice.financingAvailableFrom,true)}}</small>}</td>
-                  <td>@if (invoice.fileUrl) { <a class="baseline-button baseline-button--secondary" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a> }</td>
+                  <td><div class="invoice-actions">@if (invoice.fileUrl) { <a class="baseline-button baseline-button--secondary" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a> }<button type="button" class="baseline-button baseline-button--secondary" (click)="contactSupport(invoice)">Contact support</button></div></td>
                 </tr>
               } @empty {
                 <tr><td colspan="7"><div class="baseline-empty"><strong>{{ embedded && !invoices.length ? 'No invoices linked to this period' : 'No matching invoices' }}</strong><p>{{ invoices.length ? 'Try changing your search or filters.' : 'Invoices will appear here when they are available.' }}</p></div></td></tr>
@@ -68,7 +68,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
               <div class="baseline-record-card__head"><span class="baseline-financing-cell"><strong>{{ invoice.counterparty }}</strong><span>{{ invoice.reference }}</span></span><span class="baseline-status" [class]="'baseline-status ' + reviewTone(invoice)">{{ reviewStatus(invoice) }}</span></div>
               <div class="baseline-metrics"><span class="baseline-metric"><small>Due Date</small><strong>{{ invoice.dueDate ? formatDate(invoice.dueDate, true) : 'Not available' }}</strong></span><span class="baseline-metric"><small>Invoice Amount</small><strong>{{ invoice.amount !== undefined ? formatKes(invoice.amount) : 'Not available' }}</strong></span></div>
               <div class="invoice-card-availability"><small>Financing Availability</small><span class="baseline-status" [class]="'baseline-status ' + financingTone(invoice)">{{ financingStatus(invoice) }}</span>@if(invoice.financingAvailableFrom){<small>From {{formatDate(invoice.financingAvailableFrom,true)}}</small>}</div>
-              @if (invoice.fileUrl) { <a class="baseline-button baseline-button--secondary baseline-button--block" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a> }
+              <div class="invoice-actions invoice-actions--card">@if (invoice.fileUrl) { <a class="baseline-button baseline-button--secondary baseline-button--block" [href]="invoice.fileUrl" target="_blank" rel="noopener noreferrer">View invoice</a> }<button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="contactSupport(invoice)">Contact support</button></div>
             </article>
           } @empty { <div class="baseline-empty"><strong>{{ embedded && !invoices.length ? 'No invoices linked to this period' : 'No matching invoices' }}</strong><p>{{ invoices.length ? 'Try changing your search or filters.' : 'Invoices will appear here when they are available.' }}</p></div> }
         </div>
@@ -84,7 +84,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
     @if (toast) { <button type="button" class="baseline-toast" (click)="toast = ''">{{ toast }}</button> }
   `,
   styles: [`
-    :host{display:block;min-width:0}.invoice-workspace--embedded{width:100%;margin:0}.invoice-workspace--embedded .baseline-pagination__controls{flex-wrap:wrap;justify-content:center}.invoice-workspace{gap:24px}.invoice-workspace__hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}.invoice-workspace__hero>div{display:grid;gap:6px}.invoice-workspace__hero h1,.invoice-workspace__hero p{margin:0}.invoice-workspace__hero h1{color:var(--av-color-text-heading,#0d343f);font-size:32px;line-height:1.15}.invoice-workspace__hero p,.invoice-upload-modal__body>p{max-width:760px;color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}.invoice-list{display:grid;gap:16px}.invoice-list__toolbar{display:flex;justify-content:flex-start;width:100%}.invoice-list__toolbar app-customer-filter-bar{width:100%}.invoice-upload-action{border-color:var(--av-color-success,#39c173)!important;background:var(--av-color-success,#39c173)!important;color:#fff!important}.invoice-files-table{min-width:1020px}.invoice-files-cards{display:none}.invoice-row--overdue{background:#fff4f4}.invoice-file-card--overdue{border-color:#efb4b4;background:#fff4f4}.invoice-upload-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}.invoice-upload-modal{width:min(100%,620px);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}.invoice-upload-modal__body{min-height:0;overflow-y:auto;display:grid;gap:14px}.invoice-upload-modal__body>p{margin:0}.invoice-availability-date,.invoice-card-availability small{display:block;margin-top:4px;color:var(--av-color-text-muted,#66788a);font-size:11px}.invoice-card-availability{display:grid;gap:5px}@media(max-width:767px){.invoice-workspace{gap:20px}.invoice-workspace__hero{display:grid;gap:16px}.invoice-workspace__hero h1{font-size:26px}.invoice-workspace__hero .baseline-button{width:100%}.invoice-list{gap:14px}.baseline-table-wrap{display:none}.invoice-files-cards{display:grid;gap:12px}.invoice-upload-backdrop{align-items:flex-end;padding:0}.invoice-upload-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0}}
+    :host{display:block;min-width:0}.invoice-workspace--embedded{width:100%;margin:0}.invoice-workspace--embedded .baseline-pagination__controls{flex-wrap:wrap;justify-content:center}.invoice-workspace{gap:24px}.invoice-workspace__hero{display:flex;align-items:flex-start;justify-content:space-between;gap:24px}.invoice-workspace__hero>div{display:grid;gap:6px}.invoice-workspace__hero h1,.invoice-workspace__hero p{margin:0}.invoice-workspace__hero h1{color:var(--av-color-text-heading,#0d343f);font-size:32px;line-height:1.15}.invoice-workspace__hero p,.invoice-upload-modal__body>p{max-width:760px;color:var(--av-color-text-muted,#66788a);font-size:13px;line-height:1.55}.invoice-list{display:grid;gap:16px}.invoice-list__toolbar{display:flex;justify-content:flex-start;width:100%}.invoice-list__toolbar app-customer-filter-bar{width:100%}.invoice-upload-action{border-color:var(--av-color-success,#39c173)!important;background:var(--av-color-success,#39c173)!important;color:#fff!important}.invoice-files-table{min-width:1180px}.invoice-files-cards{display:none}.invoice-row--overdue{background:#fff4f4}.invoice-file-card--overdue{border-color:#efb4b4;background:#fff4f4}.invoice-upload-backdrop{display:flex;align-items:center;justify-content:center;padding:24px}.invoice-upload-modal{width:min(100%,620px);max-height:min(88dvh,780px);display:flex;flex-direction:column;overflow:hidden;margin:0;border-radius:14px}.invoice-upload-modal__body{min-height:0;overflow-y:auto;display:grid;gap:14px}.invoice-upload-modal__body>p{margin:0}.invoice-availability-date,.invoice-card-availability small{display:block;margin-top:4px;color:var(--av-color-text-muted,#66788a);font-size:11px}.invoice-card-availability{display:grid;gap:5px}.invoice-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.invoice-actions--card{display:grid}@media(max-width:767px){.invoice-workspace{gap:20px}.invoice-workspace__hero{display:grid;gap:16px}.invoice-workspace__hero h1{font-size:26px}.invoice-workspace__hero .baseline-button{width:100%}.invoice-list{gap:14px}.baseline-table-wrap{display:none}.invoice-files-cards{display:grid;gap:12px}.invoice-upload-backdrop{align-items:flex-end;padding:0}.invoice-upload-modal{width:100%;max-height:92dvh;border-radius:18px 18px 0 0;border-bottom:0}}
   `],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -96,6 +96,7 @@ export class CustomerInvoicesComponent implements OnChanges {
   get canUpload():boolean {return this.role==='partner'||supplierInvoiceParties().some(p=>p.uploader==='supplier')}
   ngOnChanges():void{this.search='';this.review='';this.financing='';this.sort='';this.page=1}
   private readonly route = inject(ActivatedRoute)
+  private readonly router = inject(Router)
   uploadOpen = this.route.snapshot.queryParamMap.get('action') === 'upload'
   toast = ''
   search = ''
@@ -161,6 +162,11 @@ export class CustomerInvoicesComponent implements OnChanges {
     if(status==='Available to request'||status==='Eligible'||status==='Financed')return'status-success'
     if(status==='Pending approval'||status==='Cutoff reached')return'status-warning'
     return'status-neutral'
+  }
+  contactSupport(invoice:FinancingDocument):void{
+    const experience=this.role==='partner'?'invoice-partner':'invoice-financing'
+    const partyKey=this.role==='partner'?'supplier':'buyer'
+    void this.router.navigate(['/experience',experience,'support'],{queryParams:{type:'invoice-question',invoice:invoice.reference,period:invoice.periodId,[partyKey]:invoice.counterparty}})
   }
 
 }
