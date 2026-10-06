@@ -108,6 +108,7 @@ export class InvoiceDocumentsStore implements OnDestroy {
     if(!sections.length || sections.length>20) throw new Error('Add between 1 and 20 upload sections.')
     const keys=new Set<string>()
     const invoiceKeys=new Set<string>()
+    const invoiceFileFingerprints=new Set<string>()
     const today=new Date()
     const todayKey=[today.getFullYear(),String(today.getMonth()+1).padStart(2,'0'),String(today.getDate()).padStart(2,'0')].join('-')
     for(const [i,s] of sections.entries()) {
@@ -130,6 +131,9 @@ export class InvoiceDocumentsStore implements OnDestroy {
         if(invoiceKeys.has(duplicateKey)) throw new Error(prefix+'remove the duplicate invoice number.')
         invoiceKeys.add(duplicateKey)
         this.validateFile(invoice.file,INVOICE_EXTENSIONS,prefix)
+        const fingerprint=`${invoice.file.name}:${invoice.file.size}:${invoice.file.lastModified}`
+        if(invoiceFileFingerprints.has(fingerprint)) throw new Error(prefix+'remove the duplicate invoice file.')
+        invoiceFileFingerprints.add(fingerprint)
       }
       if(party.pod && !s.delivery.length) throw new Error(prefix+'add Proof of Delivery.')
       if(s.delivery.length>10) throw new Error(prefix+'add no more than 10 delivery files.')
