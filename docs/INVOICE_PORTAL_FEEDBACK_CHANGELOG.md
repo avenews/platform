@@ -22,7 +22,35 @@ PR #86 and deploy preview 86 must remain unchanged.
 
 ## Pass 1: Data foundation and status model
 
-Status: Not started
+Status: Implemented, deploy validation pending
+
+Issue: #88
+
+Summary:
+- Replaced the undefined customer-facing payment status `Payment processing` with the supported `Due` state.
+- Payment statuses are now `Upcoming`, `Due`, `Overdue`, and `Paid`.
+- Split supplier financing-period filters into separate `Financing period status` and `Payment status` filters.
+- Increased Partner Buyer Suppliers pagination from 5 to 10 rows per page.
+- Increased Partner Buyer Payments pagination from 6 to 10 rows per page.
+- Kept existing invoice, financing activity, available financing, customer invoice, and supplier period tables at their existing 10-row minimum.
+- Added explicit shared type boundaries for invoice review, financing availability, and upload processing statuses so later passes do not reuse one generic status model.
+
+Files changed:
+- `src/app/core/experience/partner-workspace.data.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.html`
+- `src/app/core/experience/invoice-portal.data.ts`
+
+Validation:
+- Source transformations were re-read from the branch after commit.
+- PR #87 remains Draft.
+- GitHub workflow `Invoice Financing refinements` was triggered for the Pass 1 head but completed as `skipped`; it is not being reported as passed.
+- Local clone/build could not run because the execution container could not resolve github.com.
+- Netlify Deploy Preview validation remains required before final review.
+
+Known limitations:
+- Page size is fixed at 10 in this pass. A selectable 10 / 25 / 50 control is optional and not required for the agreed minimum.
+- The remaining payment, invoice, financing availability, and support behaviour is intentionally deferred to later passes.
 
 ## Pass 2: Invoice upload and lifecycle
 
