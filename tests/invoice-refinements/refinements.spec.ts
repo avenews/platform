@@ -72,7 +72,7 @@ test('modal main actions share a desktop row and stack on mobile, with Lucide Ba
   await page.screenshot({path:info.outputPath('modal-actions.png'),fullPage:true});await modal.getByRole('button',{name:'Close',exact:true}).click();modal=await modalPeriod(page,'DP-2026-08-15-FRESH')
   await modal.getByRole('button',{name:'Payment details',exact:true}).click();modal=page.getByRole('dialog');await expect(modal.getByRole('button',{name:'Back',exact:true}).locator('svg')).toHaveAttribute('viewBox','0 0 24 24')
   for(const value of await modal.locator('.customer-settlement-card>div>strong').all())expect(await value.evaluate(e=>getComputedStyle(e).textAlign)).toBe('right')
-  await expect(modal).toContainText('Your Avenews Clearing Account');await page.screenshot({path:info.outputPath('payment-alignment.png'),fullPage:true})
+  await expect(modal).toContainText('Your Clearing Account');await expect(modal).toContainText('Pay into: Kioko Agri Supplies Ltd Clearing Account');await expect(modal).toContainText('DEMO-SUP-0042');await expect(modal).not.toContainText('(managed by Avenews)');await page.screenshot({path:info.outputPath('payment-alignment.png'),fullPage:true})
 })
 
 test('buyer details show complete grids, full-width Settlement and upload responsibility below the name',async({page},info) => {
@@ -100,18 +100,36 @@ test('Partner Buyer uploader uses automatic bulk processing without extracted-fi
 })
 
 
-test('invoice and financing period support carry contextual references',async({page}) => {
+test('invoice actions stay file-only and financing period support remains in the modal',async({page}) => {
   await goto(page,'invoice-financing/invoices')
   const invoiceRow=page.locator('.invoice-files-table tbody tr:visible,.invoice-files-cards .invoice-file-card:visible').filter({hasText:'INV-7811'}).first()
-  await invoiceRow.getByRole('button',{name:'Contact support',exact:true}).click()
-  await expect(page).toHaveURL(/\/experience\/invoice-financing\/support\?.*invoice=INV-7811/)
-  await expect(page.locator('.support-context')).toContainText('invoice INV-7811')
-  await expect(page.locator('#support-type')).toHaveValue('invoice-question')
+  await expect(invoiceRow.getByRole('button',{name:'Contact support',exact:true})).toHaveCount(0)
+  await expect(invoiceRow.getByRole('link',{name:'View invoice',exact:true})).toHaveCount(1)
 
   await goto(page,'invoice-financing/home')
+  const url=page.url()
   const modal=await modalPeriod(page,'DP-2026-09-15-TWIGA')
   await modal.getByRole('button',{name:'Contact support about this period',exact:true}).click()
-  await expect(page).toHaveURL(/\/experience\/invoice-financing\/support\?.*period=DP-2026-09-15-TWIGA/)
-  await expect(page.locator('.support-context')).toContainText('financing period DP-2026-09-15-TWIGA')
-  await expect(page.locator('#support-type')).toHaveValue('financing-period-question')
+  await expect(page).toHaveURL(url)
+  const support=page.getByRole('dialog').locator('app-contextual-support-form')
+  await expect(support.locator('.support-context')).toContainText('financing period DP-2026-09-15-TWIGA')
+  await expect(support.locator('#context-support-type')).toHaveValue('financing-period-question')
+  await support.locator('#context-support-message').fill('Please help me understand this financing period.')
+  await support.getByRole('button',{name:'Submit request',exact:true}).click()
+  await expect(support.getByRole('status')).toContainText('Your request has been received')
+})
+
+
+test('Developer Changelog lists every PR87 pass and the follow-up',async({page}) => {
+  await goto(page,'../changelog')
+  const entries=page.locator('.changelog-entry').filter({hasText:'PR #87'})
+  await expect(entries).toHaveCount(6)
+  for(const title of [
+    'Pass 1: data foundation, statuses and pagination',
+    'Pass 2: invoice upload modes and lifecycle',
+    'Pass 3: financing eligibility, Funds Request behavior and cancellation',
+    'Pass 4: Partner Buyer payments, visibility, support and rebates',
+    'Pass 5: cross-portal reconciliation and QA',
+    'Review follow-up: modal support and payment detail cleanup',
+  ]) await expect(page.getByRole('heading',{name:title,exact:true})).toBeVisible()
 })
