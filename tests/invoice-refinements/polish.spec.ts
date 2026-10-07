@@ -199,12 +199,14 @@ test('copyable payment details confirm Copied inline and reset automatically',as
   await goto(page,'invoice-partner/obligations')
   await page.locator('.partner-payments-table tbody tr:visible').first().click()
   modal=page.getByRole('dialog')
-  const referenceCopy=modal.locator('.partner-copy-reference')
+  const clearing=modal.locator('app-clearing-account-details')
+  const referenceRow=clearing.locator('.customer-payment-details > div').filter({hasText:'Payment reference'})
+  const referenceCopy=referenceRow.getByRole('button')
   await referenceCopy.click()
   await expect(referenceCopy).toHaveText('Copied')
-  await expect(referenceCopy).toHaveText('Copy payment reference',{timeout:2500})
+  await expect(referenceCopy).toHaveText('Copy',{timeout:2500})
 
-  const clearing=modal.locator('app-clearing-account-details')
+
   const accountNumberRow=clearing.locator('.customer-payment-details > div').filter({hasText:'Account number'})
   const accountCopy=accountNumberRow.getByRole('button')
   await accountCopy.click()
