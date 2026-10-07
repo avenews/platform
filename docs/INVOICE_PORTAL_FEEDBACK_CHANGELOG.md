@@ -266,7 +266,7 @@ Validation:
 
 ## Follow-up review: clearing account copy cleanup
 
-Status: Implemented, validation pending
+Status: Completed and validated
 
 Issue: #94
 
@@ -284,4 +284,10 @@ Files changed:
 - `src/app/shared/staging-changelog.data.ts`
 
 Validation:
-- Pending exact-head build and browser regression.
+- Validated application head: `a1ab552f2ae82114aff35a055bc34f04f72b3c08`.
+- Baseline preservation, TypeScript and production build passed.
+- 20 domain checks passed.
+- Local browser checks: 44 baseline checks and 168 refinement checks passed.
+- Deployed Preview 87 checks: the same 44 baseline checks and 168 refinement checks passed.
+- Desktop, tablet, mobile and 320px minimum-mobile viewports are covered.
+- PR #86 remains untouched as the rollback baseline.
