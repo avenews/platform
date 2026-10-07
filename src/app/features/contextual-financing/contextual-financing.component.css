@@ -84,7 +84,8 @@
 .relationship-name-button strong,
 .relationship-upload-source {
   color: var(--av-color-text-heading, #0d343f);
-  font-size: 13px;
+  font-size: var(--av-font-size-md, 14px);
+  font-weight: var(--av-font-weight-semibold, 600);
 }
 
 .relationship-name-button:hover strong,
@@ -144,7 +145,10 @@
 
 .relationship-modal {
   width: min(100%, 720px);
+  min-width: 0;
+  max-width: 100%;
   max-height: min(88dvh, 860px);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -190,6 +194,8 @@
 }
 
 .relationship-modal__body {
+  min-width: 0;
+  max-width: 100%;
   min-height: 0;
   flex: 1 1 auto;
   overflow-y: auto;
@@ -356,6 +362,16 @@
     grid-template-columns: 1fr;
   }
 
+  .relationship-card .baseline-record-card__head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .relationship-card .baseline-status {
+    max-width: 100%;
+    white-space: normal;
+  }
+
   .relationship-card__actions .baseline-button {
     flex: 1 1 140px;
   }
@@ -367,6 +383,8 @@
 
   .relationship-modal {
     width: 100%;
+    min-width: 0;
+    max-width: 100vw;
     max-height: 92dvh;
     border-radius: 18px 18px 0 0;
     border-bottom: 0;
@@ -402,3 +420,16 @@
     width: 100%;
   }
 }
+
+.relationship-buyer-identity{display:grid;gap:4px;min-width:0}
+.invoice-upload-owner{display:block;font-size:12px;font-weight:400;line-height:1.4;color:var(--av-color-text-muted,#66788a);overflow-wrap:anywhere}
+
+.relationship-modal__back{display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.relationship-modal__body{align-content:start;grid-auto-rows:max-content}
+.relationship-detail-grid{min-width:0;grid-auto-rows:minmax(min-content,auto)}
+.relationship-detail-grid>div{min-width:0}.relationship-detail-grid dd{overflow-wrap:anywhere}
+.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1/-1;border-right:0}
+.relationship-modal__actions{grid-template-columns:repeat(2,minmax(0,1fr));align-items:stretch}
+.relationship-modal__actions>.baseline-button:only-child{grid-column:1/-1}
+.relationship-modal__actions .relationship-periods-action{margin-top:0}
+@media(max-width:767px){.relationship-modal__actions{grid-template-columns:1fr}.relationship-detail-grid>.relationship-detail-grid__wide{grid-column:1}}

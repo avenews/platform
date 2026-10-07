@@ -163,7 +163,7 @@ export const INVOICE_GROUPS: InvoiceGroup[] = [
 ]
 
 export const USERS: PortalUser[] = [
-  { id: 'usr_001', firstName: 'Amara', lastName: 'Osei', email: 'amara.osei@kiokoagri.co.ke', phone: '+254712345678', role: 'admin', status: 'active', invitedAt: '2026-01-10', lastActiveAt: '2026-05-05' },
+  { id: 'usr_001', firstName: 'Winnie', lastName: 'Oduor', email: 'winnie.oduor@avenews-gt.com', phone: '+254712345678', role: 'admin', status: 'active', invitedAt: '2026-01-10', lastActiveAt: '2026-05-05' },
   { id: 'usr_002', firstName: 'James', lastName: 'Mutua', email: 'james.mutua@kiokoagri.co.ke', phone: '+254723456789', role: 'user', status: 'active', invitedAt: '2026-02-15', lastActiveAt: '2026-05-04' },
   { id: 'usr_003', firstName: 'Faith', lastName: "Ndung'u", email: 'faith.ndungu@kiokoagri.co.ke', phone: '+254734567890', role: 'user', status: 'active', invitedAt: '2026-03-01', lastActiveAt: '2026-04-28' },
   { id: 'usr_004', firstName: 'Peter', lastName: 'Kamau', email: 'peter.kamau@kiokoagri.co.ke', phone: null, role: 'user', status: 'deactivated', invitedAt: '2026-01-20', lastActiveAt: '2026-03-15' },
@@ -177,9 +177,9 @@ export const INVITATIONS: Invitation[] = [
 export const PROFILE = {
   contact: {
     id: 'usr_001',
-    firstName: 'Amara',
-    lastName: 'Osei',
-    email: 'amara.osei@kiokoagri.co.ke',
+    firstName: 'Winnie',
+    lastName: 'Oduor',
+    email: 'winnie.oduor@avenews-gt.com',
     phone: '+254712345678',
     role: 'admin' as PortalRole,
   },

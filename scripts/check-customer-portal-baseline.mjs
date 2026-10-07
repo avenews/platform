@@ -145,7 +145,7 @@ requireText(designLabCss, '.design-lab__hero {\n    padding-right: 112px;', 'Dev
 
 requireText(changelogData, "id: 'pr-1-customer-portal-foundation'", 'Prepared staging changelog entry')
 requireText(changelogData, 'prNumber: 1', 'Staging changelog PR number')
-requireText(changelogData, "contributor: 'Stefan — ChatGPT-assisted'", 'Staging changelog contributor')
+requireText(changelogData, "contributor: 'Stefan, ChatGPT-assisted'", 'Staging changelog contributor')
 requireText(changelogData, "stagingDate: '13 Aug 2026'", 'Prepared staging date')
 
 requireText(contract, '| Financing Activity | `BarChart3` | `bar-chart` |', 'Documented activity icon contract')

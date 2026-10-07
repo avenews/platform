@@ -1,3 +1,4 @@
+import { PortalActionIconComponent } from '../../shared/portal-action-icon.component'
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
@@ -18,7 +19,7 @@ import { PrototypeExplainerComponent } from '../../shared/prototype-explainer.co
 @Component({
   selector: 'app-invoice-period',
   standalone: true,
-  imports: [PrototypeExplainerComponent],
+  imports: [PortalActionIconComponent, PrototypeExplainerComponent],
   templateUrl: './invoice-period.component.html',
   styleUrl: './invoice-period.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,7 +31,6 @@ export class InvoicePeriodComponent {
   readonly period: InvoiceFinancingPeriod | undefined = INVOICE_FINANCING_PERIODS.find(
     item => item.id === this.route.snapshot.paramMap.get('periodId'),
   )
-  requestOpen = false
   toast = ''
 
   get invoices() {
@@ -51,16 +51,7 @@ export class InvoicePeriodComponent {
 
   openRequest(): void {
     if (!this.canRequestFunds) return
-    this.requestOpen = true
-  }
-
-  closeRequest(): void {
-    this.requestOpen = false
-  }
-
-  completeRequest(): void {
-    this.requestOpen = false
-    this.toast = `Request started for up to ${formatKes(this.period?.availableToWithdraw ?? 0)}.`
+    this.toast = `Funds Requests continue in the CRM-provided Zoho Form for this financing period. You can request up to ${formatKes(this.period?.availableToWithdraw ?? 0)}.`
   }
 
   scrollToInvoices(): void {

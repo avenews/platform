@@ -226,6 +226,10 @@
     min-width: 0;
   }
 
+  .customer-filter-bar--end .customer-filter-bar__desktop {
+    justify-content: flex-end;
+  }
+
   .customer-filter-bar__desktop .customer-filter-search {
     flex: 0 1 220px;
     width: min(220px, 100%);
@@ -242,6 +246,15 @@
   .customer-filter-clear {
     flex: 0 0 auto;
     white-space: nowrap;
+  }
+
+  .customer-filter-summary {
+    justify-content: flex-end;
+    text-align: right;
+  }
+
+  .customer-filter-summary button {
+    display: none;
   }
 }
 
@@ -281,3 +294,7 @@
     gap: var(--av-space-2, 8px);
   }
 }
+
+.customer-filter-summary{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;font-size:12px;line-height:1.5;color:var(--av-color-text-muted,#66788a)}
+.customer-filter-summary button{border:0;background:transparent;padding:4px 0;color:var(--av-color-action,#16b3c4);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+@media(max-width:767px){.customer-filter-summary button{min-height:44px}}

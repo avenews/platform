@@ -859,7 +859,7 @@ export const CUSTOMER_WORKSPACES: readonly CustomerWorkspace[] = [
     outstandingMetricHelper: 'To be settled from buyer payments',
     dueMetricLabel: 'Buyer Payments Due',
     dueActionLabel: 'View payments due',
-    dueDateColumnLabel: 'Invoice Due Date',
+    dueDateColumnLabel: 'Invoice(s) Due Date',
     totalRepaidColumnLabel: 'Buyer Payments',
     outstandingColumnLabel: 'Outstanding Amount',
     relationships: [
