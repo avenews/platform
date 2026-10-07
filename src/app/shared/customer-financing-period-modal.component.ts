@@ -1,7 +1,8 @@
 import { PortalActionIconComponent } from './portal-action-icon.component'
 import { CustomerInvoicesComponent } from '../features/customer-invoices/customer-invoices.component'
+import { ClearingAccountDetailsComponent } from './clearing-account-details.component'
+import { ContextualSupportFormComponent } from './contextual-support-form.component'
 import { ChangeDetectorRef, inject } from '@angular/core'
-import { Router } from '@angular/router'
 import { InvoiceDocumentsStore, invoiceCanRequest } from '../core/experience/invoice-portal.data'
 import {
   ChangeDetectionStrategy,
@@ -12,7 +13,7 @@ import {
   type OnChanges,
   type SimpleChanges,
 } from '@angular/core'
-import { PROFILE, formatDate, formatKes } from './customer-portal.data'
+import { BUSINESS, PROFILE, formatDate, formatKes } from './customer-portal.data'
 import type {
   CustomerFinancingPeriod,
   CustomerInstalment,
@@ -40,9 +41,9 @@ const MPESA_DETAILS = [
 @Component({
   selector: 'app-customer-financing-period-modal',
   standalone: true,
-  imports: [PortalActionIconComponent, CustomerInvoicesComponent],
+  imports: [PortalActionIconComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent, ContextualSupportFormComponent],
   template: `
-    @if (period && !repaymentOpen && !documentsOpen) {
+    @if (period && !repaymentOpen && !documentsOpen && !supportOpen) {
       <div class="baseline-modal-backdrop customer-period-backdrop" role="presentation" (click)="close.emit()">
         <section class="baseline-modal customer-period-modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="period.id + '-title'" (click)="$event.stopPropagation()">
           <header class="baseline-modal__head customer-period-modal__head">
@@ -109,7 +110,7 @@ const MPESA_DETAILS = [
               <button type="button" class="baseline-button baseline-button--primary baseline-button--block customer-period-request" (click)="requestFunds.emit(period)">Request funds</button>
             }
             @if (canRequestCancellation) {
-              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="requestCancellation.emit(period)">Request cancellation</button>
+              <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openSupport('cancellation-request')">Request cancellation</button>
             }
 
               <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openDocuments()">Files</button>
@@ -148,6 +149,28 @@ const MPESA_DETAILS = [
       </div>
     }
 
+    @if (period && supportOpen) {
+      <div class="baseline-modal-backdrop customer-period-backdrop" role="presentation" (click)="closeSupport()">
+        <section class="baseline-modal customer-period-modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="period.id + '-support-title'" (click)="$event.stopPropagation()">
+          <header class="baseline-modal__head customer-period-modal__head">
+            <div class="customer-period-modal__heading">
+              <button type="button" class="baseline-button baseline-button--secondary customer-modal-back" (click)="closeSupport()"><app-portal-action-icon name="arrow-left" /><span>Back</span></button>
+              <div><p class="page-eyebrow">Support</p><h2 [id]="period.id + '-support-title'">Support request</h2><small>{{ period.reference }}</small></div>
+            </div>
+            <button type="button" class="baseline-modal__close" aria-label="Close" (click)="close.emit()">&times;</button>
+          </header>
+          <div class="baseline-modal__body customer-period-modal__body">
+            <app-contextual-support-form
+              [contextLabel]="'financing period ' + period.reference"
+              [periodReference]="period.reference"
+              [relationshipId]="period.relationshipId"
+              [defaultType]="supportDefaultType"
+            />
+          </div>
+        </section>
+      </div>
+    }
+
     @if (period && repaymentOpen) {
       <div class="baseline-modal-backdrop customer-period-backdrop" role="presentation" (click)="closeRepayment()">
         <section class="baseline-modal customer-period-modal" role="dialog" aria-modal="true" [attr.aria-labelledby]="period.id + '-repayment-title'" (click)="$event.stopPropagation()">
@@ -158,7 +181,8 @@ const MPESA_DETAILS = [
           <div class="baseline-modal__body customer-period-modal__body">
             <div class="customer-repayment-summary"><span>{{ amountDueLabel }}</span><strong>{{ formatKes(period.amountDue) }}</strong><small>{{ period.relationshipName }} · Due {{ formatDate(period.repaymentDueDate) }}</small></div>
             @if (period.settlementMode === 'buyer-payment') {
-              <section class="customer-settlement-card"><div><span>Buyer</span><strong>{{ period.relationshipName }}</strong></div><div><span>Payment destination</span><strong>Your Avenews Clearing Account</strong></div><div><span>Financing period</span><strong>{{ period.reference }}</strong></div></section>
+              <section class="customer-settlement-card"><div><span>Buyer</span><strong>{{ period.relationshipName }}</strong></div><div><span>Payment destination</span><strong>Your Clearing Account</strong></div><div><span>Financing period</span><strong>{{ period.reference }}</strong></div></section>
+              <app-clearing-account-details [supplierName]="clientBusinessName" [reference]="period.reference" [showReference]="false" />
               <div class="customer-period-note">When the buyer pays, Avenews settles the outstanding financing and sends any remaining amount to you.</div>
             } @else {
               <div class="customer-payment-methods" role="tablist" aria-label="Repayment method"><button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'bank'" [class.is-active]="repaymentMethod === 'bank'" (click)="repaymentMethod = 'bank'">Bank Transfer</button><button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'mpesa'" [class.is-active]="repaymentMethod === 'mpesa'" (click)="repaymentMethod = 'mpesa'">M-Pesa Paybill</button></div>
@@ -251,7 +275,6 @@ const MPESA_DETAILS = [
 export class CustomerFinancingPeriodModalComponent implements OnChanges {
   private readonly invoiceStore=inject(InvoiceDocumentsStore)
   private readonly cdr=inject(ChangeDetectorRef)
-  private readonly router=inject(Router)
   private copyResetTimer: ReturnType<typeof setTimeout> | undefined
   get periodInvoices(){return this.period?this.invoiceStore.periodInvoices(this.period.id,'supplier'):[]}
   @Input() period: CustomerFinancingPeriod | null = null
@@ -267,6 +290,8 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
 
   repaymentOpen = false
   documentsOpen = false
+  supportOpen = false
+  supportDefaultType = 'financing-period-question'
   repaymentMethod: RepaymentMethod = 'bank'
   toast = ''
   copiedDetailLabel = ''
@@ -274,6 +299,7 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   readonly bankDetails = BANK_DETAILS
   readonly mpesaDetails = MPESA_DETAILS
   readonly clientPhone = PROFILE.contact.phone ?? 'Your registered phone number'
+  readonly clientBusinessName = BUSINESS.name
   readonly fundsRequestSnapshotUrl = FUNDS_REQUEST_SNAPSHOT_URL
   readonly formatDate = formatDate
   readonly formatKes = formatKes
@@ -282,6 +308,8 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
     if (changes['period']) {
       this.repaymentOpen = false
       this.documentsOpen = false
+      this.supportOpen = false
+      this.supportDefaultType = 'financing-period-question'
       this.repaymentMethod = 'bank'
       this.toast = ''
       this.resetCopiedDetail()
@@ -334,9 +362,15 @@ export class CustomerFinancingPeriodModalComponent implements OnChanges {
   }
 
   contactSupport():void {
-    if(this.productId!=='invoice-financing'||!this.period)return
-    void this.router.navigate(['/experience','invoice-financing','support'],{queryParams:{type:'financing-period-question',period:this.period.reference,relationship:this.period.relationshipId}})
+    this.openSupport('financing-period-question')
   }
+
+  openSupport(type='financing-period-question'):void {
+    if(this.productId!=='invoice-financing'||!this.period)return
+    this.supportDefaultType=type
+    this.supportOpen=true
+  }
+  closeSupport():void { this.supportOpen=false }
 
   openDocuments(): void { this.documentsOpen = true }
   closeDocuments(): void { this.documentsOpen = false }
