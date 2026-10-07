@@ -203,14 +203,26 @@
             <div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div>
           </dl>
           @if (period.paymentStatusKey !== 'paid') {
-            <div class="partner-payment-destination"><strong>Pay into: {{ supplier.business }} Clearing Account (managed by Avenews)</strong></div>
             <button type="button" class="baseline-button baseline-button--secondary baseline-button--block partner-copy-reference" [class.is-copied]="paymentReferenceCopied" (click)="copyPaymentReference(period.paymentReference)">{{ paymentReferenceCopied ? 'Copied' : 'Copy payment reference' }}</button>
             <app-clearing-account-details [supplierId]="supplier.id" [supplierName]="supplier.business" [reference]="period.paymentReference" />
             <div class="partner-attention-note">Your payment is applied to this financing period. Avenews settles the supplier's financing and sends any remaining proceeds according to the supplier agreement.</div>
           } @else {
             <div class="partner-attention-note">This payment has been received. No further payment is due for this financing period.</div>
           }
-          <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openPaymentSupport(period)">Contact support</button>
+          @if (!periodSupportOpen) {
+            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openPaymentSupport(period)">Contact support about this period</button>
+          } @else {
+            <section class="partner-period-support">
+              <div class="partner-period-support__head"><h3>Support request</h3><button type="button" class="invoice-text-action" (click)="closePaymentSupport()">Close support form</button></div>
+              <app-contextual-support-form
+                [contextLabel]="'financing period ' + period.reference"
+                [periodReference]="period.reference"
+                [relationshipId]="supplier.id"
+                [paymentReference]="period.paymentReference"
+                defaultType="payment-question"
+              />
+            </section>
+          }
           <details class="partner-period-invoices"><summary>Invoices ({{documents.periodInvoices(period.id,'partner').length}})</summary><app-customer-invoices role="partner" [embedded]="true" [periodId]="period.id" /></details>
         }
       </div>
