@@ -213,7 +213,7 @@
             <button type="button" class="baseline-button baseline-button--secondary baseline-button--block" (click)="openPaymentSupport(period)">Contact support about this period</button>
           } @else {
             <section class="partner-period-support">
-              <div class="partner-period-support__head"><h3>Support request</h3><button type="button" class="invoice-text-action" (click)="closePaymentSupport()">Close support form</button></div>
+              <div class="partner-period-support__head"><h3>Support request</h3><button type="button" class="baseline-button baseline-button--secondary" (click)="closePaymentSupport()">Close support form</button></div>
               <app-contextual-support-form
                 [contextLabel]="'financing period ' + period.reference"
                 [periodReference]="period.reference"
