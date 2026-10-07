@@ -262,3 +262,26 @@ Validation:
 - Deployed Preview 87 checks: the same 44 baseline checks and 168 refinement checks passed.
 - Desktop, tablet, mobile and 320px minimum-mobile viewports are covered.
 - PR #86 remains untouched as the rollback baseline.
+
+
+## Follow-up review: clearing account copy cleanup
+
+Status: Implemented, validation pending
+
+Issue: #94
+
+Summary:
+- Changed the supplier Invoice Financing buyer-payment view heading from the supplier business name to `Your clearing account details`.
+- Removed the standalone `Copy payment reference` button from Partner Buyer payment details.
+- Kept one payment reference and one copy control inside the Clearing Account details component.
+- Added this follow-up to the in-app Developer Changelog before validation.
+
+Files changed:
+- `src/app/shared/clearing-account-details.component.ts`
+- `src/app/shared/customer-financing-period-modal.component.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.html`
+- `src/app/features/partner-workspace/partner-workspace.component.ts`
+- `src/app/shared/staging-changelog.data.ts`
+
+Validation:
+- Pending exact-head build and browser regression.
