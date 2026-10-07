@@ -203,7 +203,6 @@
             <div class="partner-detail-grid__wide"><dt>Payment Reference</dt><dd>{{ period.paymentReference }}</dd></div>
           </dl>
           @if (period.paymentStatusKey !== 'paid') {
-            <button type="button" class="baseline-button baseline-button--secondary baseline-button--block partner-copy-reference" [class.is-copied]="paymentReferenceCopied" (click)="copyPaymentReference(period.paymentReference)">{{ paymentReferenceCopied ? 'Copied' : 'Copy payment reference' }}</button>
             <app-clearing-account-details [supplierId]="supplier.id" [supplierName]="supplier.business" [reference]="period.paymentReference" />
             <div class="partner-attention-note">Your payment is applied to this financing period. Avenews settles the supplier's financing and sends any remaining proceeds according to the supplier agreement.</div>
           } @else {
