@@ -1,13 +1,13 @@
 import { ChangeDetectorRef, Component, Input, OnChanges, OnDestroy, inject } from '@angular/core'
-import { clearingAccountFor } from '../core/experience/invoice-portal.data'
+import { clearingAccountFor, clearingAccountForBusiness } from '../core/experience/invoice-portal.data'
 @Component({selector:'app-clearing-account-details',standalone:true,
  template:`<section class="clearing-instructions" aria-label="Clearing account details">
-  <h3>{{supplierName ? 'Pay into: '+supplierName+' Clearing Account (managed by Avenews)' : 'Clearing account details'}}</h3>
+  <h3>{{supplierName ? 'Pay into: '+supplierName+' Clearing Account' : 'Clearing account details'}}</h3>
   @if(account;as a){
    @if(a.paybill){<div class="customer-payment-methods" role="tablist" aria-label="Payment method"><button type="button" role="tab" [attr.aria-selected]="method==='bank'" [class.is-active]="method==='bank'" (click)="method='bank'">Bank Transfer</button><button type="button" role="tab" [attr.aria-selected]="method==='mpesa'" [class.is-active]="method==='mpesa'" (click)="method='mpesa'">M-Pesa Paybill</button></div>}
    <div class="customer-payment-details">
     @for(field of fields;track field.label){<div><span><small>{{field.label}}</small><strong>{{field.value}}</strong></span><button type="button" [class.is-copied]="copiedLabel===field.label" [attr.aria-label]="(copiedLabel===field.label?'Copied ':'Copy ')+field.label.toLowerCase()" (click)="copy(field.value,field.label)">{{copiedLabel===field.label?'Copied':'Copy'}}</button></div>}
-    <div><span><small>Payment reference</small><strong>{{reference}}</strong></span><button type="button" [class.is-copied]="copiedLabel==='Payment reference'" [attr.aria-label]="copiedLabel==='Payment reference'?'Copied payment reference':'Copy payment reference'" (click)="copy(reference,'Payment reference')">{{copiedLabel==='Payment reference'?'Copied':'Copy'}}</button></div>
+    @if(showReference){<div><span><small>Payment reference</small><strong>{{reference}}</strong></span><button type="button" [class.is-copied]="copiedLabel==='Payment reference'" [attr.aria-label]="copiedLabel==='Payment reference'?'Copied payment reference':'Copy payment reference'" (click)="copy(reference,'Payment reference')">{{copiedLabel==='Payment reference'?'Copied':'Copy'}}</button></div>}
    </div>
   }@else{<p class="clearing-unavailable">Clearing account details are not available. Contact Avenews to confirm the account before paying.</p>}
   @if(message){<p role="status" aria-live="polite">{{message}}</p>}
@@ -18,12 +18,13 @@ export class ClearingAccountDetailsComponent implements OnChanges, OnDestroy {
  @Input() supplierId=''
  @Input() supplierName=''
  @Input() reference=''
+ @Input() showReference=true
  private readonly cdr=inject(ChangeDetectorRef)
  private resetTimer: ReturnType<typeof setTimeout>|undefined
  method:'bank'|'mpesa'='bank';message='';copiedLabel=''
  ngOnChanges():void{this.method='bank';this.message='';this.clearCopiedState()}
  ngOnDestroy():void{this.clearCopiedState()}
- get account(){return clearingAccountFor(this.supplierId)}
+ get account(){return this.supplierId?clearingAccountFor(this.supplierId):clearingAccountForBusiness(this.supplierName)}
  get fields():{label:string;value:string}[]{const a=this.account;if(!a)return[];if(this.method==='mpesa'&&a.paybill)return[{label:'Paybill number',value:a.paybill},{label:'Account name',value:a.name},{label:'Account reference',value:a.accountReference??this.reference}];return[{label:'Bank',value:a.bank},{label:'Account name',value:a.name},{label:'Account number',value:a.number},...(a.branchCode?[{label:'Branch code',value:a.branchCode}]:[]),...(a.branch?[{label:'Branch name',value:a.branch}]:[])]}
  async copy(value:string,label:string):Promise<void>{
   const copied=await this.writeToClipboard(value)
