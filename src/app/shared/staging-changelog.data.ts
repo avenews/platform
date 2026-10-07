@@ -16,6 +16,18 @@ export interface StagingChangelogEntry {
  */
 export const STAGING_CHANGELOG: readonly StagingChangelogEntry[] = [
   {
+    id: 'pr-87-clearing-account-copy-cleanup',
+    stagingDate: '7 Oct 2026',
+    prNumber: 87,
+    title: 'Review follow-up: clearing account copy cleanup',
+    contributor: 'Stefan, ChatGPT-assisted',
+    summary: [
+      'Changed the supplier Invoice Financing payment view heading to Your clearing account details.',
+      'Removed the duplicate standalone Copy payment reference button from Partner Buyer payment details.',
+      'Kept the payment reference and its single copy control inside the Clearing Account details.',
+    ],
+  },
+  {
     id: 'pr-87-follow-up-modal-support',
     stagingDate: '7 Oct 2026',
     prNumber: 87,
