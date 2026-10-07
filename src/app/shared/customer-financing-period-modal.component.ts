@@ -182,7 +182,7 @@ const MPESA_DETAILS = [
             <div class="customer-repayment-summary"><span>{{ amountDueLabel }}</span><strong>{{ formatKes(period.amountDue) }}</strong><small>{{ period.relationshipName }} · Due {{ formatDate(period.repaymentDueDate) }}</small></div>
             @if (period.settlementMode === 'buyer-payment') {
               <section class="customer-settlement-card"><div><span>Buyer</span><strong>{{ period.relationshipName }}</strong></div><div><span>Payment destination</span><strong>Your Clearing Account</strong></div><div><span>Financing period</span><strong>{{ period.reference }}</strong></div></section>
-              <app-clearing-account-details [supplierName]="clientBusinessName" [reference]="period.reference" [showReference]="false" />
+              <app-clearing-account-details [supplierName]="clientBusinessName" heading="Your clearing account details" [reference]="period.reference" [showReference]="false" />
               <div class="customer-period-note">When the buyer pays, Avenews settles the outstanding financing and sends any remaining amount to you.</div>
             } @else {
               <div class="customer-payment-methods" role="tablist" aria-label="Repayment method"><button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'bank'" [class.is-active]="repaymentMethod === 'bank'" (click)="repaymentMethod = 'bank'">Bank Transfer</button><button type="button" role="tab" [attr.aria-selected]="repaymentMethod === 'mpesa'" [class.is-active]="repaymentMethod === 'mpesa'" (click)="repaymentMethod = 'mpesa'">M-Pesa Paybill</button></div>
