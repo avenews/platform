@@ -20,7 +20,6 @@ export class SupportComponent {
     { value: 'repayment-question', label: 'Repayment question' },
     { value: 'funds-request-issue', label: 'Problem requesting funds' },
     { value: 'cancellation-request', label: 'Request cancellation' },
-    { value: 'invoice-question', label: 'Invoice question' },
     { value: 'financing-period-question', label: 'Financing period question' },
     { value: 'invoice-processing', label: 'Invoice processing issue' },
     { value: 'other', label: 'Something else' },
