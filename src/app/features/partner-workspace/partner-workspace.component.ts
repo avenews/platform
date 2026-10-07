@@ -7,6 +7,7 @@ import { InvoiceHelpComponent } from '../../shared/invoice-help.component'
 import { InvoiceUploadComponent } from '../../shared/invoice-upload.component'
 import { CustomerInvoicesComponent } from '../customer-invoices/customer-invoices.component'
 import { ClearingAccountDetailsComponent } from '../../shared/clearing-account-details.component'
+import { ContextualSupportFormComponent } from '../../shared/contextual-support-form.component'
 import { InvoiceDocumentsStore, invoiceRelationshipTerms } from '../../core/experience/invoice-portal.data'
 import { PARTNER_UPLOAD_BATCHES, PARTNER_SUPPLIERS, PARTNER_PERIODS, type PartnerSection, type UploadBatch, type PartnerSupplierRow, type PartnerPeriod } from '../../core/experience/partner-workspace.data'
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, inject } from '@angular/core'
@@ -21,7 +22,7 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 @Component({
   selector: 'app-partner-workspace',
   standalone: true,
-  imports: [PartnerRebateModalComponent, AvTabsComponent, PortalTabsAccessibilityDirective, PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent],
+  imports: [PartnerRebateModalComponent, AvTabsComponent, PortalTabsAccessibilityDirective, PortalActionIconComponent, CustomerFilterBarComponent, InvoiceHelpComponent, InvoiceUploadComponent, CustomerInvoicesComponent, ClearingAccountDetailsComponent, ContextualSupportFormComponent],
   templateUrl: './partner-workspace.component.html',
   styleUrl: './partner-workspace.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +60,7 @@ export class PartnerWorkspaceComponent {
   returnSupplierPeriodsOpen = false
   toast = ''
   paymentReferenceCopied = false
+  periodSupportOpen = false
   private paymentReferenceCopyTimer: ReturnType<typeof setTimeout> | undefined
 
   supplierSearch = ''
@@ -328,13 +330,11 @@ export class PartnerWorkspaceComponent {
   openSupplierPeriods(): void { if (!this.selectedSupplier) return; this.resetSupplierPeriodList(); this.supplierPeriodsOpen = true }
   closeSupplierPeriods(): void { this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
   openSupplierPeriod(period: PartnerPeriod): void { this.resetPaymentReferenceCopyState(); this.returnSupplier = this.selectedSupplier; this.returnSupplierPeriodsOpen = this.supplierPeriodsOpen; this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.selectedPeriod = period }
-  openPaymentPeriod(period: PartnerPeriod): void { this.closeDetailModals(); this.resetPaymentReferenceCopyState(); this.selectedPeriod = period }
-  openPaymentSupport(period:PartnerPeriod):void {
-    const supplier=this.supplierForPeriod(period)
-    void this.router.navigate(['/experience','invoice-partner','support'],{queryParams:{type:'payment-question',period:period.reference,payment:period.paymentReference,supplier:supplier?.id??''}})
-  }
-  backToSupplier(): void { this.resetPaymentReferenceCopyState(); this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null; this.supplierPeriodsOpen = this.returnSupplierPeriodsOpen; this.returnSupplierPeriodsOpen = false }
-  closePeriod(): void { this.resetPaymentReferenceCopyState(); this.selectedPeriod = null; this.returnSupplier = null; this.returnSupplierPeriodsOpen = false }
+  openPaymentPeriod(period: PartnerPeriod): void { this.closeDetailModals(); this.resetPaymentReferenceCopyState(); this.periodSupportOpen=false; this.selectedPeriod = period }
+  openPaymentSupport(period:PartnerPeriod):void { if(this.selectedPeriod?.id===period.id)this.periodSupportOpen=true }
+  closePaymentSupport():void { this.periodSupportOpen=false }
+  backToSupplier(): void { this.resetPaymentReferenceCopyState(); this.periodSupportOpen=false; this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null; this.supplierPeriodsOpen = this.returnSupplierPeriodsOpen; this.returnSupplierPeriodsOpen = false }
+  closePeriod(): void { this.resetPaymentReferenceCopyState(); this.periodSupportOpen=false; this.selectedPeriod = null; this.returnSupplier = null; this.returnSupplierPeriodsOpen = false }
 
   onSupplierSearchValueChange(value: string): void { this.supplierSearch = value; this.supplierPage = 1 }
   onSupplierFilterValuesChange(values: Record<string, string>): void { this.supplierStatusFilter = values['supplierStatus'] ?? ''; this.supplierPage = 1 }
