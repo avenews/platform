@@ -10,7 +10,7 @@ import { ClearingAccountDetailsComponent } from '../../shared/clearing-account-d
 import { ContextualSupportFormComponent } from '../../shared/contextual-support-form.component'
 import { InvoiceDocumentsStore, invoiceRelationshipTerms } from '../../core/experience/invoice-portal.data'
 import { PARTNER_UPLOAD_BATCHES, PARTNER_SUPPLIERS, PARTNER_PERIODS, type PartnerSection, type UploadBatch, type PartnerSupplierRow, type PartnerPeriod } from '../../core/experience/partner-workspace.data'
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, Input, inject } from '@angular/core'
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core'
 import { ActivatedRoute, Router } from '@angular/router'
 import {
   CustomerFilterBarComponent,
@@ -30,7 +30,6 @@ import { formatDate, formatKes } from '../../shared/customer-portal.data'
 export class PartnerWorkspaceComponent {
   private readonly route = inject(ActivatedRoute)
   private readonly router = inject(Router)
-  private readonly cdr = inject(ChangeDetectorRef)
 
   @Input() section = (this.route.snapshot.data['section'] ?? 'invoice-uploads') as PartnerSection
   @Input() embeddedPayments=false
@@ -59,9 +58,7 @@ export class PartnerWorkspaceComponent {
   supplierPeriodsOpen = false
   returnSupplierPeriodsOpen = false
   toast = ''
-  paymentReferenceCopied = false
   periodSupportOpen = false
-  private paymentReferenceCopyTimer: ReturnType<typeof setTimeout> | undefined
 
   supplierSearch = ''
   supplierStatusFilter = ''
@@ -329,12 +326,12 @@ export class PartnerWorkspaceComponent {
   closeSupplier(): void { this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
   openSupplierPeriods(): void { if (!this.selectedSupplier) return; this.resetSupplierPeriodList(); this.supplierPeriodsOpen = true }
   closeSupplierPeriods(): void { this.supplierPeriodsOpen = false; this.resetSupplierPeriodList() }
-  openSupplierPeriod(period: PartnerPeriod): void { this.resetPaymentReferenceCopyState(); this.returnSupplier = this.selectedSupplier; this.returnSupplierPeriodsOpen = this.supplierPeriodsOpen; this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.selectedPeriod = period }
-  openPaymentPeriod(period: PartnerPeriod): void { this.closeDetailModals(); this.resetPaymentReferenceCopyState(); this.periodSupportOpen=false; this.selectedPeriod = period }
+  openSupplierPeriod(period: PartnerPeriod): void { this.returnSupplier = this.selectedSupplier; this.returnSupplierPeriodsOpen = this.supplierPeriodsOpen; this.selectedSupplier = null; this.supplierPeriodsOpen = false; this.selectedPeriod = period }
+  openPaymentPeriod(period: PartnerPeriod): void { this.closeDetailModals(); this.periodSupportOpen=false; this.selectedPeriod = period }
   openPaymentSupport(period:PartnerPeriod):void { if(this.selectedPeriod?.id===period.id)this.periodSupportOpen=true }
   closePaymentSupport():void { this.periodSupportOpen=false }
-  backToSupplier(): void { this.resetPaymentReferenceCopyState(); this.periodSupportOpen=false; this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null; this.supplierPeriodsOpen = this.returnSupplierPeriodsOpen; this.returnSupplierPeriodsOpen = false }
-  closePeriod(): void { this.resetPaymentReferenceCopyState(); this.periodSupportOpen=false; this.selectedPeriod = null; this.returnSupplier = null; this.returnSupplierPeriodsOpen = false }
+  backToSupplier(): void { this.periodSupportOpen=false; this.selectedPeriod = null; if (this.returnSupplier) this.selectedSupplier = this.returnSupplier; this.returnSupplier = null; this.supplierPeriodsOpen = this.returnSupplierPeriodsOpen; this.returnSupplierPeriodsOpen = false }
+  closePeriod(): void { this.periodSupportOpen=false; this.selectedPeriod = null; this.returnSupplier = null; this.returnSupplierPeriodsOpen = false }
 
   onSupplierSearchValueChange(value: string): void { this.supplierSearch = value; this.supplierPage = 1 }
   onSupplierFilterValuesChange(values: Record<string, string>): void { this.supplierStatusFilter = values['supplierStatus'] ?? ''; this.supplierPage = 1 }
@@ -350,48 +347,6 @@ export class PartnerWorkspaceComponent {
   onSupplierPeriodFilterValuesChange(values: Record<string, string>): void { this.supplierPeriodPeriodStatusFilter = values['periodStatus'] ?? ''; this.supplierPeriodPaymentStatusFilter = values['paymentStatus'] ?? ''; this.supplierPeriodPage = 1 }
   onSupplierPeriodSortValueChange(value: string): void { this.supplierPeriodSort = value; this.supplierPeriodPage = 1 }
   changeSupplierPeriodPage(page: number): void { this.supplierPeriodPage = Math.min(Math.max(1, page), this.supplierPeriodTotalPages) }
-
-  async copyPaymentReference(reference: string): Promise<void> {
-    const copied = await this.writeToClipboard(reference)
-    if (copied) {
-      this.paymentReferenceCopied = true
-      this.toast = 'Payment reference copied.'
-      if (this.paymentReferenceCopyTimer) clearTimeout(this.paymentReferenceCopyTimer)
-      this.paymentReferenceCopyTimer = setTimeout(() => {
-        this.paymentReferenceCopied = false
-        this.cdr.markForCheck()
-      }, 1600)
-    } else {
-      this.paymentReferenceCopied = false
-      this.toast = `Select and copy payment reference: ${reference}`
-    }
-    this.cdr.markForCheck()
-  }
-
-  private async writeToClipboard(value: string): Promise<boolean> {
-    try {
-      if (navigator.clipboard?.writeText) {
-        await navigator.clipboard.writeText(value)
-        return true
-      }
-    } catch {}
-    const textarea = document.createElement('textarea')
-    textarea.value = value
-    textarea.setAttribute('readonly', '')
-    textarea.style.position = 'fixed'
-    textarea.style.opacity = '0'
-    document.body.appendChild(textarea)
-    textarea.select()
-    try { return document.execCommand('copy') }
-    catch { return false }
-    finally { textarea.remove() }
-  }
-
-  private resetPaymentReferenceCopyState(): void {
-    if (this.paymentReferenceCopyTimer) clearTimeout(this.paymentReferenceCopyTimer)
-    this.paymentReferenceCopyTimer = undefined
-    this.paymentReferenceCopied = false
-  }
 
   private resetSupplierPeriodList(): void {
     this.supplierPeriodSearch = ''
