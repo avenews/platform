@@ -63,8 +63,9 @@ test('Partner Home and Payments have different summaries but share original paym
 
 test('partner payment modal retains original full amount and contains clearing details plus no-file invoices',async({page},info)=>{
  await goto(page,'invoice-partner/obligations');const row=page.locator('.partner-payments-table tbody tr:visible,.partner-workspace-cards .partner-payment-card:visible').filter({hasText:'PER-2026-08-15-COAST'});await row.getByRole('button',{name:'View payment'}).click();const modal=page.getByRole('dialog')
- await expect(modal.locator('.partner-payment-total')).toContainText('Ksh 1,040,000');await expect(modal).toContainText('Coastline Produce Ltd Clearing Account (managed by Avenews)');await expect(modal).toContainText('DEMO-SUP-0133');await expect(modal).not.toContainText('2046346095')
+ await expect(modal.locator('.partner-payment-total')).toContainText('Ksh 1,040,000');await expect(modal.getByText('Pay into: Coastline Produce Ltd Clearing Account',{exact:true})).toHaveCount(1);await expect(modal).not.toContainText('(managed by Avenews)');await expect(modal).toContainText('DEMO-SUP-0133');await expect(modal).not.toContainText('2046346095')
  await modal.getByRole('button',{name:'Copy account number',exact:true}).click();await expect(modal.locator('[role="status"]')).toContainText(/copied|Select and copy/)
+ const url=page.url();await modal.getByRole('button',{name:'Contact support about this period',exact:true}).click();await expect(page).toHaveURL(url);await expect(modal.locator('app-contextual-support-form')).toBeVisible();await modal.getByRole('button',{name:'Close support form',exact:true}).click()
  await modal.locator('summary').filter({hasText:'Invoices (9)'}).click();await expect(invoices(modal)).toHaveCount(9);await expect(modal.getByRole('link',{name:'View invoice',exact:true})).toHaveCount(0)
  await page.screenshot({path:info.outputPath('partner-period.png'),fullPage:true})
 })
@@ -86,4 +87,13 @@ test('original card and invoice table visual properties match the preserved fall
  await goto(page,'invoice-financing/invoices');await ref.goto(reference+'/experience/invoice-financing/invoices');await expect(ref.locator('app-customer-invoices')).toBeVisible();await ref.evaluate(()=>document.fonts.ready)
  if(page.viewportSize()!.width>=768){for(const selector of ['.invoice-files-table','.invoice-files-table td:not(:first-child)','.invoice-files-table th','.invoice-files-table .baseline-button'])expect(await style(page,selector)).toEqual(await style(ref,selector))}else{for(const selector of ['.invoice-file-card','.invoice-file-card .baseline-button'])expect(await style(page,selector)).toEqual(await style(ref,selector))}
  await ref.close()
+})
+
+
+test('partner supplier identifiers stay secondary and long statuses wrap',async({page})=>{
+ await goto(page,'invoice-partner/suppliers')
+ const coast=page.locator('.partner-suppliers-table tbody tr:visible,.partner-workspace-cards .partner-supplier-card:visible').filter({hasText:'Coastline Produce Ltd'}).first()
+ const identifier=coast.getByText('SUP-0133',{exact:true});expect(Number(await identifier.evaluate(e=>getComputedStyle(e).fontWeight))).toBeLessThanOrEqual(400)
+ const status=coast.getByText('Blocked by overdue payment',{exact:true});expect(await status.evaluate(e=>getComputedStyle(e).whiteSpace)).toBe('normal')
+ const box=await status.boundingBox();expect(box!.width).toBeLessThanOrEqual((await coast.boundingBox())!.width)
 })
