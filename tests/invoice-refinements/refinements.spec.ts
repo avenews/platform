@@ -72,7 +72,7 @@ test('modal main actions share a desktop row and stack on mobile, with Lucide Ba
   await page.screenshot({path:info.outputPath('modal-actions.png'),fullPage:true});await modal.getByRole('button',{name:'Close',exact:true}).click();modal=await modalPeriod(page,'DP-2026-08-15-FRESH')
   await modal.getByRole('button',{name:'Payment details',exact:true}).click();modal=page.getByRole('dialog');await expect(modal.getByRole('button',{name:'Back',exact:true}).locator('svg')).toHaveAttribute('viewBox','0 0 24 24')
   for(const value of await modal.locator('.customer-settlement-card>div>strong').all())expect(await value.evaluate(e=>getComputedStyle(e).textAlign)).toBe('right')
-  await expect(modal).toContainText('Your Clearing Account');await expect(modal).toContainText('Pay into: Kioko Agri Supplies Ltd Clearing Account');await expect(modal).toContainText('DEMO-SUP-0042');await expect(modal).not.toContainText('(managed by Avenews)');await page.screenshot({path:info.outputPath('payment-alignment.png'),fullPage:true})
+  await expect(modal).toContainText('Your Clearing Account');await expect(modal.getByText('Your clearing account details',{exact:true})).toBeVisible();await expect(modal).not.toContainText('Pay into: Kioko Agri Supplies Ltd Clearing Account');await expect(modal).toContainText('DEMO-SUP-0042');await expect(modal).not.toContainText('(managed by Avenews)');await page.screenshot({path:info.outputPath('payment-alignment.png'),fullPage:true})
 })
 
 test('buyer details show complete grids, full-width Settlement and upload responsibility below the name',async({page},info) => {
@@ -123,7 +123,7 @@ test('invoice actions stay file-only and financing period support remains in the
 test('Developer Changelog lists every PR87 pass and the follow-up',async({page}) => {
   await goto(page,'../changelog')
   const entries=page.locator('.changelog-entry').filter({hasText:'PR #87'})
-  await expect(entries).toHaveCount(6)
+  await expect(entries).toHaveCount(7)
   for(const title of [
     'Pass 1: data foundation, statuses and pagination',
     'Pass 2: invoice upload modes and lifecycle',
@@ -131,5 +131,6 @@ test('Developer Changelog lists every PR87 pass and the follow-up',async({page})
     'Pass 4: Partner Buyer payments, visibility, support and rebates',
     'Pass 5: cross-portal reconciliation and QA',
     'Review follow-up: modal support and payment detail cleanup',
+    'Review follow-up: clearing account copy cleanup',
   ]) await expect(page.getByRole('heading',{name:title,exact:true})).toBeVisible()
 })
