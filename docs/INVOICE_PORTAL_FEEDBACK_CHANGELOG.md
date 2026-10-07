@@ -225,7 +225,7 @@ Known limitations:
 
 ## Follow-up review: in-modal support and payment detail cleanup
 
-Status: Implemented, validation pending
+Status: Completed and validated
 
 Issue: #93
 
@@ -255,4 +255,10 @@ Files changed:
 - `src/app/shared/staging-changelog.data.ts`
 
 Validation:
-- Pending exact-head build and browser regression for this follow-up.
+- Validated application head: `038a44f8f6481ce7cf810de22aa63a300e485001`.
+- Baseline preservation, TypeScript and production build passed.
+- 20 domain checks passed.
+- Local browser checks: 44 baseline checks and 168 refinement checks passed.
+- Deployed Preview 87 checks: the same 44 baseline checks and 168 refinement checks passed.
+- Desktop, tablet, mobile and 320px minimum-mobile viewports are covered.
+- PR #86 remains untouched as the rollback baseline.
