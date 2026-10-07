@@ -221,3 +221,38 @@ Known limitations:
 - No buyer Pay, Mark as paid, proof-of-payment or dispute workflow has been added.
 - No supplier post-submission invoice editing, replacement or withdrawal workflow has been added. Incorrect submitted data is routed to Support.
 
+
+
+## Follow-up review: in-modal support and payment detail cleanup
+
+Status: Implemented, validation pending
+
+Issue: #93
+
+Summary:
+- Kept financing-period support requests inside the active modal instead of navigating to the Support page.
+- Changed supplier cancellation requests to open the same in-modal support form with the cancellation topic preselected.
+- Removed Contact support from invoice rows and cards. Invoice actions now only open the invoice file when a file exists.
+- Removed the standalone Invoice question topic from the general Support page.
+- Allowed long status pills to wrap instead of forcing table width.
+- Removed duplicate buyer payment destination wording and removed the phrase "(managed by Avenews)" from the Clearing Account heading.
+- Kept supplier identifiers such as `SUP-0133` as normal secondary metadata. Financing period references such as `PER-2026-08-15-COAST` remain the financing record references.
+- Added the logged-in supplier Clearing Account details to the Invoice Financing buyer-payment view so the supplier can easily share bank details with the buyer.
+- Added separate in-app Developer Changelog entries for PR87 Passes 1 through 5 and this follow-up.
+
+Files changed:
+- `src/app/shared/contextual-support-form.component.ts`
+- `src/app/shared/customer-financing-period-modal.component.ts`
+- `src/app/shared/clearing-account-details.component.ts`
+- `src/app/core/experience/invoice-portal.data.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.ts`
+- `src/app/features/partner-workspace/partner-workspace.component.html`
+- `src/app/features/partner-workspace/partner-workspace.component.css`
+- `src/app/features/customer-invoices/customer-invoices.component.ts`
+- `src/app/shared/customer-portal-baseline.css`
+- `src/app/features/support/support.component.ts`
+- `src/app/features/support/support.component.html`
+- `src/app/shared/staging-changelog.data.ts`
+
+Validation:
+- Pending exact-head build and browser regression for this follow-up.
