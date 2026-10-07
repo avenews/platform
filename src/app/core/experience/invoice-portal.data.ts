@@ -97,6 +97,10 @@ export function clearingAccountFor(supplierId: string): ClearingAccount | null {
   if(!supplier || supplierId==='supplier-eldoret') return null
   return {bank:'ABSA Bank Kenya PLC',name:`Client Clearing Account - ${supplier.business}`,number:`DEMO-${supplier.identifier}`,branch:'Headquarters',branchCode:'03400'}
 }
+export function clearingAccountForBusiness(businessName:string):ClearingAccount|null {
+  const supplier=PARTNER_SUPPLIERS.find(s=>s.business===businessName)
+  return supplier?clearingAccountFor(supplier.id):null
+}
 // Period-linked partner invoice fixtures provide the new invoice view without
 // altering preview-77 period totals. Source files are intentionally optional.
 export const PARTNER_INVOICES: readonly FinancingDocument[] = PARTNER_PERIODS.flatMap(p => {
