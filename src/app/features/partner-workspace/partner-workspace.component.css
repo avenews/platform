@@ -97,6 +97,30 @@
   color: var(--av-color-action, #16b3c4);
 }
 
+.partner-supplier-name-button .baseline-financing-cell > span,
+.partner-payments-table .baseline-financing-cell > span {
+  font-weight: 400;
+}
+
+.partner-period-support {
+  display: grid;
+  gap: 14px;
+  padding-top: 4px;
+}
+
+.partner-period-support__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.partner-period-support__head h3 {
+  margin: 0;
+  color: var(--av-color-text-heading, #0d343f);
+  font-size: 16px;
+}
+
 .partner-workspace-cards {
   display: none;
 }
@@ -557,4 +581,3 @@
   }
 }
 
-.partner-payment-destination{padding:12px 14px;border:1px solid var(--av-color-primary-border,#bdeff3);border-radius:8px;background:var(--av-color-primary-subtle,#eefbfc);color:var(--av-color-text-heading,#0d343f);font-size:13px}
